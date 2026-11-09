@@ -1,12 +1,18 @@
-// suggest-recipe: dado un café (origen, proceso, variedad, tueste, notas) y un método de
-// preparación, devuelve una receta específica con parámetros y pasos, generada por IA (Gemini o Claude).
+// suggest-recipe: dado un café (opcional), una familia de método, un dripper, la cantidad
+// y preferencias, devuelve una receta específica con parámetros y pasos, generada por IA
+// (Gemini o Claude, ver _shared/ai.ts).
 //
 // Body: {
-//   coffee: { name, roaster_name, origin_country, region, variety, process, altitude_masl,
-//             roast_level, roast_profile, tasting_notes, roast_date },
-//   brew_method: "V60" | "Aeropress" | "Espresso" | "Chemex" | "Prensa francesa" | "Moka" | "Kalita" | string,
-//   equipment?: string,        // ej. "molino Comandante C40, balanza, hervidor con control de temperatura"
-//   preferences?: string       // ej. "me gusta más dulce y con cuerpo"
+//   coffee?: { name, roaster_name, origin_country, region, farm, variety, process, altitude_masl,
+//              roast_level, roast_profile, tasting_notes, roast_date } | null,
+//   coffee_description?: string,     // texto libre si no hay café escaneado ("Etiopía natural tueste claro")
+//   method_family: "conico" | "flat" | "inmersion" | "espresso",
+//   dripper: string,                 // ej. "V60", "Origami", "Kalita Wave", "Orea", "April", "Aeropress", "Prensa francesa", "Clever", "Espresso"
+//   servings?: number,               // tazas (filtro / inmersión). 1 taza ≈ 250 g de agua
+//   dose_g?: number,                 // gramos de café exactos (manda sobre servings; obligatorio en espresso)
+//   equipment?: string,              // ej. "Comandante C40, V60 02 plástico"
+//   preferences?: string,            // ej. "más dulce", "más brillante", "más cuerpo"
+//   brew_method?: string             // compatibilidad con la versión anterior (se usa como dripper)
 // }
 // Respuesta: { ok: true, data: Recipe } | { ok: false, error: string }
 
@@ -33,22 +39,61 @@ interface Recipe {
   rest_advice: string | null;
 }
 
-const SYSTEM = `Eres un barista campeón y formador de café de especialidad. Diseñas recetas de preparación
-adaptadas al café concreto que te describen: origen, proceso, variedad, altura, nivel y perfil de tueste,
-notas de cata y fecha de tueste.
+type Family = "conico" | "flat" | "inmersion" | "espresso";
 
-Reglas:
-- Responde en español neutro. Sin emojis.
-- Sé concreto: gramos, temperatura, molienda, tiempos. Nada de rangos vagos salvo donde sea inevitable.
-- La receta debe estar justificada por las características del café (ej. un natural de Etiopía tostado claro
-  pide más temperatura y molienda algo más fina para extraer acidez y florales; un Brasil de tueste medio
-  para espresso pide un ratio más largo si se busca dulzor).
-- Si hay fecha de tueste, considera el reposo (desgasificación) en rest_advice.
-- En "adjustments" da 3 ajustes del tipo "si sabe X, haz Y".
-- Si el método es Espresso: dose_g, yield_g, total_time, pressure_bar; water_g puede ser null.
-- Si es un método de filtro o inmersión: dose_g, water_g, ratio, water_temp_c, grind, total_time; yield_g y pressure_bar null.
-- grind_reference: si el usuario indicó su molino, da el clic/ajuste aproximado para ese molino; si no, null.
-- Pasos con marca de tiempo (ej. "0:00", "0:45") y una acción breve por paso. Entre 4 y 9 pasos.`;
+const FAMILY_LABEL: Record<Family, string> = {
+  conico: "Filtro cónico",
+  flat: "Filtro de fondo plano",
+  inmersion: "Inmersión",
+  espresso: "Espresso",
+};
+
+const SYSTEM = `Eres un barista de especialidad con formación de campeonato y vocación de profesor. Diseñas recetas
+de preparación para un amante del café que quiere entender por qué cada parámetro es como es.
+
+Tu criterio se apoya en tres escuelas, resumidas en principios (no copies textos, aplica las ideas):
+- La escuela de precisión y repetibilidad (estilo James Hoffmann): ratios en torno a 60 g de café por litro de agua
+  (1:16 a 1:17), bloom con 2 a 3 veces el peso del café durante 45 s, vertidos pocos y controlados, un giro suave
+  del cono para nivelar la cama, agua muy caliente (94-100 °C) para tuestes claros, y la molienda como la variable
+  principal de ajuste. Para cantidades grandes, molienda más gruesa y menos vertidos.
+- La escuela nórdica de limpieza y luminosidad (estilo Tim Wendelboe): tuestes claros, agua cerca del hervor,
+  pocas intervenciones, ratios 1:16 a 1:17, buscar acidez brillante y taza limpia; evitar la sobreagitación.
+- La escuela de dulzor y control de la agitación (estilo Diego Campos, campeón mundial 2021): temperaturas algo
+  más bajas (88-93 °C) para naturales, honeys y fermentaciones anaeróbicas; bloom más largo en cafés muy
+  procesados; agitación medida para subir dulzor sin astringencia; en espresso, ratios más largos para claridad.
+
+Reglas por familia de método:
+- Filtro cónico (V60, Origami, Chemex): molienda media-fina, 2 a 3 vertidos después del bloom, giro suave al
+  final, tiempo total 2:45-3:30 para 1-2 tazas. Más tazas: molienda más gruesa y hasta 4:30.
+- Filtro de fondo plano (Kalita Wave, Orea, April, Fellow Stagg): extracción más pareja y tolerante; molienda
+  media (un punto más gruesa que en cónico), vertidos en pulsos regulares de 50-60 g, poco o nada de giro,
+  tiempo total 3:00-3:45.
+- Inmersión (Aeropress, prensa francesa, Clever, Switch): molienda media a media-gruesa, infusión 2:00-4:00 según
+  el método, agitación mínima y controlada; en Aeropress indica si es método normal o invertido y la presión del
+  émbolo lenta (20-30 s).
+- Espresso: dosis 16-20 g, ratio 1:2 a 1:2.5 (hasta 1:3 para claridad en tuestes claros), 25-35 s, 9 bar;
+  temperatura 92-95 °C (tuestes claros más alto). Indica dosis, salida en gramos y tiempo.
+
+Reglas de cantidad:
+- 1 taza = 250 g de agua. Si se indican tazas, calcula el agua y deriva la dosis con el ratio elegido.
+- Si se indican gramos de café, respétalos y calcula el agua con el ratio.
+- Más de 2 tazas en un filtro: molienda más gruesa, vertidos más grandes y tiempo total mayor; sugiere el tamaño
+  de dripper adecuado (ej. V60 02 o 03) en grind_reference o en la justificación.
+
+Reglas de salida:
+- Español neutro, sin emojis. Tildes correctas (café, extracción, molienda, preinfusión).
+- Concreto: gramos, temperatura, molienda, tiempos. Nada de rangos vagos salvo donde sea inevitable.
+- Justifica la receta en 2-3 frases con el origen, el proceso y el tueste del café, y nombra la idea de escuela
+  que aplicaste (por ejemplo "temperatura más baja para un honey, buscando dulzor").
+- Si hay fecha de tueste, evalúa el reposo en rest_advice: filtro ideal 7-21 días, espresso 10-30 días; si el café
+  está muy fresco o muy viejo, dilo y ajusta (molienda más fina si es viejo, temperatura algo más baja si es muy fresco).
+- grind_reference: si el usuario indicó su molino, da el ajuste aproximado (clics, número) para ese molino; si no,
+  describe la textura con una referencia cotidiana (sal de mesa, azúcar granulada, arena gruesa).
+- "adjustments": exactamente 3, del tipo "si sabe X, haz Y", en orden de probabilidad.
+- Pasos con marca de tiempo ("0:00", "0:45") y una acción breve cada uno. Entre 4 y 9 pasos. En espresso, los
+  pasos cubren molienda, dosis, distribución, prensado y extracción con tiempos.
+- title: corto y específico, incluye dripper y café (ej. "V60 para Catiope Honey, 2 tazas").
+- brew_method: el nombre del dripper o método (ej. "V60", "Kalita Wave", "Aeropress", "Espresso").`;
 
 const TOOL = {
   name: "entregar_receta",
@@ -71,26 +116,13 @@ const TOOL = {
           yield_g: { type: ["number", "null"] },
           pressure_bar: { type: ["number", "null"] },
         },
-        required: [
-          "dose_g",
-          "water_g",
-          "ratio",
-          "water_temp_c",
-          "grind",
-          "grind_reference",
-          "total_time",
-          "yield_g",
-          "pressure_bar",
-        ],
+        required: ["dose_g", "water_g", "ratio", "water_temp_c", "grind", "grind_reference", "total_time", "yield_g", "pressure_bar"],
       },
       steps: {
         type: "array",
         items: {
           type: "object",
-          properties: {
-            time: { type: "string" },
-            action: { type: "string" },
-          },
+          properties: { time: { type: "string" }, action: { type: "string" } },
           required: ["time", "action"],
         },
       },
@@ -105,17 +137,17 @@ const TOOL = {
       },
       rest_advice: { type: ["string", "null"] },
     },
-    required: [
-      "title",
-      "brew_method",
-      "params",
-      "steps",
-      "rationale",
-      "adjustments",
-      "rest_advice",
-    ],
+    required: ["title", "brew_method", "params", "steps", "rationale", "adjustments", "rest_advice"],
   },
 };
+
+function inferFamily(dripper: string): Family {
+  const d = dripper.toLowerCase();
+  if (/espresso|moka/.test(d)) return "espresso";
+  if (/aeropress|prensa|french|clever|switch|inmersi/.test(d)) return "inmersion";
+  if (/kalita|orea|april|stagg|flat|plano/.test(d)) return "flat";
+  return "conico";
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -127,34 +159,37 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const coffee = body?.coffee;
-    const brew_method: string | undefined = body?.brew_method;
+    const coffee = body?.coffee && typeof body.coffee === "object" ? body.coffee : null;
+    const coffeeDescription: string | null = typeof body?.coffee_description === "string" && body.coffee_description.trim() ? body.coffee_description.trim() : null;
+    const dripper: string | undefined = body?.dripper ?? body?.brew_method;
+    if (!dripper) {
+      return json({ ok: false, error: "Falta dripper (o brew_method)" }, 400);
+    }
+    const family: Family = (["conico", "flat", "inmersion", "espresso"] as Family[]).includes(body?.method_family)
+      ? body.method_family
+      : inferFamily(dripper);
+    const servings: number | null = Number.isFinite(body?.servings) && body.servings > 0 ? Math.min(8, Math.round(body.servings)) : null;
+    const doseG: number | null = Number.isFinite(body?.dose_g) && body.dose_g > 0 ? Math.round(body.dose_g * 10) / 10 : null;
 
-    if (!coffee || typeof coffee !== "object") {
-      return json({ ok: false, error: "Falta coffee" }, 400);
-    }
-    if (!brew_method) {
-      return json({ ok: false, error: "Falta brew_method" }, 400);
-    }
 
     const lines = [
-      `Café: ${coffee.name ?? "sin nombre"}`,
-      coffee.roaster_name ? `Tostador: ${coffee.roaster_name}` : null,
-      coffee.origin_country ? `Origen: ${coffee.origin_country}${coffee.region ? `, ${coffee.region}` : ""}` : null,
-      coffee.farm ? `Finca: ${coffee.farm}` : null,
-      coffee.variety ? `Variedad: ${coffee.variety}` : null,
-      coffee.process ? `Proceso: ${coffee.process}` : null,
-      coffee.altitude_masl ? `Altura: ${coffee.altitude_masl} msnm` : null,
-      coffee.roast_level ? `Nivel de tueste: ${coffee.roast_level}` : null,
-      coffee.roast_profile ? `Perfil de tueste: ${coffee.roast_profile}` : null,
-      Array.isArray(coffee.tasting_notes) && coffee.tasting_notes.length
-        ? `Notas de cata: ${coffee.tasting_notes.join(", ")}`
-        : null,
-      coffee.roast_date ? `Fecha de tueste: ${coffee.roast_date} (hoy es ${new Date().toISOString().slice(0, 10)})` : null,
+      coffee ? `Café: ${coffee.name ?? "sin nombre"}` : coffeeDescription ? `Café (descrito por el usuario): ${coffeeDescription}` : `Café: no especificado (receta general para un café de especialidad de tueste claro-medio)`,
+      coffee?.roaster_name ? `Tostador: ${coffee.roaster_name}` : null,
+      coffee?.origin_country ? `Origen: ${coffee.origin_country}${coffee.region ? `, ${coffee.region}` : ""}` : null,
+      coffee?.farm ? `Finca: ${coffee.farm}` : null,
+      coffee?.variety ? `Variedad: ${coffee.variety}` : null,
+      coffee?.process ? `Proceso: ${coffee.process}` : null,
+      coffee?.altitude_masl ? `Altura: ${coffee.altitude_masl} msnm` : null,
+      coffee?.roast_level ? `Nivel de tueste: ${coffee.roast_level}` : null,
+      coffee?.roast_profile ? `Perfil de tueste: ${coffee.roast_profile}` : null,
+      Array.isArray(coffee?.tasting_notes) && coffee.tasting_notes.length ? `Notas de cata: ${coffee.tasting_notes.join(", ")}` : null,
+      coffee?.roast_date ? `Fecha de tueste: ${coffee.roast_date} (hoy es ${new Date().toISOString().slice(0, 10)})` : null,
       ``,
-      `Método: ${brew_method}`,
+      `Familia de método: ${FAMILY_LABEL[family]}`,
+      `Dripper / método: ${dripper}`,
+      doseG ? `Dosis de café: ${doseG} g (respetar)` : servings ? `Cantidad: ${servings} ${servings === 1 ? "taza" : "tazas"} (${servings * 250} g de agua aprox.)` : family === "espresso" ? `Dosis: elige la estándar (18 g)` : `Cantidad: 1 taza (250 g de agua)`,
       body.equipment ? `Equipo del usuario: ${body.equipment}` : null,
-      body.preferences ? `Preferencias del usuario: ${body.preferences}` : null,
+      body.preferences ? `Preferencia de taza: ${body.preferences}` : null,
     ].filter((l) => l !== null);
 
     const data = await callStructured<Recipe>({

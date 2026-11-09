@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { deleteLog, getLog, listRecipesForLog, saveRecipe, suggestRecipe } from '@/lib/api'
+import { coffeeFromLog, deleteLog, getLog, listRecipesForLog, saveRecipe, suggestRecipe } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
 import { BREW_METHODS, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -55,27 +55,9 @@ export function LogDetail() {
       log={log}
       recipes={recipes}
       error={error}
-      onGenerate={async (method, equipment) => {
-        const c = log.coffee
-        return suggestRecipe({
-          coffee: {
-            name: c?.name,
-            roaster_name: c?.roaster?.name ?? null,
-            origin_country: c?.origin_country,
-            region: c?.region,
-            farm: c?.farm,
-            variety: c?.variety,
-            process: c?.process,
-            altitude_masl: c?.altitude_masl,
-            roast_level: c?.roast_level,
-            roast_profile: c?.roast_profile,
-            tasting_notes: c?.tasting_notes,
-            roast_date: log.roast_date,
-          },
-          brew_method: method,
-          equipment: equipment || undefined,
-        })
-      }}
+      onGenerate={async (method, equipment) =>
+        suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, servings: 1, equipment: equipment || undefined })
+      }
       onSaveRecipe={async (recipe) => {
         if (!user) return
         await saveRecipe({ userId: user.id, coffeeId: log.coffee_id, logId: log.id, recipe })

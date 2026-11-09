@@ -1,5 +1,5 @@
 import { supabase, PHOTOS_BUCKET } from './supabase'
-import type { Cafe, Coffee, CoffeeLog, Recipe, RecipeData, ScanResult } from './types'
+import type { Cafe, Coffee, CoffeeLog, MethodFamily, Recipe, RecipeData, ScanResult } from './types'
 
 // ---------- Utilidades ----------
 
@@ -38,13 +38,38 @@ export function scanLabel(image_base64: string, media_type = 'image/jpeg') {
   return invoke<ScanResult>('scan-label', { image_base64, media_type })
 }
 
-export function suggestRecipe(input: {
-  coffee: Partial<Coffee> & { roaster_name?: string | null; roast_date?: string | null }
-  brew_method: string
+export interface SuggestRecipeInput {
+  coffee?: (Partial<Coffee> & { roaster_name?: string | null; roast_date?: string | null }) | null
+  coffee_description?: string
+  method_family?: MethodFamily
+  dripper: string
+  servings?: number
+  dose_g?: number
   equipment?: string
   preferences?: string
-}) {
+}
+
+export function suggestRecipe(input: SuggestRecipeInput) {
   return invoke<RecipeData>('suggest-recipe', input as unknown as Record<string, unknown>)
+}
+
+/** Convierte un CoffeeLog en el bloque `coffee` que espera la función de recetas. */
+export function coffeeFromLog(log: CoffeeLog): SuggestRecipeInput['coffee'] {
+  const c = log.coffee
+  return {
+    name: c?.name,
+    roaster_name: c?.roaster?.name ?? null,
+    origin_country: c?.origin_country,
+    region: c?.region,
+    farm: c?.farm,
+    variety: c?.variety,
+    process: c?.process,
+    altitude_masl: c?.altitude_masl,
+    roast_level: c?.roast_level,
+    roast_profile: c?.roast_profile,
+    tasting_notes: c?.tasting_notes,
+    roast_date: log.roast_date,
+  }
 }
 
 // ---------- Guardar un café escaneado ----------
@@ -210,7 +235,7 @@ export async function listRecipesForLog(logId: string): Promise<Recipe[]> {
 export async function saveRecipe(input: {
   userId: string
   coffeeId: string | null
-  logId: string
+  logId: string | null
   recipe: RecipeData
 }): Promise<void> {
   const { error } = await supabase.from('recipes').insert({
@@ -244,4 +269,18 @@ export async function listCafes(): Promise<Cafe[]> {
     .order('name')
   if (error) throw new Error(error.message)
   return (data ?? []) as Cafe[]
+}
+
+export interface SavedRecipe extends Recipe {
+  coffee: { id: string; name: string; roaster: { name: string } | null } | null
+}
+
+export async function listMyRecipes(userId: string): Promise<SavedRecipe[]> {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('id, coffee_log_id, brew_method, title, params, steps, rationale, created_at, coffee:coffees ( id, name, roaster:roasters ( name ) )')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as unknown as SavedRecipe[]
 }

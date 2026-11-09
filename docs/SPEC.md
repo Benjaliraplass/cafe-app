@@ -58,7 +58,8 @@ Migraciones en `supabase/migrations/`.
 - Prompt: extraer solo lo escrito; `null` si no está; normalización de país, proceso y perfil de tueste en español.
 
 ### `suggest-recipe`
-- Entrada: `{ coffee, brew_method, equipment?, preferences? }`.
+- Entrada: `{ coffee?, coffee_description?, method_family (conico|flat|inmersion|espresso), dripper, servings? (tazas, 1 taza = 250 g agua), dose_g?, equipment?, preferences? }`. `brew_method` se acepta por compatibilidad.
+- El prompt codifica reglas por familia (cónico, fondo plano, inmersión, espresso), escalado por cantidad y principios de tres escuelas (Hoffmann: precisión y ratios 1:16-1:17; Wendelboe: limpieza y agua caliente; Campos: dulzor y temperaturas más bajas en procesados).
 - Salida: `RecipeData`: `params` (dosis, agua, ratio, temperatura, molienda, tiempo, salida, presión), `steps` con tiempos, `rationale`, `adjustments` (3), `rest_advice`.
 - La receta se justifica por origen/proceso/tueste; considera reposo si hay fecha de tueste.
 
@@ -70,7 +71,8 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 2. **Escanear**: cámara o galería → redimensionar → `scan-label` → formulario prellenado → editar → guardar (sube foto, resuelve/crea tostador y café, inserta log). Si la IA falla, se puede completar a mano.
 3. **Mis cafés**: lista de logs con foto, tostador, café, origen, puntaje y fecha.
 4. **Detalle**: ficha completa + generador de recetas (método + equipo) → guardar receta → lista de recetas guardadas. Eliminar registro.
-5. **Explorar**: lista de `cafes` aprobadas con búsqueda. Vacía hasta cargar el seed.
+5. **Recetas** (pestaña): wizard de 4 pasos → receta con IA → guardar (ligada al café si se eligió uno). Debajo, recetario de recetas guardadas.
+6. **Explorar**: lista de `cafes` aprobadas con búsqueda. Fuera de la barra hasta tener datos (ruta `/explore` sigue activa).
 6. **Perfil**: correo y cerrar sesión.
 
 ## 7. Dirección visual (decidida 2026-11-09)

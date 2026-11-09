@@ -1,11 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Camera, Coffee, MapPin, User } from 'lucide-react'
+import { BookOpen, Camera, Coffee, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const tabs = [
   { to: '/', label: 'Mis cafés', icon: Coffee },
   { to: '/scan', label: 'Escanear', icon: Camera },
-  { to: '/explore', label: 'Explorar', icon: MapPin },
+  { to: '/recipes', label: 'Recetas', icon: BookOpen },
   { to: '/profile', label: 'Perfil', icon: User },
 ]
 

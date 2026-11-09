@@ -123,3 +123,14 @@ export const BREW_METHODS = [
   'Moka',
   'Cold brew',
 ] as const
+
+export type MethodFamily = 'conico' | 'flat' | 'inmersion' | 'espresso'
+
+export const METHOD_FAMILIES: { id: MethodFamily; label: string; hint: string; drippers: string[] }[] = [
+  { id: 'conico', label: 'Filtro cónico', hint: 'V60, Origami, Chemex', drippers: ['V60', 'Origami', 'Chemex'] },
+  { id: 'flat', label: 'Fondo plano', hint: 'Kalita, Orea, April', drippers: ['Kalita Wave', 'Orea', 'April', 'Fellow Stagg'] },
+  { id: 'inmersion', label: 'Inmersión', hint: 'Aeropress, prensa, Clever', drippers: ['Aeropress', 'Prensa francesa', 'Clever', 'Switch'] },
+  { id: 'espresso', label: 'Espresso', hint: 'Máquina de espresso', drippers: ['Espresso'] },
+]
+
+export const TASTE_PREFERENCES = ['Más dulce', 'Más brillante', 'Más cuerpo', 'Más limpio'] as const

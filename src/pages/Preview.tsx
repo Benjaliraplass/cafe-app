@@ -5,6 +5,7 @@ import { HomeView } from '@/pages/Home'
 import { LogDetailView } from '@/pages/LogDetail'
 import { Login } from '@/pages/Login'
 import { Scan } from '@/pages/Scan'
+import { RecipesView } from '@/pages/Recipes'
 import { BottomNav } from '@/components/Layout'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
@@ -39,6 +40,9 @@ export function Preview() {
         {v === 'home' && <HomeView logs={logs} error={null} />}
         {v === 'empty' && <HomeView logs={[]} error={null} />}
         {v === 'scan' && <Scan />}
+        {v === 'recipes' && (
+          <RecipesView logs={logs} saved={[]} error={null} onGenerate={async () => { await new Promise((r) => setTimeout(r, 800)); return recipe }} onSave={async () => {}} />
+        )}
         {v === 'loading' && <HomeView logs={null} error={null} />}
         {v === 'detail' && (
           <LogDetailView

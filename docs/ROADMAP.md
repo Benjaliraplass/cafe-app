@@ -43,6 +43,10 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 
 ## Fase 2 — Recetas
 
+- [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas
+- [x] `suggest-recipe` v2: familia de método, dripper, cantidad, preferencia; prompt con principios de Hoffmann, Wendelboe y Diego Campos
+- [ ] Explorar sale de la barra mientras no tenga datos; vuelve en Fase 3
+
 - [ ] Guardar "mi equipo" en el perfil para no escribirlo cada vez
 - [ ] Temporizador paso a paso dentro de la receta
 - [ ] Feedback de la receta (me gustó / muy ácido / muy amargo) para iterar el prompt
