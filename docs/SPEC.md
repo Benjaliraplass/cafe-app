@@ -73,7 +73,17 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 5. **Explorar**: lista de `cafes` aprobadas con búsqueda. Vacía hasta cargar el seed.
 6. **Perfil**: correo y cerrar sesión.
 
-## 7. Pendientes conocidos
+## 7. Dirección visual (2026-11-09)
+
+- Referencias: Vivino (estructura), Blue Bottle Coffee y Honest Greens (tono minimalista, editorial).
+- Paleta: escala de grises sobre negro. Tokens en Figma, colección "Origen / Color": `bg/base #0A0A0A`, `bg/surface #141414`, `bg/surface-2 #1C1C1C`, `line/subtle #262626`, `line/strong #3A3A3A`, `ink/primary #F2F0EC`, `ink/secondary #A8A49E`, `ink/tertiary #6E6A65`, `accent/cream #E8E2D8`.
+- Tipografía: Fraunces Light/Regular para títulos y cifras; Inter Regular/Medium para texto y etiquetas (etiquetas en mayúsculas con tracking 6-10 %).
+- Barra inferior transparente con blur (fondo al 72 % + background blur 28), línea superior sutil, 4 ítems; activo en `ink/primary`, inactivo en `ink/tertiary`.
+- Componentes: inputs `surface` con borde `line/subtle` radio 12; botón primario `ink/primary` con texto inverso; chips redondeados; fotos con esquinas 14-20.
+- Diseño en Figma: https://www.figma.com/design/tC72X7goZvicV5dbNaxeVx (página "Origen — App", sección "Dirección visual v1"), pantallas 01 Login, 02 Mis cafés, 03 Confirmar café, 04 Detalle.
+- Implementación: shadcn/ui (Radix + Tailwind) sobre los tokens anteriores; se reemplazan los componentes propios de `src/components/ui.tsx`.
+
+## 8. Pendientes conocidos
 
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
 - Nombre final, dominio, íconos definitivos.

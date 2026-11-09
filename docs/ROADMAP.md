@@ -16,10 +16,21 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [ ] Prueba end-to-end en teléfono: registro → escaneo real → guardar → receta
 - [ ] Renombrar el sitio en Netlify (ej. `origen-cafe`) y borrar el sitio huérfano `origen-cafe-app` del team Global66
 
+## Fase UI — Rediseño en escala de grises + shadcn/ui
+
+- [x] Dirección visual definida y 4 pantallas en Figma (ver SPEC §7)
+- [ ] Revisión de Benjamín en Figma y ajustes
+- [ ] Instalar shadcn/ui, mapear tokens al tema de Tailwind
+- [ ] Reimplementar Login, Mis cafés, Confirmar café, Detalle según Figma
+- [ ] Barra inferior transparente con blur; transiciones con framer-motion; íconos lucide-react
+- [ ] Deploy y prueba en teléfono
+
 ## Fase 1 — Diario + escaneo (MVP usable)
 
 - [ ] Bajar latencia de `suggest-recipe` (51 s): probar `thinkingLevel`/`thinkingBudget` bajo en Gemini, acortar schema, o `gemini-3.5-flash-lite` primero para recetas; registrar modelo y ms por llamada en logs
 - [ ] Pedir tildes explícitas en el prompt de recetas (Gemini devolvió "cafe", "extraccion")
+- [ ] Prompt de escaneo: si la fecha de tueste viene sin año ("26/10"), asumir el año en curso
+- [x] Subir límite de tokens de salida y tratar JSON inválido/truncado como reintentable (fix del error en etiqueta Asunto)
 
 - [ ] Ajustar el prompt de `scan-label` con 10-20 etiquetas reales chilenas (Tostado Club, Pantera, otros)
 - [ ] Editar un registro existente (hoy solo crear/eliminar)

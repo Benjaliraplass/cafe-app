@@ -74,7 +74,7 @@ function geminiModels(): string[] {
   return DEFAULT_GEMINI_MODELS;
 }
 
-const RETRYABLE = new Set([408, 429, 500, 503, 504]);
+const RETRYABLE = new Set([408, 429, 500, 502, 503, 504]);
 // Timeout por llamada: si Gemini se cuelga bajo demanda alta, pasamos al siguiente modelo.
 const PER_CALL_TIMEOUT_MS = 20_000;
 // Presupuesto total: las Edge Functions tienen límite de wall-clock (~150 s); dejamos margen.
@@ -116,7 +116,7 @@ async function callGeminiModel<T>(opts: StructuredRequest, apiKey: string, model
     contents: [{ role: "user", parts }],
     generationConfig: {
       temperature: 0.3,
-      maxOutputTokens: opts.maxTokens ?? 1500,
+      maxOutputTokens: Math.max(opts.maxTokens ?? 1500, 4096),
       responseMimeType: "application/json",
       responseSchema: toGeminiSchema(opts.tool.input_schema),
     },
@@ -149,18 +149,36 @@ async function callGeminiModel<T>(opts: StructuredRequest, apiKey: string, model
 
   const data = await res.json();
   const candidate = data?.candidates?.[0];
+  const finishReason: string = candidate?.finishReason ?? data?.promptFeedback?.blockReason ?? "sin contenido";
   const text: string | undefined = candidate?.content?.parts
     ?.map((p: { text?: string }) => p.text ?? "")
     .join("");
   if (!text) {
-    const reason = candidate?.finishReason ?? data?.promptFeedback?.blockReason ?? "sin contenido";
-    throw new Error(`Gemini no devolvió JSON (${reason})`);
+    const err = new Error(`Gemini no devolvió JSON (${finishReason})`) as Error & { status?: number };
+    err.status = 502; // reintentable con el siguiente modelo
+    throw err;
   }
   try {
-    return JSON.parse(text) as T;
+    return JSON.parse(stripFences(text)) as T;
   } catch {
-    throw new Error("Gemini devolvió un JSON inválido");
+    console.error(`Gemini JSON inválido [${model}] finishReason=${finishReason} len=${text.length} tail=${JSON.stringify(text.slice(-200))}`);
+    const err = new Error(
+      finishReason === "MAX_TOKENS"
+        ? `Gemini devolvió una respuesta truncada (${model})`
+        : `Gemini devolvió un JSON inválido (${model})`,
+    ) as Error & { status?: number };
+    err.status = 502; // reintentable con el siguiente modelo
+    throw err;
   }
+}
+
+/** Quita ```json ... ``` si el modelo lo agregó pese al responseMimeType. */
+function stripFences(s: string): string {
+  const t = s.trim();
+  if (t.startsWith("```")) {
+    return t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  }
+  return t;
 }
 
 /**

@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
         },
       ],
       tool: TOOL,
-      maxTokens: 1200,
+      maxTokens: 4096,
     });
 
     return json({ ok: true, data });

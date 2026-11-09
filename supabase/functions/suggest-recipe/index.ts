@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
       system: SYSTEM,
       content: [{ type: "text", text: lines.join("\n") }],
       tool: TOOL,
-      maxTokens: 1800,
+      maxTokens: 8192,
     });
 
     return json({ ok: true, data });
