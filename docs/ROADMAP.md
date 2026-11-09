@@ -12,10 +12,14 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Repo con CLAUDE.md, SPEC, ROADMAP
 - [x] Sitio en Netlify (cuenta Tostado Club) conectado al repo, env vars y primer deploy: https://sweet-faloodeh-218899.netlify.app
 - [x] `scan-label` probado end-to-end con etiqueta sintética (200 OK, 6,9 s, todos los campos correctos)
+- [x] `suggest-recipe` probado (200 OK, receta V60 coherente con el café) pero tardó 51 s
 - [ ] Prueba end-to-end en teléfono: registro → escaneo real → guardar → receta
 - [ ] Renombrar el sitio en Netlify (ej. `origen-cafe`) y borrar el sitio huérfano `origen-cafe-app` del team Global66
 
 ## Fase 1 — Diario + escaneo (MVP usable)
+
+- [ ] Bajar latencia de `suggest-recipe` (51 s): probar `thinkingLevel`/`thinkingBudget` bajo en Gemini, acortar schema, o `gemini-3.5-flash-lite` primero para recetas; registrar modelo y ms por llamada en logs
+- [ ] Pedir tildes explícitas en el prompt de recetas (Gemini devolvió "cafe", "extraccion")
 
 - [ ] Ajustar el prompt de `scan-label` con 10-20 etiquetas reales chilenas (Tostado Club, Pantera, otros)
 - [ ] Editar un registro existente (hoy solo crear/eliminar)
