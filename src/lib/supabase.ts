@@ -18,3 +18,12 @@ export function photoUrl(path: string | null | undefined): string | null {
   if (!path) return null
   return supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl
 }
+
+export const AVATARS_BUCKET = 'avatars'
+
+/** URL pública del avatar: acepta una ruta del bucket `avatars` o una URL absoluta (ej. foto de Google). */
+export function avatarUrl(path: string | null | undefined): string | null {
+  if (!path) return null
+  if (/^https?:\/\//.test(path)) return path
+  return supabase.storage.from(AVATARS_BUCKET).getPublicUrl(path).data.publicUrl
+}

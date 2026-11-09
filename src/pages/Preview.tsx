@@ -6,12 +6,15 @@ import { LogDetailView } from '@/pages/LogDetail'
 import { Login } from '@/pages/Login'
 import { Scan } from '@/pages/Scan'
 import { RecipesView } from '@/pages/Recipes'
+import { EditLog } from '@/pages/EditLog'
+import { ProfileView } from '@/pages/Profile'
 import { BottomNav } from '@/components/Layout'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
+const noop = async () => {}
 const mk = (id: string, name: string, origin: string, region: string | null, process: string, variety: string, rating: number, date: string, notes: string[] = []): CoffeeLog => ({
   id, user_id: 'u', coffee_id: id, photo_path: null, rating, notes: null, brew_method: 'V60', roast_date: '2026-10-26', bought_at: null, price_clp: null,
-  is_public: false, consumed_at: date, created_at: date,
+  is_public: false, is_favorite: rating === 5, consumed_at: date, created_at: date,
   coffee: { id, roaster_id: 'r1', name, origin_country: origin, region, farm: 'Finca Milán', producer: null, variety, process, altitude_masl: null, roast_level: null, roast_profile: 'filtro', tasting_notes: notes, roaster },
 })
 const logs: CoffeeLog[] = [
@@ -36,14 +39,28 @@ export function Preview() {
   if (v === 'login') return <Login />
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
-      <main className="flex-1 pb-28">
-        {v === 'home' && <HomeView logs={logs} error={null} />}
+      <main className="flex-1 pb-32">
+        {v === 'home' && <HomeView logs={logs} error={null} onToggleFavorite={noop} />}
         {v === 'empty' && <HomeView logs={[]} error={null} />}
         {v === 'scan' && <Scan />}
         {v === 'recipes' && (
           <RecipesView logs={logs} saved={[]} equipment={{ grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] }} error={null} onGenerate={async () => { await new Promise((r) => setTimeout(r, 800)); return recipe }} onSave={async () => {}} />
         )}
         {v === 'loading' && <HomeView logs={null} error={null} />}
+        {v === 'edit' && <EditLog previewLog={logs[0]} />}
+        {v === 'profile' && (
+          <ProfileView
+            email="benjamin@tostadoclub.com"
+            profile={{ id: 'u', display_name: 'Benjamín', avatar_url: null, country: 'Chile', equipment: { grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] } }}
+            error={null}
+            onError={() => {}}
+            onProfileChange={() => {}}
+            onUploadAvatar={async () => ''}
+            onSaveIdentity={noop}
+            onSaveEquipment={noop}
+            onSignOut={noop}
+          />
+        )}
         {v === 'detail' && (
           <LogDetailView
             log={{ ...logs[0], notes: 'Efervescente y complejo. Mucho mango en caliente, se vuelve más cítrico al enfriar.' }}
@@ -52,10 +69,11 @@ export function Preview() {
             onGenerate={async () => recipe}
             onSaveRecipe={async () => {}}
             onDelete={async () => {}}
+            onToggleFavorite={noop}
           />
         )}
       </main>
-      <BottomNav />
+      <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'recipes' ? '/recipes' : '/'} />
     </div>
   )
 }
