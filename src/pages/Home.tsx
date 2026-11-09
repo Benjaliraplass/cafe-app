@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { listMyLogs } from '@/lib/api'
+import { listMyLogs, setFavorite } from '@/lib/api'
+import { Heart } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { photoUrl } from '@/lib/supabase'
 import type { CoffeeLog } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -24,11 +26,34 @@ export function Home() {
       .catch((e) => setError(e.message))
   }, [user])
 
-  return <HomeView logs={logs} error={error} />
+  return (
+    <HomeView
+      logs={logs}
+      error={error}
+      onToggleFavorite={async (log) => {
+        const next = !log.is_favorite
+        setLogs((ls) => ls?.map((l) => (l.id === log.id ? { ...l, is_favorite: next } : l)) ?? null)
+        try {
+          await setFavorite(log.id, next)
+        } catch (e) {
+          setLogs((ls) => ls?.map((l) => (l.id === log.id ? { ...l, is_favorite: !next } : l)) ?? null)
+          setError(e instanceof Error ? e.message : 'No se pudo actualizar')
+        }
+      }}
+    />
+  )
 }
 
 /** Vista presentacional (Figma 02 · Mis cafés). Recibe datos para poder previsualizarla. */
-export function HomeView({ logs, error }: { logs: CoffeeLog[] | null; error: string | null }) {
+export function HomeView({
+  logs,
+  error,
+  onToggleFavorite,
+}: {
+  logs: CoffeeLog[] | null
+  error: string | null
+  onToggleFavorite?: (log: CoffeeLog) => Promise<void>
+}) {
   const [filter, setFilter] = useState<Filter>('todos')
 
   const stats = useMemo(() => {
@@ -47,7 +72,7 @@ export function HomeView({ logs, error }: { logs: CoffeeLog[] | null; error: str
       case 'espresso':
         return logs.filter((l) => l.coffee?.roast_profile === 'espresso' || /espresso|moka/i.test(l.brew_method ?? ''))
       case 'favoritos':
-        return logs.filter((l) => (l.rating ?? 0) >= 4.5)
+        return logs.filter((l) => l.is_favorite)
       default:
         return logs
     }
@@ -129,7 +154,7 @@ export function HomeView({ logs, error }: { logs: CoffeeLog[] | null; error: str
           <ul className="px-6 pt-2">
             {visible.map((log, i) => (
               <li key={log.id}>
-                <LogRow log={log} />
+                <LogRow log={log} onToggleFavorite={onToggleFavorite} />
                 {i < visible.length - 1 && <Separator />}
               </li>
             ))}
@@ -143,10 +168,25 @@ export function HomeView({ logs, error }: { logs: CoffeeLog[] | null; error: str
   )
 }
 
-function LogRow({ log }: { log: CoffeeLog }) {
+function LogRow({ log, onToggleFavorite }: { log: CoffeeLog; onToggleFavorite?: (log: CoffeeLog) => Promise<void> }) {
   const c = log.coffee
   const meta = [c?.origin_country, c?.process, c?.variety].filter(Boolean).join(' · ')
   return (
+    <div className="relative">
+      {onToggleFavorite && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            onToggleFavorite(log)
+          }}
+          aria-label={log.is_favorite ? 'Quitar de favoritos' : 'Marcar favorito'}
+          aria-pressed={log.is_favorite}
+          className="absolute top-3 left-[46px] z-10 flex size-7 items-center justify-center rounded-full bg-background/85 shadow-sm backdrop-blur"
+        >
+          <Heart width={14} height={14} strokeWidth={1.8} className={cn(log.is_favorite ? 'fill-foreground text-foreground' : 'text-muted-foreground')} />
+        </button>
+      )}
     <Link to={`/log/${log.id}`} className="flex items-center gap-3.5 py-4 active:opacity-70">
       <Photo src={photoUrl(log.photo_path)} className="size-16 shrink-0 rounded-[14px]" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -159,6 +199,7 @@ function LogRow({ log }: { log: CoffeeLog }) {
         <span className="text-[11px] text-tertiary">{formatDate(log.consumed_at)}</span>
       </div>
     </Link>
+    </div>
   )
 }
 

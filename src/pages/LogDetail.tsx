@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Trash2 } from 'lucide-react'
+import { ChevronLeft, Heart, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, suggestRecipe } from '@/lib/api'
+import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
 import { BREW_METHODS, equipmentToText, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { ErrorBox, Eyebrow, Field, KeyValue, Photo, Rating, Spinner } from '@/components/primitives'
 import { formatDate } from './Home'
+import { cn } from '@/lib/utils'
 
 export function LogDetail() {
   const { id } = useParams<{ id: string }>()
@@ -71,6 +72,16 @@ export function LogDetail() {
         await deleteLog(log.id)
         navigate('/', { replace: true })
       }}
+      onToggleFavorite={async () => {
+        const next = !log.is_favorite
+        setLog({ ...log, is_favorite: next })
+        try {
+          await setFavorite(log.id, next)
+        } catch (e) {
+          setLog({ ...log, is_favorite: !next })
+          setError(e instanceof Error ? e.message : 'No se pudo actualizar')
+        }
+      }}
     />
   )
 }
@@ -84,6 +95,7 @@ export function LogDetailView({
   onGenerate,
   onSaveRecipe,
   onDelete,
+  onToggleFavorite,
 }: {
   log: CoffeeLog
   recipes: Recipe[]
@@ -92,6 +104,7 @@ export function LogDetailView({
   onGenerate: (method: string, equipment: string) => Promise<RecipeData>
   onSaveRecipe: (recipe: RecipeData) => Promise<void>
   onDelete: () => Promise<void>
+  onToggleFavorite?: () => Promise<void>
 }) {
   // brew_method puede traer varios métodos separados por coma; el primero es el método por defecto de la receta
   const [method, setMethod] = useState<string>(log.brew_method?.split(',')[0]?.trim() ?? '')
@@ -153,9 +166,26 @@ export function LogDetailView({
               <ChevronLeft strokeWidth={1.8} className="size-5" />
             </Link>
           </Button>
-          <Button variant="secondary" size="icon" className="bg-background/55 backdrop-blur-md" onClick={remove} aria-label="Eliminar">
-            <Trash2 strokeWidth={1.6} className="size-[18px]" />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="bg-background/55 backdrop-blur-md"
+              onClick={onToggleFavorite}
+              aria-label={log.is_favorite ? 'Quitar de favoritos' : 'Marcar favorito'}
+              aria-pressed={log.is_favorite}
+            >
+              <Heart strokeWidth={1.6} className={cn('size-[18px]', log.is_favorite && 'fill-foreground')} />
+            </Button>
+            <Button asChild variant="secondary" size="icon" className="bg-background/55 backdrop-blur-md">
+              <Link to={`/log/${log.id}/edit`} aria-label="Editar">
+                <Pencil strokeWidth={1.6} className="size-[18px]" />
+              </Link>
+            </Button>
+            <Button variant="secondary" size="icon" className="bg-background/55 backdrop-blur-md" onClick={remove} aria-label="Eliminar">
+              <Trash2 strokeWidth={1.6} className="size-[18px]" />
+            </Button>
+          </div>
         </div>
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-6 pb-1">
           <Eyebrow className="text-muted-foreground">{c?.roaster?.name ?? 'Tostador desconocido'}</Eyebrow>
@@ -182,6 +212,7 @@ export function LogDetailView({
       <section className="flex flex-col gap-5 px-6 pt-4 pb-6">
         <div className="grid grid-cols-2 gap-x-3 gap-y-3.5">
           <KeyValue k="Origen" v={[c?.origin_country, c?.region].filter(Boolean).join(', ')} />
+          <KeyValue k="Tostador" v={c?.roaster ? [c.roaster.name, c.roaster.country].filter(Boolean).join(' · ') : null} />
           <KeyValue k="Finca" v={c?.farm} />
           <KeyValue k="Variedad" v={c?.variety} />
           <KeyValue k="Proceso" v={c?.process} />

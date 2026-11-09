@@ -2,6 +2,7 @@ export type RoastProfile = 'espresso' | 'filtro' | 'omni'
 
 export interface ScanResult {
   roaster_name: string | null
+  roaster_country: string | null
   coffee_name: string | null
   origin_country: string | null
   region: string | null
@@ -59,6 +60,7 @@ export interface CoffeeLog {
   bought_at: string | null
   price_clp: number | null
   is_public: boolean
+  is_favorite: boolean
   consumed_at: string
   created_at: string
   coffee?: Coffee | null

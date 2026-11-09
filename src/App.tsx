@@ -5,6 +5,7 @@ import { Login } from '@/pages/Login'
 import { Home } from '@/pages/Home'
 import { Scan } from '@/pages/Scan'
 import { LogDetail } from '@/pages/LogDetail'
+import { EditLog } from '@/pages/EditLog'
 import { Explore } from '@/pages/Explore'
 import { Recipes } from '@/pages/Recipes'
 import { Profile } from '@/pages/Profile'
@@ -29,6 +30,7 @@ function Gate() {
         <Route index element={<Home />} />
         <Route path="scan" element={<Scan />} />
         <Route path="log/:id" element={<LogDetail />} />
+        <Route path="log/:id/edit" element={<EditLog />} />
         <Route path="recipes" element={<Recipes />} />
         <Route path="explore" element={<Explore />} />
         <Route path="profile" element={<Profile />} />

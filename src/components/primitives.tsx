@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
+import { COUNTRIES } from '@/lib/countries'
 
 /** Etiqueta + control, como en los campos de Figma. */
 export function Field({
@@ -56,7 +58,7 @@ export function Rating({
             key={n}
             type="button"
             disabled={!onChange}
-            onClick={() => onChange?.(n)}
+            onClick={() => onChange?.(value === n ? 0 : n)}
             aria-label={`${n} estrellas`}
             className="disabled:cursor-default"
           >
@@ -138,5 +140,30 @@ export function KeyValue({ k, v }: { k: string; v: string | null | undefined }) 
       <span className="text-[10px] font-medium uppercase tracking-eyebrow text-tertiary">{k}</span>
       <span className="text-[15px]">{v}</span>
     </div>
+  )
+}
+
+/** Selector de país. Si el valor actual no está en la lista (ej. lo devolvió la IA), se conserva como opción. */
+export function CountrySelect({
+  value,
+  onChange,
+  placeholder = 'Selecciona un país',
+  id,
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  id?: string
+}) {
+  const options = value && !COUNTRIES.includes(value) ? [value, ...COUNTRIES] : COUNTRIES
+  return (
+    <Select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+      <option value="">{placeholder}</option>
+      {options.map((c) => (
+        <option key={c} value={c}>
+          {c}
+        </option>
+      ))}
+    </Select>
   )
 }

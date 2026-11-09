@@ -9,6 +9,7 @@ import { callStructured, corsHeaders, json } from "../_shared/ai.ts";
 
 interface ScanResult {
   roaster_name: string | null;
+  roaster_country: string | null;
   coffee_name: string | null;
   origin_country: string | null;
   region: string | null;
@@ -30,11 +31,12 @@ interface ScanResult {
 const SYSTEM = `Eres un experto en café de especialidad que lee etiquetas de bolsas de café.
 Extrae únicamente lo que aparece escrito en la etiqueta. No inventes datos: si un campo no está, devuelve null.
 Normaliza:
+- roaster_country: país donde está la tostaduría, en español, si la etiqueta lo indica o se deduce con seguridad (ej. "Tostado en Santiago" → "Chile"; dirección o web .cl → "Chile"; "Roasted in Oslo" → "Noruega"). Si no hay señal, null.
 - origin_country: nombre del país en español (ej. "Colombia", "Etiopía", "Brasil").
 - process: usa términos estándar en español cuando aplique ("Lavado", "Natural", "Honey", "Anaeróbico", "Descafeinado", etc.). Si es una combinación, descríbela brevemente.
 - roast_profile: "espresso", "filtro" u "omni" solo si la etiqueta lo indica (incluye sinónimos como "filter", "pour over", "espresso roast").
 - tasting_notes: lista de notas de sabor tal como aparecen, en español si están en español, máximo 8.
-- roast_date: formato YYYY-MM-DD si se puede inferir; si solo hay mes y año, usa el día 01.
+- roast_date: formato YYYY-MM-DD. Si la etiqueta trae día y mes sin año (ej. "26/10", "TUESTE: 26-10"), asume el año en curso (si esa fecha quedara en el futuro, el año anterior). Si solo hay mes y año, usa el día 01. Hoy es ${new Date().toISOString().slice(0, 10)}.
 - altitude_masl: número entero en metros; si es un rango, usa el promedio.
 - confidence: "alta" si la etiqueta se lee bien y los campos clave (tostador, origen) están claros; "media" si hay dudas; "baja" si la foto está borrosa o faltan datos clave.
 - is_coffee_label: false si la imagen no es una etiqueta o bolsa de café.
@@ -47,6 +49,7 @@ const TOOL = {
     type: "object",
     properties: {
       roaster_name: { type: ["string", "null"] },
+      roaster_country: { type: ["string", "null"] },
       coffee_name: { type: ["string", "null"] },
       origin_country: { type: ["string", "null"] },
       region: { type: ["string", "null"] },
@@ -69,6 +72,7 @@ const TOOL = {
     },
     required: [
       "roaster_name",
+      "roaster_country",
       "coffee_name",
       "origin_country",
       "region",
