@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
+import { coffeeFromLog, getProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { METHOD_FAMILIES, TASTE_PREFERENCES, type CoffeeLog, type MethodFamily, type RecipeData } from '@/lib/types'
+import { METHOD_FAMILIES, TASTE_PREFERENCES, equipmentToText, type CoffeeLog, type Equipment, type MethodFamily, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
@@ -20,22 +20,33 @@ export function Recipes() {
   const { user } = useAuth()
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null)
+  const [equipment, setEquipment] = useState<Equipment | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
-    Promise.all([listMyLogs(user.id), listMyRecipes(user.id)])
-      .then(([l, r]) => {
+    Promise.all([listMyLogs(user.id), listMyRecipes(user.id), getProfile(user.id)])
+      .then(([l, r, p]) => {
         setLogs(l)
         setSaved(r)
+        setEquipment(p?.equipment ?? null)
       })
       .catch((e) => setError(e.message))
   }, [user])
+
+  if (equipment === undefined && !error) {
+    return (
+      <div className="px-6 pt-8">
+        <Spinner label="Cargando..." />
+      </div>
+    )
+  }
 
   return (
     <RecipesView
       logs={logs}
       saved={saved}
+      equipment={equipment ?? null}
       error={error}
       onGenerate={(input) => suggestRecipe(input)}
       onSave={async (recipe, log) => {
@@ -51,12 +62,14 @@ export function Recipes() {
 export function RecipesView({
   logs,
   saved,
+  equipment: profileEquipment,
   error: outerError,
   onGenerate,
   onSave,
 }: {
   logs: CoffeeLog[] | null
   saved: SavedRecipe[] | null
+  equipment: Equipment | null
   error: string | null
   onGenerate: (input: SuggestRecipeInput) => Promise<RecipeData>
   onSave: (recipe: RecipeData, log: CoffeeLog | null) => Promise<void>
@@ -70,7 +83,9 @@ export function RecipesView({
   const [servings, setServings] = useState(1)
   const [doseMode, setDoseMode] = useState(false)
   const [dose, setDose] = useState('18')
-  const [equipment, setEquipment] = useState('')
+  const [equipment, setEquipment] = useState(() => equipmentToText(profileEquipment))
+  const [showAllMethods, setShowAllMethods] = useState(!profileEquipment?.drippers?.length)
+  const myDrippers = profileEquipment?.drippers ?? []
   const [pref, setPref] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [recipe, setRecipe] = useState<RecipeData | null>(null)
@@ -227,7 +242,33 @@ export function RecipesView({
       {/* Paso 2: método */}
       {step === 2 && (
         <section className="flex flex-col gap-4 px-6 pt-4">
-          <StepTitle n={2} title="¿Qué método?" hint="Primero la familia, después el dripper exacto." />
+          <StepTitle n={2} title="¿Qué método?" hint={myDrippers.length ? 'Tus métodos del perfil primero. Toca uno o elige otro.' : 'Primero la familia, después el dripper exacto.'} />
+          {myDrippers.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Eyebrow className="text-[10px]">Mi equipo</Eyebrow>
+              <div className="flex flex-wrap gap-2">
+                {myDrippers.map((d) => {
+                  const f = METHOD_FAMILIES.find((x) => x.drippers.includes(d))
+                  return (
+                    <Chip
+                      key={d}
+                      active={dripper === d}
+                      onClick={() => {
+                        setDripper(d)
+                        if (f) setFamily(f.id)
+                      }}
+                    >
+                      {d}
+                    </Chip>
+                  )
+                })}
+                <Chip active={showAllMethods && !myDrippers.includes(dripper ?? '')} onClick={() => setShowAllMethods(!showAllMethods)}>
+                  Otro método
+                </Chip>
+              </div>
+            </div>
+          )}
+          {showAllMethods && (
           <div className="grid grid-cols-2 gap-2.5">
             {METHOD_FAMILIES.map((f) => {
               const active = family === f.id
@@ -250,7 +291,8 @@ export function RecipesView({
               )
             })}
           </div>
-          {fam && fam.drippers.length > 1 && (
+          )}
+          {showAllMethods && fam && fam.drippers.length > 1 && (
             <div className="flex flex-col gap-2 pt-1">
               <Eyebrow className="text-[10px]">Dripper</Eyebrow>
               <div className="flex flex-wrap gap-2">
@@ -304,7 +346,7 @@ export function RecipesView({
       {step === 4 && (
         <section className="flex flex-col gap-4 px-6 pt-4">
           <StepTitle n={4} title="Afinemos" hint="Opcional. Ayuda a ajustar molienda y perfil." />
-          <Field label="Mi equipo" hint="Molino, balanza, hervidor. Ej. Comandante C40, V60 02 plástico">
+          <Field label="Mi equipo" hint={profileEquipment && equipmentToText(profileEquipment) ? 'Tomado de tu perfil. Puedes ajustarlo solo para esta receta.' : 'Molino, balanza, hervidor. Guárdalo en Perfil para no escribirlo cada vez.'}>
             <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ej. Comandante C40" />
           </Field>
           <div className="flex flex-col gap-2">

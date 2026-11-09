@@ -41,7 +41,7 @@ export function Preview() {
         {v === 'empty' && <HomeView logs={[]} error={null} />}
         {v === 'scan' && <Scan />}
         {v === 'recipes' && (
-          <RecipesView logs={logs} saved={[]} error={null} onGenerate={async () => { await new Promise((r) => setTimeout(r, 800)); return recipe }} onSave={async () => {}} />
+          <RecipesView logs={logs} saved={[]} equipment={{ grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] }} error={null} onGenerate={async () => { await new Promise((r) => setTimeout(r, 800)); return recipe }} onSave={async () => {}} />
         )}
         {v === 'loading' && <HomeView logs={null} error={null} />}
         {v === 'detail' && (

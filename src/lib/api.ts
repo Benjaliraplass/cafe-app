@@ -1,5 +1,5 @@
 import { supabase, PHOTOS_BUCKET } from './supabase'
-import type { Cafe, Coffee, CoffeeLog, MethodFamily, Recipe, RecipeData, ScanResult } from './types'
+import type { Cafe, Coffee, CoffeeLog, Equipment, MethodFamily, Recipe, RecipeData, ScanResult } from './types'
 
 // ---------- Utilidades ----------
 
@@ -283,4 +283,30 @@ export async function listMyRecipes(userId: string): Promise<SavedRecipe[]> {
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return (data ?? []) as unknown as SavedRecipe[]
+}
+
+// ---------- Perfil ----------
+
+export interface Profile {
+  id: string
+  display_name: string | null
+  equipment: Equipment
+}
+
+export async function getProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase.from('profiles').select('id, display_name, equipment').eq('id', userId).maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) return null
+  return { id: data.id, display_name: data.display_name, equipment: (data.equipment ?? {}) as Equipment }
+}
+
+export async function updateEquipment(userId: string, equipment: Equipment): Promise<void> {
+  const clean: Equipment = {
+    grinder: equipment.grinder?.trim() || undefined,
+    espresso_machine: equipment.espresso_machine?.trim() || undefined,
+    other: equipment.other?.trim() || undefined,
+    drippers: equipment.drippers?.length ? equipment.drippers : undefined,
+  }
+  const { error } = await supabase.from('profiles').update({ equipment: clean }).eq('id', userId)
+  if (error) throw new Error(error.message)
 }

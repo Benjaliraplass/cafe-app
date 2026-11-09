@@ -47,7 +47,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] `suggest-recipe` v2: familia de método, dripper, cantidad, preferencia; prompt con principios de Hoffmann, Wendelboe y Diego Campos
 - [ ] Explorar sale de la barra mientras no tenga datos; vuelve en Fase 3
 
-- [ ] Guardar "mi equipo" en el perfil para no escribirlo cada vez
+- [x] "Mi equipo" en Perfil (molino, drippers, máquina, otros) → el wizard muestra tus drippers primero y manda el equipo a la receta; el detalle del café también lo usa
 - [ ] Temporizador paso a paso dentro de la receta
 - [ ] Feedback de la receta (me gustó / muy ácido / muy amargo) para iterar el prompt
 - [ ] Recetas por origen sin registro (pantalla "¿qué café tienes?")

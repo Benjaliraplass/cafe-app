@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, deleteLog, getLog, listRecipesForLog, saveRecipe, suggestRecipe } from '@/lib/api'
+import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, suggestRecipe } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { BREW_METHODS, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
+import { BREW_METHODS, equipmentToText, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Chip } from '@/components/ui/chip'
@@ -20,17 +20,19 @@ export function LogDetail() {
 
   const [log, setLog] = useState<CoffeeLog | null | undefined>(undefined)
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [equipmentText, setEquipmentText] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!id) return
-    Promise.all([getLog(id), listRecipesForLog(id)])
-      .then(([l, r]) => {
+    if (!id || !user) return
+    Promise.all([getLog(id), listRecipesForLog(id), getProfile(user.id)])
+      .then(([l, r, p]) => {
         setLog(l)
         setRecipes(r)
+        setEquipmentText(equipmentToText(p?.equipment))
       })
       .catch((e) => setError(e.message))
-  }, [id])
+  }, [id, user])
 
   if (log === undefined) {
     return (
@@ -52,8 +54,10 @@ export function LogDetail() {
 
   return (
     <LogDetailView
+      key={log.id + equipmentText}
       log={log}
       recipes={recipes}
+      defaultEquipment={equipmentText}
       error={error}
       onGenerate={async (method, equipment) =>
         suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, servings: 1, equipment: equipment || undefined })
@@ -75,6 +79,7 @@ export function LogDetail() {
 export function LogDetailView({
   log,
   recipes,
+  defaultEquipment = '',
   error: outerError,
   onGenerate,
   onSaveRecipe,
@@ -82,6 +87,7 @@ export function LogDetailView({
 }: {
   log: CoffeeLog
   recipes: Recipe[]
+  defaultEquipment?: string
   error: string | null
   onGenerate: (method: string, equipment: string) => Promise<RecipeData>
   onSaveRecipe: (recipe: RecipeData) => Promise<void>
@@ -89,7 +95,7 @@ export function LogDetailView({
 }) {
   // brew_method puede traer varios métodos separados por coma; el primero es el método por defecto de la receta
   const [method, setMethod] = useState<string>(log.brew_method?.split(',')[0]?.trim() ?? '')
-  const [equipment, setEquipment] = useState('')
+  const [equipment, setEquipment] = useState(defaultEquipment)
   const [generating, setGenerating] = useState(false)
   const [draft, setDraft] = useState<RecipeData | null>(null)
   const [saving, setSaving] = useState(false)
@@ -219,7 +225,7 @@ export function LogDetailView({
             </Chip>
           ))}
         </div>
-        <Field label="Mi equipo (opcional)" hint="Molino, balanza, máquina. Ayuda a afinar la molienda.">
+        <Field label="Mi equipo (opcional)" hint={defaultEquipment ? 'Tomado de tu perfil.' : 'Molino, balanza, máquina. Guárdalo en Perfil para no escribirlo cada vez.'}>
           <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ej. Comandante C40, V60 plástico" />
         </Field>
         <Button onClick={generate} disabled={!method || generating}>

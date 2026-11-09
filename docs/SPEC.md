@@ -40,7 +40,7 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 
 | Tabla | Para qué | Acceso (RLS) |
 |---|---|---|
-| `profiles` | 1:1 con `auth.users`, creado por trigger | Lectura pública; escribe el dueño |
+| `profiles` | 1:1 con `auth.users`, creado por trigger. `equipment` jsonb: `{ grinder, drippers[], espresso_machine, other }` | Lectura pública; escribe el dueño |
 | `roasters` | Tostadurías (catálogo compartido), `slug` único | Lectura pública; crea cualquier autenticado; edita el creador |
 | `coffees` | Cafés del catálogo compartido, FK a `roasters` | Igual que roasters |
 | `coffee_logs` | Diario personal: foto, puntaje, notas, método, fecha de tueste, precio, `raw_scan` jsonb | Solo el dueño (o todos si `is_public`) |
@@ -73,7 +73,7 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 4. **Detalle**: ficha completa + generador de recetas (método + equipo) → guardar receta → lista de recetas guardadas. Eliminar registro.
 5. **Recetas** (pestaña): wizard de 4 pasos → receta con IA → guardar (ligada al café si se eligió uno). Debajo, recetario de recetas guardadas.
 6. **Explorar**: lista de `cafes` aprobadas con búsqueda. Fuera de la barra hasta tener datos (ruta `/explore` sigue activa).
-6. **Perfil**: correo y cerrar sesión.
+7. **Perfil**: correo, "Mi equipo" (molino, drippers por familia, máquina de espresso, otros) y cerrar sesión. El equipo alimenta las recetas sin volver a escribirlo.
 
 ## 7. Dirección visual (decidida 2026-11-09)
 
