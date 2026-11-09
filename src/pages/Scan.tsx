@@ -217,7 +217,7 @@ export function Scan() {
 
       {(step === 'review' || step === 'saving') && (
         <form
-          className="pb-32"
+          className="pb-36"
           onSubmit={(e) => {
             e.preventDefault()
             save()
@@ -341,8 +341,8 @@ export function Scan() {
             </div>
           </section>
 
-          {/* CTA fijo con blur (Figma 03) */}
-          <div className="fixed inset-x-0 bottom-0 z-20 bg-background/80 backdrop-blur-xl safe-bottom">
+          {/* CTA fijo con blur (Figma 03). z-30 para quedar sobre la barra de navegación. */}
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/80 bg-background/85 backdrop-blur-xl safe-bottom">
             <div className="mx-auto max-w-md px-6 py-4">
               <Button type="submit" className="w-full" disabled={step === 'saving'}>
                 {step === 'saving' ? 'Guardando...' : 'Guardar café'}
