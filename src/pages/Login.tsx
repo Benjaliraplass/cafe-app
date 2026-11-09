@@ -42,6 +42,15 @@ export function Login() {
       {/* Hero con fundido al fondo (Figma 01) */}
       <div className="relative h-[46vh] min-h-[340px] overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(135deg,#6b5c4d_0%,#2a2421_100%)]" />
+        {/* Foto del hero (public/hero.jpg). Si no existe, queda el degradado de respaldo. */}
+        <img
+          src="/hero.jpg"
+          alt=""
+          className="absolute inset-0 size-full object-cover object-center"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
+        />
         <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-6 pb-2">
           <h1 className="text-[46px] font-medium leading-none tracking-tightest">Dripo</h1>
