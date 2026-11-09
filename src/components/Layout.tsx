@@ -12,7 +12,7 @@ const tabs = [
 export function Layout() {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
-      <main className="flex-1 pb-28 safe-top">
+      <main className="flex-1 pb-32 safe-top">
         <Outlet />
       </main>
       <BottomNav />
@@ -20,24 +20,27 @@ export function Layout() {
   )
 }
 
-/** Barra inferior transparente con blur, 4 ítems iguales (Figma V3). */
-export function BottomNav() {
+/**
+ * Barra inferior flotante "liquid glass": píldora translúcida con blur y saturación,
+ * borde de luz y sombra suave; el ítem activo lleva su propia píldora.
+ */
+export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border/90 bg-background/72 backdrop-blur-xl safe-bottom">
-      <div className="mx-auto flex max-w-md items-start justify-between px-3 pt-3 pb-2">
+    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
+      <div className="glass pointer-events-auto flex w-full max-w-md items-center justify-between gap-1 rounded-full p-1.5">
         {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
-            className={({ isActive }) =>
+            className={({ isActive: routeActive }) =>
               cn(
-                'flex w-[86px] flex-col items-center gap-1.5 rounded-xl py-1 text-[11px] font-medium transition-colors',
-                isActive ? 'text-foreground' : 'text-tertiary',
+                'flex flex-1 flex-col items-center gap-1 rounded-full py-2 text-[10px] font-medium transition-[background-color,color,transform] duration-300 active:scale-95',
+                (activeTo ? activeTo === to : routeActive) ? 'bg-foreground text-background shadow-[0_6px_16px_-6px_rgba(0,0,0,0.45)]' : 'text-muted-foreground hover:text-foreground',
               )
             }
           >
-            <Icon width={24} height={24} strokeWidth={1.6} />
+            <Icon width={22} height={22} strokeWidth={1.7} />
             <span>{label}</span>
           </NavLink>
         ))}

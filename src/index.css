@@ -123,6 +123,36 @@
   @apply text-[11px] font-medium uppercase tracking-eyebrow text-tertiary;
 }
 
+/* Liquid glass: superficie translúcida con blur + saturación, borde de luz y sombra suave.
+   Se usa en la barra inferior flotante y en barras de acción fijas. */
+@utility glass {
+  background: color-mix(in oklab, var(--background) 62%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 70%, transparent),
+    0 12px 32px -12px rgb(0 0 0 / 0.28),
+    0 2px 8px -2px rgb(0 0 0 / 0.08);
+}
+/* Variante más opaca para barras de acción que se superponen a la navegación. */
+@utility glass-solid {
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 70%, transparent),
+    0 12px 32px -12px rgb(0 0 0 / 0.28),
+    0 2px 8px -2px rgb(0 0 0 / 0.08);
+}
+.dark .glass,
+.dark .glass-solid {
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 12%, transparent),
+    0 12px 32px -12px rgb(0 0 0 / 0.6);
+}
+
 @keyframes pulse-soft {
   0%,
   100% {
