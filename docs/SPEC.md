@@ -91,7 +91,7 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
 - Red desde claude.ai: para QA end-to-end real (crear usuario de prueba, escanear, guardar) hace falta permitir `*.supabase.co` y `*.netlify.app` en claude.ai → Settings → Capabilities. Hoy la QA de RLS se hace con SQL simulando usuarios y la visual con `/preview`.
 - Dominio e íconos definitivos (los actuales son una gota monocroma provisoria).
-- Google OAuth: falta habilitar el proveedor en Supabase (Authentication → Providers → Google) con Client ID/Secret de Google Cloud y agregar `https://pfpqqwvnfusxrttajndu.supabase.co/auth/v1/callback` como redirect URI autorizado; en Supabase Auth → URL Configuration agregar la URL de Netlify y `http://localhost:5173` a Redirect URLs.
+- Google OAuth (configurado 2026-11-09): proyecto Google Cloud `app-cafe` (Google Auth Platform), cliente web "Dripo web" con callback `https://pfpqqwvnfusxrttajndu.supabase.co/auth/v1/callback`; app en producción con página principal `https://tostadoclub.com` y política de privacidad `https://tostadoclub.com/pages/privacidad-dripo` (página de Shopify, fuera del menú). En Supabase: proveedor Google activo, Site URL = Netlify, Redirect URLs `https://sweet-faloodeh-218899.netlify.app/**` y `http://localhost:5173/**`. Al cambiar de dominio hay que actualizar orígenes en Google Cloud y Site URL/Redirect URLs en Supabase.
 - Cerrar registros (beta por invitación): en Supabase Auth desactivar "Allow new users to sign up" e invitar desde el dashboard, o tabla de allowlist.
 - Perfil público / social (seguir, feed) — fuera del MVP.
 - Capacitor para tiendas — fuera del MVP.

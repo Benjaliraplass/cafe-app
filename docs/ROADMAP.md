@@ -45,7 +45,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [ ] Vista de un café del catálogo: todos mis registros de ese café
 - [ ] Estadísticas simples en Home: cafés este mes, origen más repetido, puntaje promedio
 - [ ] Cerrar registros (beta por invitación) y lista de invitados
-- [~] Google OAuth: botón y flujo listos en la app; falta habilitar el proveedor en Supabase con credenciales de Google Cloud (ver SPEC §8)
+- [x] Google OAuth: proyecto Google Cloud `app-cafe`, app publicada (pantalla de consentimiento con política de privacidad en tostadoclub.com/pages/privacidad-dripo), proveedor habilitado en Supabase, Site URL y Redirect URLs configuradas. Pendiente: prueba en teléfono
 
 ## Fase 2 — Recetas
 
