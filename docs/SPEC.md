@@ -1,4 +1,4 @@
-# SPEC — cafe-app (nombre de trabajo: Origen)
+# SPEC — Dripo (repo: cafe-app)
 
 Última actualización: 2026-11-09
 
@@ -20,7 +20,7 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 | Escaneo | Sin base de etiquetas previa. La IA extrae los datos; el catálogo (`roasters`, `coffees`) se construye con cada escaneo confirmado. |
 | Datos de cafeterías | Seed curado propio + alta por usuarios con moderación (`status = pending` hasta aprobar). Google Places queda como opción futura. |
 | Alcance | Beta cerrada por invitación. Registros privados por defecto (`is_public = false`). |
-| Marca | Nombre de trabajo "Origen". Pendiente definir nombre final, dominio y relación con Tostado Club / Pantera. |
+| Marca | Nombre v1: **Dripo** (decidido 2026-11-09). Pendientes: dominio y relación con Tostado Club / Pantera. |
 | Orden | Fase 1 diario + escaneo → Fase 2 recetas → Fase 3 explorar. |
 
 ## 3. Arquitectura
@@ -73,20 +73,20 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 5. **Explorar**: lista de `cafes` aprobadas con búsqueda. Vacía hasta cargar el seed.
 6. **Perfil**: correo y cerrar sesión.
 
-## 7. Dirección visual (2026-11-09)
+## 7. Dirección visual (decidida 2026-11-09)
 
 - Referencias: Vivino (estructura), Blue Bottle Coffee y Honest Greens (tono minimalista, editorial).
-- Paleta: escala de grises sobre negro. Tokens en Figma, colección "Origen / Color": `bg/base #0A0A0A`, `bg/surface #141414`, `bg/surface-2 #1C1C1C`, `line/subtle #262626`, `line/strong #3A3A3A`, `ink/primary #F2F0EC`, `ink/secondary #A8A49E`, `ink/tertiary #6E6A65`, `accent/cream #E8E2D8`.
-- Tipografía: Fraunces Light/Regular para títulos y cifras; Inter Regular/Medium para texto y etiquetas (etiquetas en mayúsculas con tracking 6-10 %).
-- Barra inferior transparente con blur (fondo al 72 % + background blur 28), línea superior sutil, 4 ítems; activo en `ink/primary`, inactivo en `ink/tertiary`.
-- Componentes: inputs `surface` con borde `line/subtle` radio 12; botón primario `ink/primary` con texto inverso; chips redondeados; fotos con esquinas 14-20.
-- Diseño en Figma: https://www.figma.com/design/tC72X7goZvicV5dbNaxeVx (página "Origen — App", sección "Dirección visual v1"), pantallas 01 Login, 02 Mis cafés, 03 Confirmar café, 04 Detalle.
-- Implementación: shadcn/ui (Radix + Tailwind) sobre los tokens anteriores; se reemplazan los componentes propios de `src/components/ui.tsx`.
+- Elegida: **V3 — tema claro, escala de grises, DM Sans**. Figma: https://www.figma.com/design/tC72X7goZvicV5dbNaxeVx (página "Dripo — App", sección "v3 ✓ ELEGIDA"; v1 Fraunces oscuro y v2 DM Sans oscuro quedan como referencia).
+- Tokens (colección "Dripo / Color", modo Light → CSS `:root`): `background #FFFFFF`, `card #F5F4F1`, `muted #ECEAE6`, `border #E6E3DE`, `border-strong #CFCBC4`, `foreground #111111`, `muted-foreground #6B6763`, `tertiary #9A958F`, `primary #111111` / `primary-foreground #FFFFFF`. El modo Dark (V2) existe en Figma y en `.dark` del CSS para activarlo a futuro.
+- Tipografía: DM Sans. Títulos Medium con tracking -3 % (34-46 px), cifras Medium, cuerpo Regular, etiquetas 10-11 px en mayúsculas con tracking 8 %.
+- Barra inferior transparente con blur (`bg-background/72 backdrop-blur-xl`, borde superior sutil), 4 ítems iguales sin botón destacado.
+- Componentes: inputs `card` con borde `border` radio 12 y alto 48; botón primario negro radio 14 alto 54; chips redondeados (activo negro); fotos con esquinas 14-20; listas con divisores en vez de tarjetas.
+- Implementación: shadcn/ui (Radix + cva + Tailwind v4) con los tokens anteriores como variables CSS.
 
 ## 8. Pendientes conocidos
 
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
-- Nombre final, dominio, íconos definitivos.
+- Dominio e íconos definitivos (los actuales son una gota monocroma provisoria).
 - Google OAuth.
 - Cerrar registros (beta por invitación): en Supabase Auth desactivar "Allow new users to sign up" e invitar desde el dashboard, o tabla de allowlist.
 - Perfil público / social (seguir, feed) — fuera del MVP.

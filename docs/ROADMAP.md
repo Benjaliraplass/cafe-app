@@ -1,4 +1,4 @@
-# ROADMAP — cafe-app
+# ROADMAP — Dripo
 
 Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netlify y prueba en el teléfono de Benjamín.
 
@@ -18,12 +18,13 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 
 ## Fase UI — Rediseño en escala de grises + shadcn/ui
 
-- [x] Dirección visual definida y 4 pantallas en Figma (ver SPEC §7)
-- [ ] Revisión de Benjamín en Figma y ajustes
-- [ ] Instalar shadcn/ui, mapear tokens al tema de Tailwind
-- [ ] Reimplementar Login, Mis cafés, Confirmar café, Detalle según Figma
-- [ ] Barra inferior transparente con blur; transiciones con framer-motion; íconos lucide-react
-- [ ] Deploy y prueba en teléfono
+- [x] Dirección visual definida: 3 variantes en Figma, elegida V3 (claro, DM Sans). Nombre: Dripo
+- [x] shadcn/ui montado a mano (registro bloqueado desde claude.ai), tokens light/dark en CSS
+- [x] Reimplementadas Login, Mis cafés, Confirmar café, Detalle, Explorar, Perfil según Figma V3
+- [x] Barra inferior transparente con blur; íconos lucide-react; íconos PWA y favicon "Dripo"
+- [ ] Transiciones con framer-motion (instalado, sin usar aún)
+- [ ] Prueba en teléfono del rediseño y ajustes finos
+- [ ] Renombrar el sitio en Netlify (ej. `dripo-app`) y, cuando haya dominio, conectarlo
 
 ## Fase 1 — Diario + escaneo (MVP usable)
 

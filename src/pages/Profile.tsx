@@ -1,25 +1,29 @@
-import { useAuth } from '../hooks/useAuth'
-import { Button, Card } from '../components/ui'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Eyebrow, Title } from '@/components/primitives'
 
 export function Profile() {
   const { user, signOut } = useAuth()
   return (
-    <div className="pt-6">
-      <header className="mb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-3">Cuenta</p>
-        <h1 className="font-display text-3xl text-ink">Perfil</h1>
+    <div>
+      <header className="flex flex-col gap-1.5 px-6 pt-4">
+        <Eyebrow>Cuenta</Eyebrow>
+        <Title className="text-[38px]">Perfil</Title>
       </header>
-      <Card className="mb-4">
-        <p className="text-xs uppercase tracking-wide text-ink-3">Correo</p>
-        <p className="text-ink">{user?.email}</p>
-      </Card>
-      <Card className="mb-6 text-sm text-ink-2">
-        <p className="mb-1 font-semibold text-ink">Origen · beta</p>
-        <p>Versión inicial. Las fotos y notas son privadas por defecto. Si algo falla, cuéntanos.</p>
-      </Card>
-      <Button variant="ghost" className="w-full" onClick={signOut}>
-        Cerrar sesión
-      </Button>
+      <div className="flex flex-col gap-3 px-6 pt-6">
+        <Card className="flex flex-col gap-1 p-4">
+          <Eyebrow className="text-[10px]">Correo</Eyebrow>
+          <p className="text-[15px]">{user?.email}</p>
+        </Card>
+        <Card className="flex flex-col gap-1 p-4 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Dripo · beta</p>
+          <p>Versión inicial. Tus fotos y notas son privadas por defecto. Si algo falla, cuéntanos.</p>
+        </Card>
+        <Button variant="outline" className="mt-3" onClick={signOut}>
+          Cerrar sesión
+        </Button>
+      </div>
     </div>
   )
 }

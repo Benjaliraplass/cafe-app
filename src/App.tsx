@@ -1,16 +1,19 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { AuthProvider, useAuth } from './hooks/useAuth'
-import { Layout } from './components/Layout'
-import { Login } from './pages/Login'
-import { Home } from './pages/Home'
-import { Scan } from './pages/Scan'
-import { LogDetail } from './pages/LogDetail'
-import { Explore } from './pages/Explore'
-import { Profile } from './pages/Profile'
-import { Spinner } from './components/ui'
+import { AuthProvider, useAuth } from '@/hooks/useAuth'
+import { Layout } from '@/components/Layout'
+import { Login } from '@/pages/Login'
+import { Home } from '@/pages/Home'
+import { Scan } from '@/pages/Scan'
+import { LogDetail } from '@/pages/LogDetail'
+import { Explore } from '@/pages/Explore'
+import { Profile } from '@/pages/Profile'
+import { Spinner } from '@/components/primitives'
+import { Preview } from '@/pages/Preview'
 
 function Gate() {
   const { user, loading } = useAuth()
+  // Vista previa con datos de ejemplo, solo en desarrollo (npm run dev): /preview?v=home|detail|login|empty|loading
+  if (import.meta.env.DEV && window.location.pathname.startsWith('/preview')) return <Preview />
   if (loading) {
     return (
       <div className="flex min-h-full items-center justify-center">

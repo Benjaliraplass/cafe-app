@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { supabase } from '../lib/supabase'
-import { Button, ErrorBox, Field, Input } from '../components/ui'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ErrorBox, Field } from '@/components/primitives'
 
 type Mode = 'login' | 'signup'
 
@@ -36,17 +38,18 @@ export function Login() {
   }
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-6 py-12 safe-top safe-bottom">
-      <div className="mb-10">
-        <img src="/icons/icon-192.png" alt="" className="mb-5 h-16 w-16 rounded-2xl" />
-        <h1 className="font-display text-4xl text-ink">Origen</h1>
-        <p className="mt-2 text-ink-2">
-          Tu diario de café de especialidad. Escanea la bolsa, guarda lo que tomaste y recibe recetas según el
-          origen.
-        </p>
+    <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
+      {/* Hero con fundido al fondo (Figma 01) */}
+      <div className="relative h-[46vh] min-h-[340px] overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#6b5c4d_0%,#2a2421_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-6 pb-2">
+          <h1 className="text-[46px] font-medium leading-none tracking-tightest">Dripo</h1>
+          <p className="text-[15px] text-muted-foreground">Tu diario de café de especialidad</p>
+        </div>
       </div>
 
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="flex flex-col gap-4 px-6 pt-4 pb-10">
         <Field label="Correo">
           <Input
             type="email"
@@ -70,23 +73,35 @@ export function Login() {
           />
         </Field>
         <ErrorBox message={error} />
-        {info && <p className="rounded-xl border border-ok/40 bg-ok/10 px-3.5 py-3 text-sm text-ok">{info}</p>}
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
-        </Button>
+        {info && <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted-foreground">{info}</p>}
+        <div className="flex flex-col gap-3 pt-1">
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+          </Button>
+          <Button type="button" variant="outline" disabled title="Disponible pronto">
+            Continuar con Google
+          </Button>
+        </div>
+        <button
+          type="button"
+          className="pt-2 text-center text-[13px] text-muted-foreground"
+          onClick={() => {
+            setMode(mode === 'login' ? 'signup' : 'login')
+            setError(null)
+            setInfo(null)
+          }}
+        >
+          {mode === 'login' ? (
+            <>
+              ¿No tienes cuenta? <span className="text-foreground">Crear una</span>
+            </>
+          ) : (
+            <>
+              ¿Ya tienes cuenta? <span className="text-foreground">Entrar</span>
+            </>
+          )}
+        </button>
       </form>
-
-      <button
-        type="button"
-        className="mt-6 text-sm text-ink-2 underline-offset-4 hover:underline"
-        onClick={() => {
-          setMode(mode === 'login' ? 'signup' : 'login')
-          setError(null)
-          setInfo(null)
-        }}
-      >
-        {mode === 'login' ? '¿No tienes cuenta? Crear una' : '¿Ya tienes cuenta? Entrar'}
-      </button>
     </div>
   )
 }

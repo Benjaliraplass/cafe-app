@@ -1,6 +1,6 @@
-# cafe-app (Origen)
+# Dripo (repo cafe-app)
 
-App tipo Vivino para café de especialidad. PWA mobile-first sobre Supabase, Netlify y la API de Anthropic.
+Dripo: app tipo Vivino para café de especialidad. PWA mobile-first sobre Supabase, Netlify y la API de Anthropic.
 
 - Guía para agentes y convenciones: `CLAUDE.md`
 - Producto y arquitectura: `docs/SPEC.md`

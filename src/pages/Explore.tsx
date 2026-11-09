@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
-import { listCafes } from '../lib/api'
-import type { Cafe } from '../lib/types'
-import { Card, Empty, ErrorBox, Spinner } from '../components/ui'
+import { AtSign, ExternalLink, Navigation } from 'lucide-react'
+import { listCafes } from '@/lib/api'
+import type { Cafe } from '@/lib/types'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { Empty, ErrorBox, Eyebrow, Spinner, Title } from '@/components/primitives'
 
 const KIND_LABEL: Record<Cafe['kind'], string> = {
   cafe: 'Cafetería',
@@ -27,57 +30,54 @@ export function Explore() {
   })
 
   return (
-    <div className="pt-6">
-      <header className="mb-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-3">Chile</p>
-        <h1 className="font-display text-3xl text-ink">Explorar</h1>
-        <p className="mt-1 text-sm text-ink-2">Cafeterías y tostadurías de especialidad.</p>
+    <div>
+      <header className="flex flex-col gap-1.5 px-6 pt-4">
+        <Eyebrow>Chile</Eyebrow>
+        <Title className="text-[38px]">Explorar</Title>
+        <p className="pt-1 text-sm text-muted-foreground">Cafeterías y tostadurías de especialidad.</p>
       </header>
 
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Buscar por nombre o comuna"
-        className="mb-4 w-full rounded-xl border border-line bg-bg-2 px-3.5 py-3 text-base text-ink placeholder:text-ink-3 outline-none focus:border-accent"
-      />
+      <div className="px-6 pt-5">
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nombre o comuna" />
+      </div>
 
-      <ErrorBox message={error} />
-      {!cafes && !error && <Spinner label="Cargando lugares..." />}
+      <div className="px-6 pt-4">
+        <ErrorBox message={error} />
+        {!cafes && !error && <Spinner label="Cargando lugares..." />}
+      </div>
 
       {cafes && cafes.length === 0 && (
-        <Empty
-          title="Estamos armando el mapa"
-          body="Pronto vas a poder explorar cafeterías y tostadurías de especialidad en todo Chile."
-        />
+        <Empty title="Estamos armando el mapa" body="Pronto vas a poder explorar cafeterías y tostadurías de especialidad en todo Chile." />
       )}
 
       {filtered.length > 0 && (
-        <ul className="space-y-3">
-          {filtered.map((c) => (
+        <ul className="px-6 pt-2">
+          {filtered.map((c, i) => (
             <li key={c.id}>
-              <Card>
-                <p className="text-xs font-medium uppercase tracking-wide text-accent">{KIND_LABEL[c.kind]}</p>
-                <p className="font-display text-lg text-ink">{c.name}</p>
-                <p className="text-sm text-ink-2">{[c.address, c.comuna, c.city].filter(Boolean).join(', ')}</p>
-                {c.description && <p className="mt-2 text-sm text-ink-2">{c.description}</p>}
-                <div className="mt-2 flex gap-3 text-sm">
+              <div className="flex flex-col gap-1.5 py-4">
+                <Eyebrow className="text-[10px]">{KIND_LABEL[c.kind]}</Eyebrow>
+                <p className="text-[19px] font-medium leading-tight tracking-[-0.01em]">{c.name}</p>
+                <p className="text-sm text-muted-foreground">{[c.address, c.comuna, c.city].filter(Boolean).join(', ')}</p>
+                {c.description && <p className="pt-1 text-sm text-muted-foreground">{c.description}</p>}
+                <div className="flex gap-4 pt-1.5 text-[13px] font-medium">
                   {c.instagram && (
-                    <a className="text-accent" href={`https://instagram.com/${c.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
-                      Instagram
+                    <a className="inline-flex items-center gap-1.5" href={`https://instagram.com/${c.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
+                      <AtSign className="size-3.5" strokeWidth={1.8} /> Instagram
                     </a>
                   )}
                   {c.website && (
-                    <a className="text-accent" href={c.website} target="_blank" rel="noreferrer">
-                      Sitio web
+                    <a className="inline-flex items-center gap-1.5" href={c.website} target="_blank" rel="noreferrer">
+                      <ExternalLink className="size-3.5" strokeWidth={1.8} /> Sitio web
                     </a>
                   )}
                   {c.lat && c.lng && (
-                    <a className="text-accent" href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer">
-                      Cómo llegar
+                    <a className="inline-flex items-center gap-1.5" href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer">
+                      <Navigation className="size-3.5" strokeWidth={1.8} /> Cómo llegar
                     </a>
                   )}
                 </div>
-              </Card>
+              </div>
+              {i < filtered.length - 1 && <Separator />}
             </li>
           ))}
         </ul>

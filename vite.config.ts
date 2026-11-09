@@ -1,3 +1,4 @@
+import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -12,12 +13,12 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
-        name: 'Origen - Diario de café',
-        short_name: 'Origen',
+        name: 'Dripo - Diario de café',
+        short_name: 'Dripo',
         description: 'Guarda los cafés que tomas, escanea etiquetas y recibe recetas según el origen.',
         lang: 'es',
-        theme_color: '#1c1410',
-        background_color: '#1c1410',
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -33,4 +34,7 @@ export default defineConfig({
       },
     }),
   ],
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
 })

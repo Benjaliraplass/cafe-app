@@ -1,10 +1,17 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { imageToJpegBase64 } from '../lib/image'
-import { saveLog, scanLabel } from '../lib/api'
-import { BREW_METHODS, type RoastProfile, type ScanResult } from '../lib/types'
-import { Button, Chip, ErrorBox, Field, Input, Rating, Spinner, Textarea } from '../components/ui'
+import { Camera, ChevronLeft, Images, PenLine } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { imageToJpegBase64 } from '@/lib/image'
+import { saveLog, scanLabel } from '@/lib/api'
+import { BREW_METHODS, type RoastProfile, type ScanResult } from '@/lib/types'
+import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { ErrorBox, Eyebrow, Field, Rating, SectionTitle, Spinner, Title } from '@/components/primitives'
 
 type Step = 'pick' | 'scanning' | 'review' | 'saving'
 
@@ -96,7 +103,6 @@ export function Scan() {
       setStep('review')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo leer la etiqueta')
-      // Permitimos seguir a mano aunque falle la IA
       setScan(null)
       setForm(emptyForm)
       setStep('review')
@@ -153,101 +159,100 @@ export function Scan() {
     }
   }
 
-  return (
-    <div className="pt-6">
-      <header className="mb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-3">Nuevo registro</p>
-        <h1 className="font-display text-3xl text-ink">Escanear etiqueta</h1>
-      </header>
+  const tastingChips = form.tasting_notes
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => onFile(e.target.files?.[0])}
-      />
-      <input
-        ref={galleryRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => onFile(e.target.files?.[0])}
-      />
+  return (
+    <div>
+      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+      <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+
+      {/* Top bar */}
+      <div className="flex items-center gap-2 px-4 pt-2">
+        {step !== 'pick' ? (
+          <Button variant="secondary" size="icon" onClick={() => { setStep('pick'); setError(null) }} aria-label="Volver">
+            <ChevronLeft strokeWidth={1.8} className="size-5" />
+          </Button>
+        ) : (
+          <div className="size-10" />
+        )}
+        <div className="flex flex-col gap-0.5">
+          <Eyebrow className="text-[10px]">Nuevo registro</Eyebrow>
+          <Title className="text-[28px]">{step === 'pick' ? 'Escanear etiqueta' : 'Confirmar café'}</Title>
+        </div>
+      </div>
 
       {step === 'pick' && (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3 px-6 pt-8">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="flex w-full flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-line bg-card py-16 text-ink-2 transition hover:border-accent hover:text-ink"
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-[24px] bg-card py-16 text-muted-foreground transition active:scale-[0.99]"
           >
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/15 text-accent">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" />
-                <circle cx="12" cy="13" r="3.5" />
-              </svg>
+            <span className="flex size-16 items-center justify-center rounded-full bg-background text-foreground">
+              <Camera strokeWidth={1.5} className="size-7" />
             </span>
-            <span className="font-semibold text-ink">Tomar foto de la bolsa</span>
+            <span className="text-[15px] font-medium text-foreground">Tomar foto de la bolsa</span>
             <span className="text-sm">Enfoca la etiqueta con buena luz</span>
           </button>
           <div className="flex gap-3">
-            <Button variant="ghost" className="flex-1" onClick={() => galleryRef.current?.click()}>
-              Elegir de la galería
+            <Button variant="outline" className="flex-1" onClick={() => galleryRef.current?.click()}>
+              <Images strokeWidth={1.6} /> Galería
             </Button>
-            <Button variant="ghost" className="flex-1" onClick={manualEntry}>
-              Ingresar a mano
+            <Button variant="outline" className="flex-1" onClick={manualEntry}>
+              <PenLine strokeWidth={1.6} /> A mano
             </Button>
           </div>
         </div>
       )}
 
       {step === 'scanning' && (
-        <div className="space-y-4">
-          {preview && (
-            <img src={preview} alt="" className="pulse-soft aspect-square w-full rounded-3xl object-cover" />
-          )}
+        <div className="flex flex-col gap-5 px-6 pt-4">
+          {preview && <img src={preview} alt="" className="pulse-soft aspect-[4/3] w-full rounded-[20px] object-cover" />}
           <Spinner label="Leyendo la etiqueta con IA..." />
         </div>
       )}
 
       {(step === 'review' || step === 'saving') && (
         <form
-          className="space-y-5"
+          className="pb-32"
           onSubmit={(e) => {
             e.preventDefault()
             save()
           }}
         >
           {preview && (
-            <div className="relative">
-              <img src={preview} alt="" className="aspect-[4/3] w-full rounded-3xl object-cover" />
+            <div className="relative px-6 pt-3">
+              <img src={preview} alt="" className="aspect-[3/2] w-full rounded-[20px] object-cover" />
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="absolute bottom-3 right-3 rounded-full bg-bg/80 px-3 py-1.5 text-xs font-medium text-ink backdrop-blur"
+                className="absolute right-9 bottom-3 rounded-full bg-background/75 px-3 py-1.5 text-xs font-medium backdrop-blur-md"
               >
                 Repetir foto
               </button>
             </div>
           )}
 
-          {scan && !scan.is_coffee_label && (
-            <p className="rounded-xl border border-warn/40 bg-warn/10 px-3.5 py-3 text-sm text-warn">
-              La foto no parece una etiqueta de café. Puedes completar los datos a mano.
+          <div className="flex items-start gap-2.5 px-6 pt-3">
+            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-foreground" />
+            <p className="text-[13px] text-muted-foreground">
+              {scan && !scan.is_coffee_label
+                ? 'La foto no parece una etiqueta de café. Puedes completar los datos a mano.'
+                : scan
+                  ? `Etiqueta leída con confianza ${scan.confidence}.${scan.notes_for_user ? ` ${scan.notes_for_user}` : ' Revisa y corrige lo que haga falta.'}`
+                  : 'Completa los datos del café a mano.'}
             </p>
-          )}
-          {scan && scan.is_coffee_label && (
-            <p className="text-sm text-ink-2">
-              Lectura con confianza <span className="font-semibold text-ink">{scan.confidence}</span>.
-              {scan.notes_for_user ? ` ${scan.notes_for_user}` : ' Revisa y corrige lo que haga falta.'}
-            </p>
-          )}
-          <ErrorBox message={error} />
+          </div>
+          <div className="px-6 pt-3">
+            <ErrorBox message={error} />
+          </div>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-xl text-ink">El café</h2>
+          {/* El café */}
+          <section className="flex flex-col gap-3.5 px-6 pt-5 pb-6">
+            <SectionTitle>El café</SectionTitle>
             <Field label="Tostador">
               <Input value={form.roaster_name} onChange={(e) => set('roaster_name', e.target.value)} placeholder="Ej. Tostado Club" />
             </Field>
@@ -255,17 +260,11 @@ export function Scan() {
               <Input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Ej. La Pastora" required />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="País de origen">
+              <Field label="País">
                 <Input value={form.origin_country} onChange={(e) => set('origin_country', e.target.value)} placeholder="Colombia" />
               </Field>
               <Field label="Región">
                 <Input value={form.region} onChange={(e) => set('region', e.target.value)} placeholder="Huila" />
-              </Field>
-              <Field label="Finca">
-                <Input value={form.farm} onChange={(e) => set('farm', e.target.value)} />
-              </Field>
-              <Field label="Productor">
-                <Input value={form.producer} onChange={(e) => set('producer', e.target.value)} />
               </Field>
               <Field label="Variedad">
                 <Input value={form.variety} onChange={(e) => set('variety', e.target.value)} placeholder="Caturra" />
@@ -274,13 +273,20 @@ export function Scan() {
                 <Input value={form.process} onChange={(e) => set('process', e.target.value)} placeholder="Lavado" />
               </Field>
               <Field label="Altura (msnm)">
-                <Input inputMode="numeric" value={form.altitude_masl} onChange={(e) => set('altitude_masl', e.target.value)} placeholder="1800" />
+                <Input inputMode="numeric" value={form.altitude_masl} onChange={(e) => set('altitude_masl', e.target.value)} placeholder="—" />
               </Field>
-              <Field label="Nivel de tueste">
-                <Input value={form.roast_level} onChange={(e) => set('roast_level', e.target.value)} placeholder="Claro" />
+              <Field label="Fecha de tueste">
+                <Input type="date" value={form.roast_date} onChange={(e) => set('roast_date', e.target.value)} />
+              </Field>
+              <Field label="Finca">
+                <Input value={form.farm} onChange={(e) => set('farm', e.target.value)} />
+              </Field>
+              <Field label="Productor">
+                <Input value={form.producer} onChange={(e) => set('producer', e.target.value)} />
               </Field>
             </div>
-            <Field label="Perfil de tueste">
+            <div className="flex flex-col gap-2">
+              <Label>Perfil de tueste</Label>
               <div className="flex flex-wrap gap-2">
                 {(['filtro', 'espresso', 'omni'] as RoastProfile[]).map((p) => (
                   <Chip key={p} active={form.roast_profile === p} onClick={() => set('roast_profile', form.roast_profile === p ? '' : p)}>
@@ -288,21 +294,32 @@ export function Scan() {
                   </Chip>
                 ))}
               </div>
-            </Field>
+            </div>
             <Field label="Notas de cata" hint="Separadas por coma">
               <Input value={form.tasting_notes} onChange={(e) => set('tasting_notes', e.target.value)} placeholder="Chocolate, caramelo, naranja" />
-            </Field>
-            <Field label="Fecha de tueste">
-              <Input type="date" value={form.roast_date} onChange={(e) => set('roast_date', e.target.value)} />
+              {tastingChips.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {tastingChips.map((n) => (
+                    <span key={n} className="rounded-full bg-muted px-3 py-1.5 text-xs">
+                      {n}
+                    </span>
+                  ))}
+                </div>
+              )}
             </Field>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="font-display text-xl text-ink">Mi experiencia</h2>
-            <Field label="Puntaje">
+          <Separator />
+
+          {/* Mi experiencia */}
+          <section className="flex flex-col gap-3.5 px-6 pt-6">
+            <SectionTitle>Mi experiencia</SectionTitle>
+            <div className="flex flex-col gap-2">
+              <Label>Puntaje</Label>
               <Rating value={form.rating} onChange={(v) => set('rating', v)} size="lg" />
-            </Field>
-            <Field label="Cómo lo preparé">
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Cómo lo preparé</Label>
               <div className="flex flex-wrap gap-2">
                 {BREW_METHODS.map((m) => (
                   <Chip key={m} active={form.brew_method === m} onClick={() => set('brew_method', form.brew_method === m ? '' : m)}>
@@ -310,7 +327,7 @@ export function Scan() {
                   </Chip>
                 ))}
               </div>
-            </Field>
+            </div>
             <Field label="Notas">
               <Textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Qué sentí, qué cambiaría, con qué lo tomé..." />
             </Field>
@@ -324,13 +341,13 @@ export function Scan() {
             </div>
           </section>
 
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="ghost" onClick={() => { setStep('pick'); setError(null) }} disabled={step === 'saving'}>
-              Cancelar
-            </Button>
-            <Button type="submit" className="flex-1" disabled={step === 'saving'}>
-              {step === 'saving' ? 'Guardando...' : 'Guardar café'}
-            </Button>
+          {/* CTA fijo con blur (Figma 03) */}
+          <div className="fixed inset-x-0 bottom-0 z-20 bg-background/80 backdrop-blur-xl safe-bottom">
+            <div className="mx-auto max-w-md px-6 py-4">
+              <Button type="submit" className="w-full" disabled={step === 'saving'}>
+                {step === 'saving' ? 'Guardando...' : 'Guardar café'}
+              </Button>
+            </div>
           </div>
         </form>
       )}

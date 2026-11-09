@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { deleteLog, getLog, listRecipesForLog, saveRecipe, suggestRecipe } from '../lib/api'
-import { photoUrl } from '../lib/supabase'
-import { BREW_METHODS, type CoffeeLog, type Recipe, type RecipeData } from '../lib/types'
-import { Button, Card, Chip, ErrorBox, Field, Input, Rating, Spinner } from '../components/ui'
+import { ChevronLeft, Trash2 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { deleteLog, getLog, listRecipesForLog, saveRecipe, suggestRecipe } from '@/lib/api'
+import { photoUrl } from '@/lib/supabase'
+import { BREW_METHODS, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Chip } from '@/components/ui/chip'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { ErrorBox, Eyebrow, Field, KeyValue, Photo, Rating, Spinner } from '@/components/primitives'
 import { formatDate } from './Home'
 
 export function LogDetail() {
@@ -16,50 +22,107 @@ export function LogDetail() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  // Generador de recetas
-  const [method, setMethod] = useState<string>('')
-  const [equipment, setEquipment] = useState('')
-  const [generating, setGenerating] = useState(false)
-  const [draft, setDraft] = useState<RecipeData | null>(null)
-  const [saving, setSaving] = useState(false)
-
   useEffect(() => {
     if (!id) return
     Promise.all([getLog(id), listRecipesForLog(id)])
       .then(([l, r]) => {
         setLog(l)
         setRecipes(r)
-        if (l?.brew_method) setMethod(l.brew_method)
       })
       .catch((e) => setError(e.message))
   }, [id])
 
+  if (log === undefined) {
+    return (
+      <div className="px-6 pt-8">
+        <Spinner label="Cargando..." />
+      </div>
+    )
+  }
+  if (log === null) {
+    return (
+      <div className="px-6 pt-8">
+        <p className="text-muted-foreground">No encontramos este registro.</p>
+        <Link to="/" className="mt-4 inline-block text-foreground underline underline-offset-4">
+          Volver a mis cafés
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <LogDetailView
+      log={log}
+      recipes={recipes}
+      error={error}
+      onGenerate={async (method, equipment) => {
+        const c = log.coffee
+        return suggestRecipe({
+          coffee: {
+            name: c?.name,
+            roaster_name: c?.roaster?.name ?? null,
+            origin_country: c?.origin_country,
+            region: c?.region,
+            farm: c?.farm,
+            variety: c?.variety,
+            process: c?.process,
+            altitude_masl: c?.altitude_masl,
+            roast_level: c?.roast_level,
+            roast_profile: c?.roast_profile,
+            tasting_notes: c?.tasting_notes,
+            roast_date: log.roast_date,
+          },
+          brew_method: method,
+          equipment: equipment || undefined,
+        })
+      }}
+      onSaveRecipe={async (recipe) => {
+        if (!user) return
+        await saveRecipe({ userId: user.id, coffeeId: log.coffee_id, logId: log.id, recipe })
+        setRecipes(await listRecipesForLog(log.id))
+      }}
+      onDelete={async () => {
+        await deleteLog(log.id)
+        navigate('/', { replace: true })
+      }}
+    />
+  )
+}
+
+/** Vista presentacional (Figma 04 · Detalle). */
+export function LogDetailView({
+  log,
+  recipes,
+  error: outerError,
+  onGenerate,
+  onSaveRecipe,
+  onDelete,
+}: {
+  log: CoffeeLog
+  recipes: Recipe[]
+  error: string | null
+  onGenerate: (method: string, equipment: string) => Promise<RecipeData>
+  onSaveRecipe: (recipe: RecipeData) => Promise<void>
+  onDelete: () => Promise<void>
+}) {
+  const [method, setMethod] = useState<string>(log.brew_method ?? '')
+  const [equipment, setEquipment] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [draft, setDraft] = useState<RecipeData | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const c = log.coffee
+  const url = photoUrl(log.photo_path)
+  const restDays = log.roast_date ? Math.max(0, Math.round((Date.now() - new Date(log.roast_date + 'T12:00:00').getTime()) / 86_400_000)) : null
+
   async function generate() {
-    if (!log || !method) return
+    if (!method) return
     setError(null)
     setGenerating(true)
     setDraft(null)
     try {
-      const c = log.coffee
-      const data = await suggestRecipe({
-        coffee: {
-          name: c?.name,
-          roaster_name: c?.roaster?.name ?? null,
-          origin_country: c?.origin_country,
-          region: c?.region,
-          farm: c?.farm,
-          variety: c?.variety,
-          process: c?.process,
-          altitude_masl: c?.altitude_masl,
-          roast_level: c?.roast_level,
-          roast_profile: c?.roast_profile,
-          tasting_notes: c?.tasting_notes,
-          roast_date: log.roast_date,
-        },
-        brew_method: method,
-        equipment: equipment.trim() || undefined,
-      })
-      setDraft(data)
+      setDraft(await onGenerate(method, equipment.trim()))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo generar la receta')
     } finally {
@@ -68,11 +131,10 @@ export function LogDetail() {
   }
 
   async function keepDraft() {
-    if (!draft || !log || !user) return
+    if (!draft) return
     setSaving(true)
     try {
-      await saveRecipe({ userId: user.id, coffeeId: log.coffee_id, logId: log.id, recipe: draft })
-      setRecipes(await listRecipesForLog(log.id))
+      await onSaveRecipe(draft)
       setDraft(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar la receta')
@@ -82,108 +144,111 @@ export function LogDetail() {
   }
 
   async function remove() {
-    if (!log) return
     if (!confirm('¿Eliminar este registro? No se puede deshacer.')) return
     try {
-      await deleteLog(log.id)
-      navigate('/', { replace: true })
+      await onDelete()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo eliminar')
     }
   }
 
-  if (log === undefined) {
-    return (
-      <div className="pt-8">
-        <Spinner label="Cargando..." />
-      </div>
-    )
-  }
-  if (log === null) {
-    return (
-      <div className="pt-8">
-        <p className="text-ink-2">No encontramos este registro.</p>
-        <Link to="/" className="mt-4 inline-block text-accent">
-          Volver a mis cafés
-        </Link>
-      </div>
-    )
-  }
-
-  const c = log.coffee
-  const url = photoUrl(log.photo_path)
-
   return (
-    <div className="pt-4">
-      <Link to="/" className="mb-4 inline-flex items-center gap-1 text-sm text-ink-2">
-        <span aria-hidden>&larr;</span> Mis cafés
-      </Link>
-
-      {url && <img src={url} alt="" className="mb-5 aspect-[4/3] w-full rounded-3xl object-cover" />}
-
-      <header className="mb-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-accent">{c?.roaster?.name ?? 'Tostador desconocido'}</p>
-        <h1 className="font-display text-3xl leading-tight text-ink">{c?.name ?? 'Café'}</h1>
-        <div className="mt-2 flex items-center gap-3">
-          <Rating value={log.rating} />
-          <span className="text-sm text-ink-3">{formatDate(log.consumed_at)}</span>
+    <div className="-mt-[env(safe-area-inset-top)]">
+      {/* Hero */}
+      <div className="relative h-[440px] overflow-hidden">
+        <Photo src={url} className="absolute inset-0" />
+        <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+10px)]">
+          <Button asChild variant="secondary" size="icon" className="bg-background/55 backdrop-blur-md">
+            <Link to="/" aria-label="Volver">
+              <ChevronLeft strokeWidth={1.8} className="size-5" />
+            </Link>
+          </Button>
+          <Button variant="secondary" size="icon" className="bg-background/55 backdrop-blur-md" onClick={remove} aria-label="Eliminar">
+            <Trash2 strokeWidth={1.6} className="size-[18px]" />
+          </Button>
         </div>
-      </header>
-
-      <ErrorBox message={error} />
-
-      <Card className="mb-4">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-          <Item k="Origen" v={[c?.origin_country, c?.region].filter(Boolean).join(', ')} />
-          <Item k="Finca" v={c?.farm} />
-          <Item k="Productor" v={c?.producer} />
-          <Item k="Variedad" v={c?.variety} />
-          <Item k="Proceso" v={c?.process} />
-          <Item k="Altura" v={c?.altitude_masl ? `${c.altitude_masl} msnm` : null} />
-          <Item k="Tueste" v={[c?.roast_level, c?.roast_profile].filter(Boolean).join(' · ')} />
-          <Item k="Fecha de tueste" v={log.roast_date ? formatDate(log.roast_date) : null} />
-          <Item k="Preparación" v={log.brew_method} />
-          <Item k="Comprado en" v={log.bought_at} />
-          <Item k="Precio" v={log.price_clp ? `$${log.price_clp.toLocaleString('es-CL')}` : null} />
-        </dl>
-        {c?.tasting_notes && c.tasting_notes.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {c.tasting_notes.map((n) => (
-              <span key={n} className="rounded-full bg-bg-2 px-3 py-1 text-xs text-ink-2">
-                {n}
-              </span>
-            ))}
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-6 pb-1">
+          <Eyebrow className="text-muted-foreground">{c?.roaster?.name ?? 'Tostador desconocido'}</Eyebrow>
+          <h1 className="text-[44px] font-medium leading-none tracking-tightest">{c?.name ?? 'Café'}</h1>
+          <div className="flex items-center gap-2.5 text-[13px] text-muted-foreground">
+            <Rating value={log.rating} size="sm" />
+            <span className="text-tertiary">·</span>
+            <span>{formatDate(log.consumed_at)}</span>
+            {log.brew_method && (
+              <>
+                <span className="text-tertiary">·</span>
+                <span>{log.brew_method}</span>
+              </>
+            )}
           </div>
-        )}
-        {log.notes && <p className="mt-4 whitespace-pre-wrap text-sm text-ink-2">{log.notes}</p>}
-      </Card>
+        </div>
+      </div>
 
-      <section className="mb-6">
-        <h2 className="mb-3 font-display text-2xl text-ink">Receta para este café</h2>
-        <Card className="space-y-4">
-          <Field label="Método">
+      <div className="px-6 pt-4">
+        <ErrorBox message={outerError ?? error} />
+      </div>
+
+      {/* Ficha */}
+      <section className="flex flex-col gap-5 px-6 pt-4 pb-6">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3.5">
+          <KeyValue k="Origen" v={[c?.origin_country, c?.region].filter(Boolean).join(', ')} />
+          <KeyValue k="Finca" v={c?.farm} />
+          <KeyValue k="Variedad" v={c?.variety} />
+          <KeyValue k="Proceso" v={c?.process} />
+          <KeyValue k="Productor" v={c?.producer} />
+          <KeyValue k="Altura" v={c?.altitude_masl ? `${c.altitude_masl} msnm` : null} />
+          <KeyValue k="Tueste" v={[c?.roast_profile && cap(c.roast_profile), log.roast_date && formatDate(log.roast_date)].filter(Boolean).join(' · ')} />
+          <KeyValue k="Reposo" v={restDays != null ? `${restDays} días` : null} />
+          <KeyValue k="Comprado en" v={log.bought_at} />
+          <KeyValue k="Precio" v={log.price_clp ? `$${log.price_clp.toLocaleString('es-CL')}` : null} />
+        </div>
+        {c?.tasting_notes && c.tasting_notes.length > 0 && (
+          <div className="flex flex-col gap-2.5">
+            <Eyebrow className="text-[10px]">Notas de cata</Eyebrow>
             <div className="flex flex-wrap gap-2">
-              {BREW_METHODS.map((m) => (
-                <Chip key={m} active={method === m} onClick={() => setMethod(m)}>
-                  {m}
-                </Chip>
+              {c.tasting_notes.map((n) => (
+                <span key={n} className="rounded-full bg-muted px-3 py-1.5 text-xs">
+                  {n}
+                </span>
               ))}
             </div>
-          </Field>
-          <Field label="Mi equipo (opcional)" hint="Molino, balanza, máquina. Ayuda a afinar la molienda.">
-            <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ej. Comandante C40, V60 plástico" />
-          </Field>
-          <Button className="w-full" onClick={generate} disabled={!method || generating}>
-            {generating ? 'Diseñando receta...' : 'Generar receta con IA'}
-          </Button>
-          {generating && <Spinner label="Ajustando parámetros al origen y proceso..." />}
-        </Card>
+          </div>
+        )}
+        {log.notes && <p className="text-[17px] italic leading-[1.35] text-muted-foreground">“{log.notes}”</p>}
+      </section>
+
+      <Separator />
+
+      {/* Receta */}
+      <section className="flex flex-col gap-4 px-6 pt-6 pb-10">
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <Eyebrow className="text-[10px]">Receta para este café</Eyebrow>
+            <h2 className="text-2xl font-medium tracking-[-0.02em]">{method ? `${method}` : 'Elige un método'}</h2>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {BREW_METHODS.map((m) => (
+            <Chip key={m} active={method === m} onClick={() => setMethod(m)}>
+              {m}
+            </Chip>
+          ))}
+        </div>
+        <Field label="Mi equipo (opcional)" hint="Molino, balanza, máquina. Ayuda a afinar la molienda.">
+          <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ej. Comandante C40, V60 plástico" />
+        </Field>
+        <Button onClick={generate} disabled={!method || generating}>
+          {generating ? 'Diseñando receta...' : 'Generar receta con IA'}
+        </Button>
+        {generating && <Spinner label="Ajustando parámetros al origen y proceso..." />}
 
         {draft && (
-          <div className="mt-4">
-            <RecipeView r={draft} />
-            <div className="mt-3 flex gap-3">
-              <Button variant="ghost" className="flex-1" onClick={() => setDraft(null)} disabled={saving}>
+          <div className="flex flex-col gap-3">
+            <RecipeCard r={draft} />
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setDraft(null)} disabled={saving}>
                 Descartar
               </Button>
               <Button className="flex-1" onClick={keepDraft} disabled={saving}>
@@ -192,14 +257,12 @@ export function LogDetail() {
             </div>
           </div>
         )}
-      </section>
 
-      {recipes.length > 0 && (
-        <section className="mb-8">
-          <h2 className="mb-3 font-display text-2xl text-ink">Recetas guardadas</h2>
-          <div className="space-y-3">
+        {recipes.length > 0 && (
+          <div className="flex flex-col gap-3 pt-4">
+            <Eyebrow className="text-[10px]">Recetas guardadas</Eyebrow>
             {recipes.map((r) => (
-              <RecipeView
+              <RecipeCard
                 key={r.id}
                 r={{
                   title: r.title ?? r.brew_method,
@@ -214,81 +277,71 @@ export function LogDetail() {
               />
             ))}
           </div>
-        </section>
-      )}
-
-      <div className="pb-6">
-        <Button variant="danger" className="w-full" onClick={remove}>
-          Eliminar registro
-        </Button>
-      </div>
+        )}
+      </section>
     </div>
   )
 }
 
-function Item({ k, v }: { k: string; v: string | null | undefined }) {
-  if (!v) return null
-  return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-ink-3">{k}</dt>
-      <dd className="text-ink">{v}</dd>
-    </div>
-  )
+function cap(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function RecipeView({ r, compact = false }: { r: RecipeData; compact?: boolean }) {
+export function RecipeCard({ r, compact = false }: { r: RecipeData; compact?: boolean }) {
   const p = r.params
   const isEspresso = p.yield_g != null
+  const stats: [string, string][] = [
+    ['Dosis', `${p.dose_g} g`],
+    isEspresso ? ['Salida', `${p.yield_g} g`] : ['Agua', p.water_g ? `${p.water_g} g` : '—'],
+    ['Ratio', p.ratio],
+    ['Temp.', `${p.water_temp_c} °C`],
+    ['Tiempo', p.total_time],
+    isEspresso && p.pressure_bar != null ? ['Presión', `${p.pressure_bar} bar`] : ['Molienda', p.grind],
+  ]
   return (
-    <Card>
-      <p className="text-xs font-medium uppercase tracking-wide text-accent">{r.brew_method}</p>
-      <h3 className="font-display text-xl text-ink">{r.title}</h3>
-
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <Stat label="Dosis" value={`${p.dose_g} g`} />
-        {isEspresso ? <Stat label="Salida" value={`${p.yield_g} g`} /> : <Stat label="Agua" value={p.water_g ? `${p.water_g} g` : '—'} />}
-        <Stat label="Ratio" value={p.ratio} />
-        <Stat label="Temp." value={`${p.water_temp_c} °C`} />
-        <Stat label="Tiempo" value={p.total_time} />
-        {isEspresso && p.pressure_bar != null ? <Stat label="Presión" value={`${p.pressure_bar} bar`} /> : <Stat label="Molienda" value={p.grind} small />}
+    <Card className="flex flex-col gap-4 p-[18px]">
+      <div className="flex flex-col gap-0.5">
+        <Eyebrow className="text-[10px]">{r.brew_method}</Eyebrow>
+        <h3 className="text-xl font-medium tracking-[-0.02em]">{r.title}</h3>
       </div>
-      {isEspresso && <p className="mt-2 text-sm text-ink-2">Molienda: {p.grind}</p>}
-      {p.grind_reference && <p className="mt-1 text-sm text-ink-2">Referencia: {p.grind_reference}</p>}
-
-      <ol className="mt-4 space-y-2">
+      <div className="grid grid-cols-3 gap-2.5">
+        {stats.map(([k, v]) => (
+          <div key={k} className="flex flex-col gap-0.5 rounded-xl bg-muted px-3 py-3">
+            <span className="text-[10px] font-medium uppercase tracking-eyebrow text-tertiary">{k}</span>
+            <span className={cnSize(v)}>{v}</span>
+          </div>
+        ))}
+      </div>
+      {isEspresso && <p className="text-sm text-muted-foreground">Molienda: {p.grind}</p>}
+      {p.grind_reference && <p className="text-sm text-muted-foreground">Referencia: {p.grind_reference}</p>}
+      <ol className="flex flex-col gap-2.5">
         {r.steps.map((s, i) => (
-          <li key={i} className="flex gap-3 text-sm">
-            <span className="w-12 shrink-0 font-mono text-ink-3">{s.time}</span>
-            <span className="text-ink">{s.action}</span>
+          <li key={i} className="flex gap-3.5 text-sm">
+            <span className="w-10 shrink-0 font-medium text-tertiary tabular-nums">{s.time}</span>
+            <span className="leading-[1.4]">{s.action}</span>
           </li>
         ))}
       </ol>
-
       {!compact && (
         <>
-          <p className="mt-4 text-sm text-ink-2">{r.rationale}</p>
-          {r.rest_advice && <p className="mt-2 text-sm text-ink-2">Reposo: {r.rest_advice}</p>}
+          <p className="text-[13px] leading-[1.45] text-muted-foreground">{r.rationale}</p>
+          {r.rest_advice && <p className="text-[13px] leading-[1.45] text-muted-foreground">Reposo: {r.rest_advice}</p>}
           {r.adjustments.length > 0 && (
-            <ul className="mt-3 space-y-1 text-sm text-ink-2">
+            <ul className="flex flex-col gap-1 text-[13px] text-muted-foreground">
               {r.adjustments.map((a, i) => (
                 <li key={i}>
-                  <span className="text-ink">Si {a.if},</span> {a.then}
+                  <span className="text-foreground">Si {a.if},</span> {a.then}
                 </li>
               ))}
             </ul>
           )}
         </>
       )}
-      {compact && r.rationale && <p className="mt-3 whitespace-pre-wrap text-sm text-ink-2">{r.rationale}</p>}
+      {compact && r.rationale && <p className="whitespace-pre-wrap text-[13px] leading-[1.45] text-muted-foreground">{r.rationale}</p>}
     </Card>
   )
 }
 
-function Stat({ label, value, small = false }: { label: string; value: string; small?: boolean }) {
-  return (
-    <div className="rounded-xl bg-bg-2 px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wide text-ink-3">{label}</p>
-      <p className={`${small ? 'text-xs' : 'text-base'} font-semibold text-ink`}>{value}</p>
-    </div>
-  )
+function cnSize(v: string) {
+  return v.length > 9 ? 'text-sm font-medium' : 'text-lg font-medium tracking-[-0.01em]'
 }

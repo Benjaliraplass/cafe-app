@@ -1,6 +1,6 @@
-# cafe-app (nombre de trabajo: Origen)
+# Dripo (repo: cafe-app)
 
-App tipo Vivino para café de especialidad. PWA mobile-first. Dueño: Benjamín Lira Plass.
+Dripo: app tipo Vivino para café de especialidad. PWA mobile-first. Dueño: Benjamín Lira Plass.
 Idioma de todo (código, commits, UI, docs): español neutro. Sin emojis.
 
 Fuente de verdad del proyecto:
@@ -15,7 +15,7 @@ se escribe primero en `docs/SPEC.md` y después en código.
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), react-router-dom, vite-plugin-pwa |
+| Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), shadcn/ui (estilo new-york, componentes en `src/components/ui`, `components.json` listo para `npx shadcn add`), lucide-react, react-router-dom, vite-plugin-pwa |
 | Backend | Supabase (proyecto `cafe-app`, ref `pfpqqwvnfusxrttajndu`, región sa-east-1): Postgres + RLS, Auth, Storage, Edge Functions (Deno) |
 | IA | Gemini API (Google) desde Edge Functions, con cadena de modelos de respaldo (`gemini-3.5-flash` → `gemini-flash-latest` → `gemini-3.5-flash-lite` → `gemini-2.5-flash`), timeout 20 s por llamada y reintentos ante 429/503. Secret `GEMINI_API_KEY` en Supabase. Anthropic queda como proveedor alternativo (`ANTHROPIC_API_KEY`); la capa está en `supabase/functions/_shared/ai.ts` |
 | Hosting | Netlify (cuenta benjamin@tostadoclub.com), sitio conectado al repo, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml`. URL actual: https://sweet-faloodeh-218899.netlify.app |
@@ -30,9 +30,12 @@ src/
   lib/api.ts           TODAS las lecturas/escrituras a Supabase y llamadas a Edge Functions
   lib/image.ts         redimensiona fotos a JPEG base64 antes de enviarlas
   hooks/useAuth.tsx    sesión de Supabase (contexto)
-  components/ui.tsx    Button, Field, Input, Chip, Card, Rating, Spinner, ErrorBox, Empty
-  components/Layout.tsx  barra inferior con 4 tabs
-  pages/               Login, Home (diario), Scan, LogDetail (+ recetas), Explore, Profile
+  lib/utils.ts         cn() (clsx + tailwind-merge)
+  components/ui/       primitivos shadcn: button, input, textarea, label, badge, chip, card, skeleton, separator
+  components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue
+  components/Layout.tsx  Layout + BottomNav (transparente con blur, 4 ítems)
+  pages/               Login, Home (+HomeView), Scan, LogDetail (+LogDetailView, RecipeCard), Explore, Profile
+  pages/Preview.tsx    solo en dev: /preview?v=home|detail|login|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
@@ -47,8 +50,11 @@ docs/                  SPEC.md, ROADMAP.md
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.
 - JSON estructurado desde la IA: definir el schema como tool (`input_schema`) y llamar `callStructured` (ver `_shared/ai.ts`); Gemini usa `responseSchema`, Anthropic `tool_choice` forzado. Nunca parsear texto libre.
-- UI: tokens de color en `src/index.css` (`@theme`). Tipografía display `Fraunces`, texto `Inter`.
+- UI: diseño V3 de Figma (claro, escala de grises, DM Sans). Tokens como variables CSS en `src/index.css` (`:root` light, `.dark` dark) mapeadas a Tailwind con `@theme inline`; nombres shadcn (`background`, `card`, `muted`, `border`, `primary`...) más `tertiary` y `border-strong`. Utilidad `eyebrow` para etiquetas en mayúsculas. Fuente única: DM Sans (Google Fonts, cargada en `index.html`).
+- Componentes: usar `@/components/ui/*` y `@/components/primitives`. No crear estilos ad hoc si existe un primitivo. Nuevos componentes shadcn se agregan con `npx shadcn@latest add <nombre>` desde el computador (el registro no es accesible desde claude.ai).
+- Vistas con datos las separamos en contenedor (fetch) + vista presentacional (`HomeView`, `LogDetailView`) para poder previsualizarlas en `/preview`.
 - Commits en español, imperativo, cortos. Un cambio por commit.
+- Alias `@/` apunta a `src/` (tsconfig + vite).
 - Variables de entorno del frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`). Nunca la service role key en el cliente.
 
 ## Comandos
