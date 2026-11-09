@@ -22,6 +22,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] shadcn/ui montado a mano (registro bloqueado desde claude.ai), tokens light/dark en CSS
 - [x] Reimplementadas Login, Mis cafés, Confirmar café, Detalle, Explorar, Perfil según Figma V3
 - [x] Barra inferior transparente con blur; íconos lucide-react; íconos PWA y favicon "Dripo"
+- [x] Barra inferior flotante "liquid glass" (píldora con blur/saturación, ítem activo en negro) y barras de acción con la misma geometría
 - [ ] Transiciones con framer-motion (instalado, sin usar aún)
 - [ ] Prueba en teléfono del rediseño y ajustes finos
 - [ ] Renombrar el sitio en Netlify (ej. `dripo-app`) y, cuando haya dominio, conectarlo
@@ -30,16 +31,21 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 
 - [ ] Bajar latencia de `suggest-recipe` (51 s): probar `thinkingLevel`/`thinkingBudget` bajo en Gemini, acortar schema, o `gemini-3.5-flash-lite` primero para recetas; registrar modelo y ms por llamada en logs
 - [ ] Pedir tildes explícitas en el prompt de recetas (Gemini devolvió "cafe", "extraccion")
-- [ ] Prompt de escaneo: si la fecha de tueste viene sin año ("26/10"), asumir el año en curso
+- [x] Prompt de escaneo: si la fecha de tueste viene sin año ("26/10"), asumir el año en curso; además infiere el país del tostador
 - [x] Subir límite de tokens de salida y tratar JSON inválido/truncado como reintentable (fix del error en etiqueta Asunto)
 
 - [ ] Ajustar el prompt de `scan-label` con 10-20 etiquetas reales chilenas (Tostado Club, Pantera, otros)
-- [ ] Editar un registro existente (hoy solo crear/eliminar)
+- [x] Editar un registro existente (`/log/:id/edit`): puntaje (incluye volver a 0), foto, datos del café, país del tostador
+- [x] País del tostador seleccionable (lista en `src/lib/countries.ts`)
+- [x] Favoritos: corazón en lista y detalle, filtro "Favoritos" (`coffee_logs.is_favorite`)
+- [x] Perfil: foto (bucket `avatars`), nombre y nacionalidad
+- [x] Botón de feedback por correo en "Dripo · beta"
+- [x] QA: build, capturas de todas las vistas en `/preview`, RLS verificado con SQL (usuario A edita lo suyo; usuario B no puede leer/editar registros, perfil, café ni avatar de A), advisors sin alertas nuevas
 - [ ] Autocompletar tostador y café desde el catálogo al escribir (evitar duplicados)
 - [ ] Vista de un café del catálogo: todos mis registros de ese café
 - [ ] Estadísticas simples en Home: cafés este mes, origen más repetido, puntaje promedio
 - [ ] Cerrar registros (beta por invitación) y lista de invitados
-- [ ] Google OAuth
+- [~] Google OAuth: botón y flujo listos en la app; falta habilitar el proveedor en Supabase con credenciales de Google Cloud (ver SPEC §8)
 
 ## Fase 2 — Recetas
 

@@ -29,13 +29,15 @@ src/
   lib/types.ts         tipos compartidos (ScanResult, Coffee, CoffeeLog, Recipe, Cafe)
   lib/api.ts           TODAS las lecturas/escrituras a Supabase y llamadas a Edge Functions
   lib/image.ts         redimensiona fotos a JPEG base64 antes de enviarlas
+  lib/countries.ts     lista de países (español) para tostador y nacionalidad
   hooks/useAuth.tsx    sesión de Supabase (contexto)
   lib/utils.ts         cn() (clsx + tailwind-merge)
-  components/ui/       primitivos shadcn: button, input, textarea, label, badge, chip, card, skeleton, separator
-  components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue
-  components/Layout.tsx  Layout + BottomNav (transparente con blur, 4 ítems)
-  pages/               Login, Home (+HomeView), Scan, LogDetail (+LogDetailView, RecipeCard), Explore, Profile
-  pages/Preview.tsx    solo en dev: /preview?v=home|detail|login|empty|loading con datos de ejemplo
+  components/ui/       primitivos shadcn: button, input, textarea, select, label, badge, chip, card, skeleton, separator
+  components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
+  components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
+  components/Layout.tsx  Layout + BottomNav flotante "liquid glass" (utilidades `glass` / `glass-solid` en index.css)
+  pages/               Login (correo + Google), Home (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard), Recipes (+RecipesView), Explore, Profile (+ProfileView)
+  pages/Preview.tsx    solo en dev: /preview?v=home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS

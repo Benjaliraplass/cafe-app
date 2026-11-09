@@ -40,13 +40,14 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 
 | Tabla | Para qué | Acceso (RLS) |
 |---|---|---|
-| `profiles` | 1:1 con `auth.users`, creado por trigger. `equipment` jsonb: `{ grinder, drippers[], espresso_machine, other }` | Lectura pública; escribe el dueño |
-| `roasters` | Tostadurías (catálogo compartido), `slug` único | Lectura pública; crea cualquier autenticado; edita el creador |
+| `profiles` | 1:1 con `auth.users`, creado por trigger. `display_name`, `avatar_url` (ruta en bucket `avatars` o URL absoluta de Google), `country` (nacionalidad, nombre en español), `equipment` jsonb: `{ grinder, drippers[], espresso_machine, other }` | Lectura pública; escribe el dueño |
+| `roasters` | Tostadurías (catálogo compartido), `slug` único, `country` (seleccionable en el formulario; la IA lo infiere de la etiqueta) | Lectura pública; crea cualquier autenticado; edita el creador |
 | `coffees` | Cafés del catálogo compartido, FK a `roasters` | Igual que roasters |
-| `coffee_logs` | Diario personal: foto, puntaje, notas, método, fecha de tueste, precio, `raw_scan` jsonb | Solo el dueño (o todos si `is_public`) |
+| `coffee_logs` | Diario personal: foto, puntaje (0 = sin puntaje), notas, método, fecha de tueste, precio, `is_favorite`, `raw_scan` jsonb | Solo el dueño (o todos si `is_public`) |
 | `recipes` | Recetas generadas/guardadas por usuario, ligadas a un `coffee_log` | Solo el dueño |
 | `cafes` | Cafeterías/tostadurías con local, `kind` (cafe/roastery/both), `status` de moderación | Se ven las aprobadas y las propias; alta como `pending` |
 | Storage `coffee-photos` | Bucket público, ruta `{user_id}/{uuid}.jpg`, máx 10 MB | Escribe solo en su carpeta |
+| Storage `avatars` | Bucket público, ruta `{user_id}/avatar-{ts}.jpg`, máx 5 MB, 512 px | Escribe solo en su carpeta |
 
 Migraciones en `supabase/migrations/`.
 
@@ -55,7 +56,7 @@ Migraciones en `supabase/migrations/`.
 ### `scan-label`
 - Entrada: `{ image_base64, media_type }` (jpeg/png/webp).
 - Salida: `ScanResult` (ver `src/lib/types.ts`), con `confidence` (alta/media/baja), `is_coffee_label` y `notes_for_user`.
-- Prompt: extraer solo lo escrito; `null` si no está; normalización de país, proceso y perfil de tueste en español.
+- Prompt: extraer solo lo escrito; `null` si no está; normalización de país, proceso y perfil de tueste en español. Infiere `roaster_country` (ciudad o dominio .cl → Chile). Fecha de tueste sin año → año en curso (o el anterior si quedara en el futuro).
 
 ### `suggest-recipe`
 - Entrada: `{ coffee?, coffee_description?, method_family (conico|flat|inmersion|espresso), dripper, servings? (tazas, 1 taza = 250 g agua), dose_g?, equipment?, preferences? }`. `brew_method` se acepta por compatibilidad.
@@ -67,13 +68,13 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 
 ## 6. Flujos de la app
 
-1. **Login**: correo + contraseña (Supabase Auth). Google OAuth pendiente de configurar en Supabase + Google Cloud.
+1. **Login**: correo + contraseña o Google (`signInWithOAuth`, `redirectTo = window.location.origin`). Google requiere el proveedor habilitado en Supabase Auth con credenciales de Google Cloud; si no está habilitado, la app muestra un mensaje claro.
 2. **Escanear**: cámara o galería → redimensionar → `scan-label` → formulario prellenado → editar → guardar (sube foto, resuelve/crea tostador y café, inserta log). Si la IA falla, se puede completar a mano.
-3. **Mis cafés**: lista de logs con foto, tostador, café, origen, puntaje y fecha.
-4. **Detalle**: ficha completa + generador de recetas (método + equipo) → guardar receta → lista de recetas guardadas. Eliminar registro.
+3. **Mis cafés**: lista de logs con foto, tostador, café, origen, puntaje y fecha. Corazón sobre la foto para marcar favorito (optimista); filtros Todos / Filtro / Espresso / Favoritos.
+4. **Detalle**: ficha completa + generador de recetas (método + equipo) → guardar receta → lista de recetas guardadas. Acciones: favorito, editar (`/log/:id/edit`, mismo formulario que el escaneo; permite cambiar foto, puntaje, país del tostador, etc.) y eliminar. Si el café del catálogo lo creó otro usuario, al editar se crea una copia propia y se reasigna el registro.
 5. **Recetas** (pestaña): wizard de 4 pasos → receta con IA → guardar (ligada al café si se eligió uno). Debajo, recetario de recetas guardadas.
 6. **Explorar**: lista de `cafes` aprobadas con búsqueda. Fuera de la barra hasta tener datos (ruta `/explore` sigue activa).
-7. **Perfil**: correo, "Mi equipo" (molino, drippers por familia, máquina de espresso, otros) y cerrar sesión. El equipo alimenta las recetas sin volver a escribirlo.
+7. **Perfil**: foto de perfil (bucket `avatars`), nombre, nacionalidad, "Mi equipo" (molino, drippers por familia, máquina de espresso, otros), tarjeta "Dripo · beta" con botón de feedback (`mailto:benjamin@tostadoclub.com`) y cerrar sesión. El equipo alimenta las recetas sin volver a escribirlo.
 
 ## 7. Dirección visual (decidida 2026-11-09)
 
@@ -81,15 +82,16 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 - Elegida: **V3 — tema claro, escala de grises, DM Sans**. Figma: https://www.figma.com/design/tC72X7goZvicV5dbNaxeVx (página "Dripo — App", sección "v3 ✓ ELEGIDA"; v1 Fraunces oscuro y v2 DM Sans oscuro quedan como referencia).
 - Tokens (colección "Dripo / Color", modo Light → CSS `:root`): `background #FFFFFF`, `card #F5F4F1`, `muted #ECEAE6`, `border #E6E3DE`, `border-strong #CFCBC4`, `foreground #111111`, `muted-foreground #6B6763`, `tertiary #9A958F`, `primary #111111` / `primary-foreground #FFFFFF`. El modo Dark (V2) existe en Figma y en `.dark` del CSS para activarlo a futuro.
 - Tipografía: DM Sans. Títulos Medium con tracking -3 % (34-46 px), cifras Medium, cuerpo Regular, etiquetas 10-11 px en mayúsculas con tracking 8 %.
-- Barra inferior transparente con blur (`bg-background/72 backdrop-blur-xl`, borde superior sutil), 4 ítems iguales sin botón destacado.
+- Barra inferior flotante tipo "liquid glass" (referencia Uber): píldora `glass` (fondo 62 % + `backdrop-filter: blur(24px) saturate(180%)`, borde de luz interior, sombra suave), separada de los bordes, 4 ítems iguales; el activo lleva una píldora negra. Las barras de acción fijas (guardar café, guardar cambios) usan `glass-solid` (94 %) con la misma geometría, para tapar la barra sin transparentar sus textos. El contenido lleva `pb-32` para no quedar oculto.
 - Componentes: inputs `card` con borde `border` radio 12 y alto 48; botón primario negro radio 14 alto 54; chips redondeados (activo negro); fotos con esquinas 14-20; listas con divisores en vez de tarjetas.
 - Implementación: shadcn/ui (Radix + cva + Tailwind v4) con los tokens anteriores como variables CSS.
 
 ## 8. Pendientes conocidos
 
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
+- Red desde claude.ai: para QA end-to-end real (crear usuario de prueba, escanear, guardar) hace falta permitir `*.supabase.co` y `*.netlify.app` en claude.ai → Settings → Capabilities. Hoy la QA de RLS se hace con SQL simulando usuarios y la visual con `/preview`.
 - Dominio e íconos definitivos (los actuales son una gota monocroma provisoria).
-- Google OAuth.
+- Google OAuth: falta habilitar el proveedor en Supabase (Authentication → Providers → Google) con Client ID/Secret de Google Cloud y agregar `https://pfpqqwvnfusxrttajndu.supabase.co/auth/v1/callback` como redirect URI autorizado; en Supabase Auth → URL Configuration agregar la URL de Netlify y `http://localhost:5173` a Redirect URLs.
 - Cerrar registros (beta por invitación): en Supabase Auth desactivar "Allow new users to sign up" e invitar desde el dashboard, o tabla de allowlist.
 - Perfil público / social (seguir, feed) — fuera del MVP.
 - Capacitor para tiendas — fuera del MVP.
