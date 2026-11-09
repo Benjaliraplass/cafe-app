@@ -7,11 +7,13 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Proyecto Supabase `cafe-app` (sa-east-1)
 - [x] Esquema inicial + RLS + bucket `coffee-photos`
 - [x] Edge Functions `scan-label` y `suggest-recipe` desplegadas
-- [ ] Secret `ANTHROPIC_API_KEY` cargado en Supabase (lo carga Benjamín en el dashboard)
+- [x] Secret `GEMINI_API_KEY` cargado en Supabase (se cambió de Anthropic a Gemini)
 - [x] Scaffold PWA: auth, diario, escaneo, detalle, recetas, explorar, perfil
 - [x] Repo con CLAUDE.md, SPEC, ROADMAP
-- [ ] Sitio en Netlify con env vars y primer deploy
+- [x] Sitio en Netlify (cuenta Tostado Club) conectado al repo, env vars y primer deploy: https://sweet-faloodeh-218899.netlify.app
+- [x] `scan-label` probado end-to-end con etiqueta sintética (200 OK, 6,9 s, todos los campos correctos)
 - [ ] Prueba end-to-end en teléfono: registro → escaneo real → guardar → receta
+- [ ] Renombrar el sitio en Netlify (ej. `origen-cafe`) y borrar el sitio huérfano `origen-cafe-app` del team Global66
 
 ## Fase 1 — Diario + escaneo (MVP usable)
 

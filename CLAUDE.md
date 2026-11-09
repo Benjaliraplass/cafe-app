@@ -17,8 +17,8 @@ se escribe primero en `docs/SPEC.md` y después en código.
 |---|---|
 | Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), react-router-dom, vite-plugin-pwa |
 | Backend | Supabase (proyecto `cafe-app`, ref `pfpqqwvnfusxrttajndu`, región sa-east-1): Postgres + RLS, Auth, Storage, Edge Functions (Deno) |
-| IA | Anthropic API desde Edge Functions. Modelo por defecto `claude-sonnet-5-5` (env `ANTHROPIC_MODEL`). La key vive solo en el secret `ANTHROPIC_API_KEY` de Supabase |
-| Hosting | Netlify, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml` |
+| IA | Gemini API (Google) desde Edge Functions, con cadena de modelos de respaldo (`gemini-3.5-flash` → `gemini-flash-latest` → `gemini-3.5-flash-lite` → `gemini-2.5-flash`), timeout 20 s por llamada y reintentos ante 429/503. Secret `GEMINI_API_KEY` en Supabase. Anthropic queda como proveedor alternativo (`ANTHROPIC_API_KEY`); la capa está en `supabase/functions/_shared/ai.ts` |
+| Hosting | Netlify (cuenta benjamin@tostadoclub.com), sitio conectado al repo, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml`. URL actual: https://sweet-faloodeh-218899.netlify.app |
 | Repo | github.com/Benjaliraplass/cafe-app, rama `main` deploya a producción |
 
 ## Estructura
@@ -35,7 +35,7 @@ src/
   pages/               Login, Home (diario), Scan, LogDetail (+ recetas), Explore, Profile
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
-  functions/_shared/anthropic.ts   cliente mínimo de Anthropic + CORS
+  functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
   functions/scan-label/            foto de etiqueta -> JSON estructurado
   functions/suggest-recipe/        café + método -> receta estructurada
 docs/                  SPEC.md, ROADMAP.md
@@ -46,7 +46,7 @@ docs/                  SPEC.md, ROADMAP.md
 - Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.
-- JSON estructurado desde Claude: usar `tool_choice` forzado (ver `_shared/anthropic.ts`), nunca parsear texto libre.
+- JSON estructurado desde la IA: definir el schema como tool (`input_schema`) y llamar `callStructured` (ver `_shared/ai.ts`); Gemini usa `responseSchema`, Anthropic `tool_choice` forzado. Nunca parsear texto libre.
 - UI: tokens de color en `src/index.css` (`@theme`). Tipografía display `Fraunces`, texto `Inter`.
 - Commits en español, imperativo, cortos. Un cambio por commit.
 - Variables de entorno del frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`). Nunca la service role key en el cliente.
@@ -65,7 +65,7 @@ Migraciones: `supabase/migrations/*.sql` es el historial; aplicar con el MCP (`a
 
 ## Qué NO hacer
 
-- No exponer la API key de Anthropic ni la service role key en el frontend.
+- No exponer la API key de Gemini/Anthropic ni la service role key en el frontend.
 - No crear tablas sin RLS.
 - No cambiar el esquema sin agregar el archivo de migración correspondiente.
 - No agregar dependencias pesadas de UI (MUI, Chakra). Tailwind + componentes propios.

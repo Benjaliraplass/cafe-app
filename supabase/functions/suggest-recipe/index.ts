@@ -1,5 +1,5 @@
 // suggest-recipe: dado un café (origen, proceso, variedad, tueste, notas) y un método de
-// preparación, devuelve una receta específica con parámetros y pasos, generada por Claude.
+// preparación, devuelve una receta específica con parámetros y pasos, generada por IA (Gemini o Claude).
 //
 // Body: {
 //   coffee: { name, roaster_name, origin_country, region, variety, process, altitude_masl,
@@ -11,7 +11,7 @@
 // Respuesta: { ok: true, data: Recipe } | { ok: false, error: string }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { callClaudeTool, corsHeaders, json } from "../_shared/anthropic.ts";
+import { callStructured, corsHeaders, json } from "../_shared/ai.ts";
 
 interface Recipe {
   title: string;
@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
       body.preferences ? `Preferencias del usuario: ${body.preferences}` : null,
     ].filter((l) => l !== null);
 
-    const data = await callClaudeTool<Recipe>({
+    const data = await callStructured<Recipe>({
       system: SYSTEM,
       content: [{ type: "text", text: lines.join("\n") }],
       tool: TOOL,

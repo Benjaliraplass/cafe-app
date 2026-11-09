@@ -1,11 +1,11 @@
 // scan-label: recibe la foto de una bolsa de café y devuelve los datos de la etiqueta
-// como JSON estructurado usando Claude con visión.
+// como JSON estructurado usando IA con visión (Gemini o Claude, ver _shared/ai.ts).
 //
 // Body: { image_base64: string, media_type: "image/jpeg" | "image/png" | "image/webp" }
 // Respuesta: { ok: true, data: ScanResult } | { ok: false, error: string }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { callClaudeTool, corsHeaders, json } from "../_shared/anthropic.ts";
+import { callStructured, corsHeaders, json } from "../_shared/ai.ts";
 
 interface ScanResult {
   roaster_name: string | null;
@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
       return json({ ok: false, error: "Imagen demasiado grande (máx ~5 MB)" }, 413);
     }
 
-    const data = await callClaudeTool<ScanResult>({
+    const data = await callStructured<ScanResult>({
       system: SYSTEM,
       content: [
         {

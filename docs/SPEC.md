@@ -16,7 +16,7 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 |---|---|
 | Plataforma | PWA mobile-first (React + Vite). Empaquetar con Capacitor si más adelante se necesita tienda. |
 | Backend | Supabase: Postgres + RLS, Auth, Storage, Edge Functions. |
-| IA | Anthropic API, llamada solo desde Edge Functions. Salida estructurada vía tool use forzado. |
+| IA | Gemini API (key de Benjamín), llamada solo desde Edge Functions. Salida estructurada vía `responseSchema`. Cadena de modelos de respaldo y timeout por llamada porque `gemini-flash-latest` respondió 503 / se colgó en la primera prueba (2026-11-09). Anthropic queda disponible como proveedor alternativo en la misma capa. |
 | Escaneo | Sin base de etiquetas previa. La IA extrae los datos; el catálogo (`roasters`, `coffees`) se construye con cada escaneo confirmado. |
 | Datos de cafeterías | Seed curado propio + alta por usuarios con moderación (`status = pending` hasta aprobar). Google Places queda como opción futura. |
 | Alcance | Beta cerrada por invitación. Registros privados por defecto (`is_public = false`). |
@@ -28,11 +28,11 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 ```
 [PWA en Netlify] --supabase-js--> [Supabase Auth / Postgres (RLS) / Storage]
         |
-        +--functions.invoke(JWT)--> [Edge Function scan-label]     --> Anthropic API (visión)
-        +--functions.invoke(JWT)--> [Edge Function suggest-recipe] --> Anthropic API (texto)
+        +--functions.invoke(JWT)--> [Edge Function scan-label]     --> Gemini API (visión)
+        +--functions.invoke(JWT)--> [Edge Function suggest-recipe] --> Gemini API (texto)
 ```
 
-- El cliente nunca ve la API key de Anthropic.
+- El cliente nunca ve la API key de Gemini.
 - Las Edge Functions exigen JWT válido (`verify_jwt = true`); solo usuarios autenticados consumen IA.
 - Fotos: el cliente redimensiona a máx. 1280 px JPEG q0.85 antes de subir y de enviar a la IA (controla costo y latencia).
 
@@ -62,7 +62,7 @@ Migraciones en `supabase/migrations/`.
 - Salida: `RecipeData`: `params` (dosis, agua, ratio, temperatura, molienda, tiempo, salida, presión), `steps` con tiempos, `rationale`, `adjustments` (3), `rest_advice`.
 - La receta se justifica por origen/proceso/tueste; considera reposo si hay fecha de tueste.
 
-Secret requerido: `ANTHROPIC_API_KEY`. Opcional: `ANTHROPIC_MODEL`.
+Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS` (cadena), `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`.
 
 ## 6. Flujos de la app
 
