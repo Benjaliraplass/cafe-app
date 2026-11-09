@@ -30,7 +30,7 @@ interface Form {
   tasting_notes: string
   roast_date: string
   rating: number | null
-  brew_method: string
+  brew_methods: string[]
   notes: string
   bought_at: string
   price_clp: string
@@ -51,7 +51,7 @@ const emptyForm: Form = {
   tasting_notes: '',
   roast_date: '',
   rating: null,
-  brew_method: '',
+  brew_methods: [],
   notes: '',
   bought_at: '',
   price_clp: '',
@@ -146,7 +146,7 @@ export function Scan() {
         log: {
           rating: form.rating,
           notes: orNull(form.notes),
-          brew_method: orNull(form.brew_method),
+          brew_method: form.brew_methods.length ? form.brew_methods.join(', ') : null,
           roast_date: orNull(form.roast_date),
           bought_at: orNull(form.bought_at),
           price_clp: form.price_clp ? parseInt(form.price_clp.replace(/\D/g, ''), 10) || null : null,
@@ -320,12 +320,20 @@ export function Scan() {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Cómo lo preparé</Label>
+              <span className="-mt-1 text-xs text-tertiary">Puedes marcar varios</span>
               <div className="flex flex-wrap gap-2">
-                {BREW_METHODS.map((m) => (
-                  <Chip key={m} active={form.brew_method === m} onClick={() => set('brew_method', form.brew_method === m ? '' : m)}>
-                    {m}
-                  </Chip>
-                ))}
+                {BREW_METHODS.map((m) => {
+                  const on = form.brew_methods.includes(m)
+                  return (
+                    <Chip
+                      key={m}
+                      active={on}
+                      onClick={() => set('brew_methods', on ? form.brew_methods.filter((x) => x !== m) : [...form.brew_methods, m])}
+                    >
+                      {m}
+                    </Chip>
+                  )
+                })}
               </div>
             </div>
             <Field label="Notas">

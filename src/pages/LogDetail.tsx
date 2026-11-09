@@ -105,7 +105,8 @@ export function LogDetailView({
   onSaveRecipe: (recipe: RecipeData) => Promise<void>
   onDelete: () => Promise<void>
 }) {
-  const [method, setMethod] = useState<string>(log.brew_method ?? '')
+  // brew_method puede traer varios métodos separados por coma; el primero es el método por defecto de la receta
+  const [method, setMethod] = useState<string>(log.brew_method?.split(',')[0]?.trim() ?? '')
   const [equipment, setEquipment] = useState('')
   const [generating, setGenerating] = useState(false)
   const [draft, setDraft] = useState<RecipeData | null>(null)
