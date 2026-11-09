@@ -1,0 +1,8 @@
+# Referencia del proyecto remoto. Para desarrollo local: `supabase link --project-ref pfpqqwvnfusxrttajndu`
+project_id = "cafe-app"
+
+[functions.scan-label]
+verify_jwt = true
+
+[functions.suggest-recipe]
+verify_jwt = true
