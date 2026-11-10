@@ -106,6 +106,7 @@ export function PublicCoffeeView({ coffee: c, stats, logs }: { coffee: Coffee; s
           <KeyValue k="Finca" v={c.farm} />
           <KeyValue k="Productor" v={c.producer} />
           <KeyValue k="Altura" v={c.altitude_masl ? `${c.altitude_masl} msnm` : null} />
+          <KeyValue k="Puntaje SCA" v={c.sca_score ? `${c.sca_score} pts` : null} />
           <KeyValue k="Tueste" v={[c.roast_profile ? c.roast_profile.charAt(0).toUpperCase() + c.roast_profile.slice(1) : null, c.roast_level].filter(Boolean).join(' · ')} />
         </div>
 

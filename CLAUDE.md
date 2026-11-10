@@ -17,7 +17,7 @@ se escribe primero en `docs/SPEC.md` y después en código.
 |---|---|
 | Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), shadcn/ui (estilo new-york, componentes en `src/components/ui`, `components.json` listo para `npx shadcn add`), lucide-react, react-router-dom, vite-plugin-pwa, MapLibre GL + OpenFreeMap (mapa vectorial, sin API key) |
 | Backend | Supabase (proyecto `cafe-app`, ref `pfpqqwvnfusxrttajndu`, región sa-east-1): Postgres + RLS, Auth, Storage, Edge Functions (Deno) |
-| IA | Gemini API (Google) desde Edge Functions, con cadena de modelos de respaldo (`gemini-3.5-flash` → `gemini-flash-latest` → `gemini-3.5-flash-lite` → `gemini-2.5-flash`), timeout 20 s por llamada y reintentos ante 429/503. Secret `GEMINI_API_KEY` en Supabase. Anthropic queda como proveedor alternativo (`ANTHROPIC_API_KEY`); la capa está en `supabase/functions/_shared/ai.ts` |
+| IA | Gemini API (Google) desde Edge Functions, con cadena de modelos de respaldo (`gemini-3.5-flash` → `gemini-flash-latest` → `gemini-3.5-flash-lite` → `gemini-2.5-flash`), timeout 20 s por llamada y reintentos ante 429/503. Secret `GEMINI_API_KEY` en Supabase. Si Gemini falla (cuota, saturación) y existe `ANTHROPIC_API_KEY`, la capa cae automáticamente a Claude; el usuario ve un mensaje corto y el detalle va al log. Capa en `supabase/functions/_shared/ai.ts` |
 | Hosting | Netlify (cuenta benjamin@tostadoclub.com), sitio conectado al repo, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml`. Dominio: https://dripocoffee.com (GoDaddy, DNS A + CNAME hacia Netlify; alias técnico https://sweet-faloodeh-218899.netlify.app) |
 | Repo | github.com/Benjaliraplass/cafe-app, rama `main` deploya a producción |
 

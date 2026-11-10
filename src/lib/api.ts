@@ -84,6 +84,7 @@ export function coffeeFromLog(log: CoffeeLog): SuggestRecipeInput['coffee'] {
     variety: c?.variety,
     process: c?.process,
     altitude_masl: c?.altitude_masl,
+    sca_score: c?.sca_score,
     roast_level: c?.roast_level,
     roast_profile: c?.roast_profile,
     tasting_notes: c?.tasting_notes,
@@ -108,6 +109,7 @@ export interface SaveLogInput {
     variety: string | null
     process: string | null
     altitude_masl: number | null
+    sca_score: number | null
     roast_level: string | null
     roast_profile: Coffee['roast_profile']
     tasting_notes: string[]
@@ -180,6 +182,7 @@ export async function saveLog(input: SaveLogInput): Promise<string> {
           variety: coffee.variety,
           process: coffee.process,
           altitude_masl: coffee.altitude_masl,
+          sca_score: coffee.sca_score,
           roast_level: coffee.roast_level,
           roast_profile: coffee.roast_profile,
           tasting_notes: coffee.tasting_notes,
@@ -219,14 +222,14 @@ const LOG_SELECT = `
   id, user_id, coffee_id, photo_path, rating, notes, brew_method, roast_date, bought_at, price_clp,
   is_public, is_favorite, consumed_at, created_at,
   coffee:coffees (
-    id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl,
+    id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl, sca_score,
     roast_level, roast_profile, tasting_notes, photo_path, is_published,
     roaster:roasters ( id, name, slug, country, city, website, instagram )
   )
 `
 
 const COFFEE_SELECT = `
-  id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl,
+  id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl, sca_score,
   roast_level, roast_profile, tasting_notes, photo_path, is_published, published_at,
   roaster:roasters ( id, name, slug, country, city, website, instagram )
 `
@@ -306,6 +309,7 @@ export async function updateLog(input: UpdateLogInput): Promise<void> {
     variety: coffee.variety,
     process: coffee.process,
     altitude_masl: coffee.altitude_masl,
+    sca_score: coffee.sca_score,
     roast_level: coffee.roast_level,
     roast_profile: coffee.roast_profile,
     tasting_notes: coffee.tasting_notes,

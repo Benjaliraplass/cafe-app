@@ -19,6 +19,7 @@ export interface CoffeeLogFormState {
   variety: string
   process: string
   altitude_masl: string
+  sca_score: string
   roast_level: string
   roast_profile: RoastProfile | ''
   tasting_notes: string
@@ -41,6 +42,7 @@ export const emptyCoffeeLogForm: CoffeeLogFormState = {
   variety: '',
   process: '',
   altitude_masl: '',
+  sca_score: '',
   roast_level: '',
   roast_profile: '',
   tasting_notes: '',
@@ -65,6 +67,7 @@ export function formFromScan(r: ScanResult): CoffeeLogFormState {
     variety: r.variety ?? '',
     process: r.process ?? '',
     altitude_masl: r.altitude_masl?.toString() ?? '',
+    sca_score: r.sca_score?.toString() ?? '',
     roast_level: r.roast_level ?? '',
     roast_profile: r.roast_profile ?? '',
     tasting_notes: r.tasting_notes.join(', '),
@@ -85,6 +88,7 @@ export function formFromLog(log: CoffeeLog): CoffeeLogFormState {
     variety: c?.variety ?? '',
     process: c?.process ?? '',
     altitude_masl: c?.altitude_masl?.toString() ?? '',
+    sca_score: c?.sca_score?.toString() ?? '',
     roast_level: c?.roast_level ?? '',
     roast_profile: c?.roast_profile ?? '',
     tasting_notes: (c?.tasting_notes ?? []).join(', '),
@@ -113,6 +117,7 @@ export function formToPayload(form: CoffeeLogFormState) {
       variety: orNull(form.variety),
       process: orNull(form.process),
       altitude_masl: form.altitude_masl ? parseInt(form.altitude_masl, 10) || null : null,
+      sca_score: parseSca(form.sca_score),
       roast_level: orNull(form.roast_level),
       roast_profile: (form.roast_profile || null) as RoastProfile | null,
       tasting_notes: form.tasting_notes
@@ -179,6 +184,9 @@ export function CoffeeLogForm({
           </Field>
           <Field label="Altura (msnm)">
             <Input inputMode="numeric" value={form.altitude_masl} onChange={(e) => set('altitude_masl', e.target.value)} placeholder="—" />
+          </Field>
+          <Field label="Puntaje SCA">
+            <Input inputMode="decimal" value={form.sca_score} onChange={(e) => set('sca_score', e.target.value)} placeholder="86.5" />
           </Field>
           <Field label="Fecha de tueste">
             <Input type="date" value={form.roast_date} onChange={(e) => set('roast_date', e.target.value)} />
@@ -258,4 +266,11 @@ export function CoffeeLogForm({
       </section>
     </>
   )
+}
+
+/** Puntaje SCA: acepta coma o punto; solo valores plausibles (60-100), con un decimal. */
+function parseSca(v: string): number | null {
+  const n = parseFloat(v.replace(',', '.'))
+  if (!Number.isFinite(n) || n < 60 || n > 100) return null
+  return Math.round(n * 10) / 10
 }

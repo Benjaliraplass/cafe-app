@@ -1,7 +1,9 @@
 // Capa de IA para las Edge Functions. Soporta dos proveedores y devuelve JSON estructurado.
 //
-// Proveedor: env AI_PROVIDER = "gemini" | "anthropic". Si no está definido, se usa Gemini
+// Proveedor principal: env AI_PROVIDER = "gemini" | "anthropic". Si no está definido, se usa Gemini
 // cuando existe GEMINI_API_KEY y Anthropic cuando existe ANTHROPIC_API_KEY.
+// Si el principal falla (cuota, saturación, timeout) y el otro proveedor tiene clave, se usa como respaldo.
+// El usuario recibe un mensaje corto (AIUnavailableError); el detalle queda en el log de la función.
 //
 // Secrets:
 //   GEMINI_API_KEY     + opcional GEMINI_MODEL o GEMINI_MODELS (cadena de respaldo, ver DEFAULT_GEMINI_MODELS)
@@ -37,20 +39,54 @@ export interface StructuredRequest {
 
 type Provider = "gemini" | "anthropic";
 
-function resolveProvider(): Provider {
-  const forced = Deno.env.get("AI_PROVIDER")?.toLowerCase();
-  if (forced === "gemini" || forced === "anthropic") return forced;
-  if (Deno.env.get("GEMINI_API_KEY")) return "gemini";
-  if (Deno.env.get("ANTHROPIC_API_KEY")) return "anthropic";
-  throw new Error(
-    "Falta configurar la IA: define el secret GEMINI_API_KEY o ANTHROPIC_API_KEY en el proyecto Supabase",
-  );
+/** Mensaje apto para mostrar al usuario. El detalle técnico va a `details` y al log. */
+export class AIUnavailableError extends Error {
+  details: string;
+  constructor(message: string, details: string) {
+    super(message);
+    this.name = "AIUnavailableError";
+    this.details = details;
+  }
 }
 
-/** Llama al proveedor configurado y devuelve el objeto JSON que cumple el schema de la tool. */
+export const AI_UNAVAILABLE_MESSAGE =
+  "La IA está saturada en este momento. Intenta de nuevo en un minuto.";
+
+function hasKey(p: Provider): boolean {
+  return !!Deno.env.get(p === "gemini" ? "GEMINI_API_KEY" : "ANTHROPIC_API_KEY");
+}
+
+/** Orden de proveedores: el principal primero, el otro como respaldo si tiene clave. */
+function providerChain(): Provider[] {
+  const forced = Deno.env.get("AI_PROVIDER")?.toLowerCase();
+  const primary: Provider | null =
+    forced === "gemini" || forced === "anthropic" ? forced : hasKey("gemini") ? "gemini" : hasKey("anthropic") ? "anthropic" : null;
+  if (!primary) {
+    throw new Error("Falta configurar la IA: define el secret GEMINI_API_KEY o ANTHROPIC_API_KEY en el proyecto Supabase");
+  }
+  const other: Provider = primary === "gemini" ? "anthropic" : "gemini";
+  return hasKey(other) ? [primary, other] : [primary];
+}
+
+/**
+ * Llama al proveedor principal y, si falla por cuota/saturación/timeout, al de respaldo.
+ * Devuelve el objeto JSON que cumple el schema de la tool.
+ */
 export async function callStructured<T>(opts: StructuredRequest): Promise<T> {
-  const provider = resolveProvider();
-  return provider === "gemini" ? callGemini<T>(opts) : callAnthropic<T>(opts);
+  const errors: string[] = [];
+  for (const provider of providerChain()) {
+    try {
+      return provider === "gemini" ? await callGemini<T>(opts) : await callAnthropic<T>(opts);
+    } catch (err) {
+      const e = err as Error & { status?: number };
+      errors.push(`${provider}: ${e.message.slice(0, 300)}`);
+      // 400/401/403 son errores de configuración o de entrada: no tiene sentido probar otro proveedor.
+      if (e.status && [400, 401, 403, 413].includes(e.status)) break;
+    }
+  }
+  const details = errors.join(" || ");
+  console.error("IA no disponible:", details);
+  throw new AIUnavailableError(AI_UNAVAILABLE_MESSAGE, details);
 }
 
 // ---------------------------------------------------------------------------
@@ -63,7 +99,7 @@ const DEFAULT_GEMINI_MODELS = [
   "gemini-3.5-flash",
   "gemini-flash-latest",
   "gemini-3.5-flash-lite",
-  "gemini-2.5-flash",
+  "gemini-flash-lite-latest",
 ];
 
 function geminiModels(): string[] {
@@ -101,7 +137,9 @@ async function callGemini<T>(opts: StructuredRequest): Promise<T> {
       }
     }
   }
-  throw new Error(`Gemini no disponible en este momento. Intentos: ${errors.join(" | ")}`);
+  const err = new Error(`Gemini agotado. Intentos: ${errors.join(" | ")}`) as Error & { status?: number };
+  err.status = 503;
+  throw err;
 }
 
 async function callGeminiModel<T>(opts: StructuredRequest, apiKey: string, model: string): Promise<T> {
@@ -237,6 +275,7 @@ async function callAnthropic<T>(opts: StructuredRequest): Promise<T> {
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+    signal: AbortSignal.timeout(60_000),
     headers: {
       "content-type": "application/json",
       "x-api-key": apiKey,
@@ -254,7 +293,9 @@ async function callAnthropic<T>(opts: StructuredRequest): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Anthropic API ${res.status}: ${text.slice(0, 600)}`);
+    const err = new Error(`Anthropic API ${res.status}: ${text.slice(0, 600)}`) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
 
   const data = await res.json();

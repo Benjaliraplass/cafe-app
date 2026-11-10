@@ -11,6 +11,8 @@ export interface ScanResult {
   variety: string | null
   process: string | null
   altitude_masl: number | null
+  /** Puntaje SCA (80-100) si la etiqueta lo indica. */
+  sca_score: number | null
   roast_level: string | null
   roast_profile: RoastProfile | null
   tasting_notes: string[]
@@ -42,6 +44,8 @@ export interface Coffee {
   variety: string | null
   process: string | null
   altitude_masl: number | null
+  /** Puntaje SCA (80-100) si la etiqueta lo indica. */
+  sca_score: number | null
   roast_level: string | null
   roast_profile: RoastProfile | null
   tasting_notes: string[]

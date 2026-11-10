@@ -259,6 +259,7 @@ export function LogDetailView({
           <KeyValue k="Proceso" v={c?.process} />
           <KeyValue k="Productor" v={c?.producer} />
           <KeyValue k="Altura" v={c?.altitude_masl ? `${c.altitude_masl} msnm` : null} />
+          <KeyValue k="Puntaje SCA" v={c?.sca_score ? `${c.sca_score} pts` : null} />
           <KeyValue k="Tueste" v={[c?.roast_profile && cap(c.roast_profile), log.roast_date && formatDate(log.roast_date)].filter(Boolean).join(' · ')} />
           <KeyValue k="Reposo" v={restDays != null ? `${restDays} días` : null} />
           <KeyValue k="Comprado en" v={log.bought_at} />

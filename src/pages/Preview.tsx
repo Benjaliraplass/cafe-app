@@ -23,7 +23,7 @@ const noop = async () => {}
 const mk = (id: string, name: string, origin: string, region: string | null, process: string, variety: string, rating: number, date: string, notes: string[] = []): CoffeeLog => ({
   id, user_id: 'u', coffee_id: id, photo_path: null, rating, notes: null, brew_method: 'V60', roast_date: '2026-10-26', bought_at: null, price_clp: null,
   is_public: false, is_favorite: rating === 5, consumed_at: date, created_at: date,
-  coffee: { id, roaster_id: 'r1', name, origin_country: origin, region, farm: 'Finca Milán', producer: null, variety, process, altitude_masl: null, roast_level: null, roast_profile: 'filtro', tasting_notes: notes, roaster },
+  coffee: { id, roaster_id: 'r1', name, origin_country: origin, region, farm: 'Finca Milán', producer: null, variety, process, altitude_masl: null, sca_score: rating === 5 ? 87.5 : null, roast_level: null, roast_profile: 'filtro', tasting_notes: notes, roaster },
 })
 const logs: CoffeeLog[] = [
   mk('1', 'Catiope', 'Colombia', 'Pereira', 'Honey', 'Catiope', 5, new Date().toISOString().slice(0, 10), ['Clavo de olor', 'Pimienta blanca', 'Mango', 'Manzana verde', 'Lima', 'Cacao']),

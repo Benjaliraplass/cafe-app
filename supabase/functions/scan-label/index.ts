@@ -18,6 +18,7 @@ interface ScanResult {
   variety: string | null;
   process: string | null;
   altitude_masl: number | null;
+  sca_score: number | null;
   roast_level: string | null;
   roast_profile: "espresso" | "filtro" | "omni" | null;
   tasting_notes: string[];
@@ -38,6 +39,7 @@ Normaliza:
 - tasting_notes: lista de notas de sabor tal como aparecen, en español si están en español, máximo 8.
 - roast_date: formato YYYY-MM-DD. Si la etiqueta trae día y mes sin año (ej. "26/10", "TUESTE: 26-10"), asume el año en curso (si esa fecha quedara en el futuro, el año anterior). Si solo hay mes y año, usa el día 01. Hoy es ${new Date().toISOString().slice(0, 10)}.
 - altitude_masl: número entero en metros; si es un rango, usa el promedio.
+- sca_score: puntaje de taza SCA (escala 80-100, ej. "86.5 pts", "SCA 87", "Cupping score: 85.25", "puntaje 88") solo si la etiqueta lo indica explícitamente; número con hasta dos decimales. No confundir con porcentajes, gramos ni altura. Si no aparece, null.
 - confidence: "alta" si la etiqueta se lee bien y los campos clave (tostador, origen) están claros; "media" si hay dudas; "baja" si la foto está borrosa o faltan datos clave.
 - is_coffee_label: false si la imagen no es una etiqueta o bolsa de café.
 - notes_for_user: una frase corta en español neutro si hay algo que el usuario debería revisar (ej. texto ilegible), si no, null.`;
@@ -58,6 +60,7 @@ const TOOL = {
       variety: { type: ["string", "null"] },
       process: { type: ["string", "null"] },
       altitude_masl: { type: ["integer", "null"] },
+      sca_score: { type: ["number", "null"] },
       roast_level: { type: ["string", "null"] },
       roast_profile: {
         type: ["string", "null"],
@@ -81,6 +84,7 @@ const TOOL = {
       "variety",
       "process",
       "altitude_masl",
+      "sca_score",
       "roast_level",
       "roast_profile",
       "tasting_notes",

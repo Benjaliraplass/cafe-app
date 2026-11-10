@@ -77,6 +77,12 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] PostHog activo (proyecto Dripo, US Cloud, id 725420; `VITE_POSTHOG_KEY` en Netlify). Pendiente: dashboard base en PostHog (embudo, retención, activos, top eventos)
 - [ ] Cuando haya volumen: materializar `daily_metrics` con `pg_cron`; alertas (caída de activación, errores de escaneo)
 
+## Lote 6 — Robustez de IA y puntaje SCA (2026-11-10)
+
+- [x] `ai.ts`: respaldo cruzado Gemini → Anthropic cuando hay `ANTHROPIC_API_KEY`; mensaje corto al usuario, detalle en logs; se retira `gemini-2.5-flash` (404 para cuentas nuevas)
+- [x] `coffees.sca_score`: la IA lo lee de la etiqueta (`scan-label` v8), campo en el formulario, visible en el detalle y la ficha pública
+- [ ] Benjamín: activar facturación en Gemini y/o agregar `ANTHROPIC_API_KEY` en Supabase (cuota 429 del plan gratuito)
+
 ## Fase 2 — Recetas
 
 - [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas
