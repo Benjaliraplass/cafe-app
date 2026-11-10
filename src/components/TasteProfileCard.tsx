@@ -72,12 +72,15 @@ export function TasteProfileCard({
     return (
       <section className="flex flex-col gap-5">
         <SectionTitle>Mi perfil de gusto</SectionTitle>
-        <Question label="Proceso favorito">
-          {(Object.keys(PROCESS_LABEL) as ProcessPref[]).map((k) => (
-            <Chip key={k} active={draft.process === k} onClick={() => setDraft({ ...draft, process: draft.process === k ? null : k })}>
-              {PROCESS_LABEL[k]}
-            </Chip>
-          ))}
+        <Question label="Procesos que te gustan" hint="Puedes marcar varios">
+          {(Object.keys(PROCESS_LABEL) as ProcessPref[]).map((k) => {
+            const on = draft.processes.includes(k)
+            return (
+              <Chip key={k} active={on} onClick={() => setDraft({ ...draft, processes: on ? draft.processes.filter((p) => p !== k) : [...draft.processes, k] })}>
+                {PROCESS_LABEL[k]}
+              </Chip>
+            )
+          })}
         </Question>
         <Question label="Sabores que buscas" hint="Elige hasta dos">
           {FLAVOR_ORDER.map((k) => {
@@ -114,12 +117,15 @@ export function TasteProfileCard({
             </Chip>
           ))}
         </Question>
-        <Question label="Cómo lo tomas">
-          {(Object.keys(DRINK_LABEL) as DrinkPref[]).map((k) => (
-            <Chip key={k} active={draft.drink === k} onClick={() => setDraft({ ...draft, drink: draft.drink === k ? null : k })}>
-              {DRINK_LABEL[k]}
-            </Chip>
-          ))}
+        <Question label="Preparación favorita" hint="Puedes marcar varias">
+          {(Object.keys(DRINK_LABEL) as DrinkPref[]).map((k) => {
+            const on = draft.drinks.includes(k)
+            return (
+              <Chip key={k} active={on} onClick={() => setDraft({ ...draft, drinks: on ? draft.drinks.filter((d) => d !== k) : [...draft.drinks, k] })}>
+                {DRINK_LABEL[k]}
+              </Chip>
+            )
+          })}
         </Question>
         <div className="flex gap-3">
           {!isTasteEmpty(declared) && (
@@ -154,6 +160,7 @@ export function TasteProfileCard({
           {t.roast && <span className="rounded-full border border-border-strong px-3 py-1.5 text-[13px]">{ROAST_LABEL[t.roast]}</span>}
           {t.body && !tasteSummary(t).includes(BODY_LABEL[t.body]) && <span className="rounded-full border border-border-strong px-3 py-1.5 text-[13px]">{BODY_LABEL[t.body]}</span>}
           {t.acidity && !tasteSummary(t).includes(ACIDITY_LABEL[t.acidity]) && <span className="rounded-full border border-border-strong px-3 py-1.5 text-[13px]">{ACIDITY_LABEL[t.acidity]}</span>}
+          {t.drinks.length > 0 && <span className="rounded-full border border-border-strong px-3 py-1.5 text-[13px]">{t.drinks.map((d) => DRINK_LABEL[d]).join(' · ')}</span>}
         </div>
         {inferred.sample >= 1 ? (
           <InferredBars inferred={inferred} total={total} embedded />

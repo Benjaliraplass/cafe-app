@@ -95,7 +95,7 @@ export function Preview() {
             onUploadAvatar={async () => ''}
             onSaveIdentity={noop}
             onSaveEquipment={noop}
-            taste={{ process: 'natural', flavors: ['frutal', 'dulce'], acidity: 'alta', body: 'medio', roast: 'claro', drink: 'filtro' }}
+            taste={{ processes: ['natural', 'honey'], flavors: ['frutal', 'dulce'], acidity: 'alta', body: 'medio', roast: 'claro', drinks: ['filtro', 'espresso'] }}
             inferred={inferTaste(logs)}
             onSaveTaste={noop}
             onSignOut={noop}

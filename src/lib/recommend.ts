@@ -19,7 +19,10 @@ export function recommendCoffees(published: Coffee[], logs: CoffeeLog[], limit =
       const fams = flavorFamiliesOf(c.tasting_notes ?? [])
       s += 1.5 * taste.flavors.filter((f) => fams.includes(f)).length
     }
-    if (taste.process && processOf(c) === taste.process) s += 1
+    if (taste.processes.length) {
+      const pr = processOf(c)
+      if (pr && taste.processes.includes(pr)) s += 1
+    }
     return s
   }
 

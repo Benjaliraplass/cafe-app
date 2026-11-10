@@ -13,7 +13,7 @@ import type {
   ScanResult,
   UserRole,
 } from './types'
-import { emptyTaste, type TasteProfile } from './taste'
+import { normalizeTaste, type TasteProfile } from './taste'
 
 // ---------- Utilidades ----------
 
@@ -627,7 +627,7 @@ export async function getTasteProfile(userId: string): Promise<TasteProfile | nu
   const { data, error } = await supabase.from('taste_profiles').select('data').eq('user_id', userId).maybeSingle()
   if (error) throw new Error(error.message)
   if (!data) return null
-  return { ...emptyTaste, ...(data.data as Partial<TasteProfile>), flavors: ((data.data as Partial<TasteProfile>).flavors ?? []) as TasteProfile['flavors'] }
+  return normalizeTaste(data.data)
 }
 
 export async function upsertTasteProfile(userId: string, taste: TasteProfile): Promise<void> {

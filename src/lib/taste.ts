@@ -10,18 +10,35 @@ export type FlavorFamily = 'frutal' | 'citrico' | 'floral' | 'chocolate' | 'dulc
 export type Level3 = 'baja' | 'media' | 'alta'
 export type Body3 = 'liviano' | 'medio' | 'intenso'
 export type RoastPref = 'claro' | 'medio'
-export type DrinkPref = 'filtro' | 'espresso' | 'leche' | 'todo'
+export type DrinkPref = 'filtro' | 'espresso' | 'leche'
 
 export interface TasteProfile {
-  process: ProcessPref | null
+  /** Procesos que le gustan (varios). */
+  processes: ProcessPref[]
   flavors: FlavorFamily[]
   acidity: Level3 | null
   body: Body3 | null
   roast: RoastPref | null
-  drink: DrinkPref | null
+  /** Preparaciones favoritas (varias). */
+  drinks: DrinkPref[]
 }
 
-export const emptyTaste: TasteProfile = { process: null, flavors: [], acidity: null, body: null, roast: null, drink: null }
+export const emptyTaste: TasteProfile = { processes: [], flavors: [], acidity: null, body: null, roast: null, drinks: [] }
+
+/** Normaliza lo guardado (acepta la forma antigua con `process` y `drink` en singular). */
+export function normalizeTaste(raw: unknown): TasteProfile {
+  const r = (raw ?? {}) as Record<string, unknown>
+  const processes = Array.isArray(r.processes) ? (r.processes as ProcessPref[]) : r.process ? [r.process as ProcessPref] : []
+  const drinks = Array.isArray(r.drinks) ? (r.drinks as DrinkPref[]).filter((d) => d !== ('todo' as string)) : r.drink && r.drink !== 'todo' ? [r.drink as DrinkPref] : []
+  return {
+    processes,
+    flavors: Array.isArray(r.flavors) ? (r.flavors as FlavorFamily[]) : [],
+    acidity: (r.acidity as Level3) ?? null,
+    body: (r.body as Body3) ?? null,
+    roast: (r.roast as RoastPref) ?? null,
+    drinks,
+  }
+}
 
 export const PROCESS_LABEL: Record<ProcessPref, string> = { lavado: 'Lavado', honey: 'Honey', natural: 'Natural', anaerobico: 'Anaeróbico' }
 export const FLAVOR_LABEL: Record<FlavorFamily, string> = {
@@ -35,24 +52,24 @@ export const FLAVOR_LABEL: Record<FlavorFamily, string> = {
 export const ACIDITY_LABEL: Record<Level3, string> = { baja: 'Acidez baja', media: 'Acidez media', alta: 'Acidez alta' }
 export const BODY_LABEL: Record<Body3, string> = { liviano: 'Cuerpo liviano', medio: 'Cuerpo medio', intenso: 'Cuerpo intenso' }
 export const ROAST_LABEL: Record<RoastPref, string> = { claro: 'Tueste claro', medio: 'Tueste medio' }
-export const DRINK_LABEL: Record<DrinkPref, string> = { filtro: 'Filtro', espresso: 'Espresso', leche: 'Con leche', todo: 'De todo' }
+export const DRINK_LABEL: Record<DrinkPref, string> = { filtro: 'Filtro', espresso: 'Espresso', leche: 'Con leche' }
 
 export const FLAVOR_ORDER: FlavorFamily[] = ['frutal', 'citrico', 'floral', 'chocolate', 'dulce', 'especiado']
 
 export function isTasteEmpty(t: TasteProfile | null | undefined): boolean {
   if (!t) return true
-  return !t.process && t.flavors.length === 0 && !t.acidity && !t.body && !t.roast && !t.drink
+  return t.processes.length === 0 && t.flavors.length === 0 && !t.acidity && !t.body && !t.roast && t.drinks.length === 0
 }
 
 /** Chips resumen del perfil declarado (máx. 4). */
 export function tasteSummary(t: TasteProfile): string[] {
   const out: string[] = []
-  if (t.process) out.push(PROCESS_LABEL[t.process])
+  for (const p of t.processes.slice(0, 2)) out.push(PROCESS_LABEL[p])
   for (const f of t.flavors.slice(0, 2)) out.push(FLAVOR_LABEL[f])
   if (t.acidity) out.push(ACIDITY_LABEL[t.acidity])
-  if (out.length < 4 && t.body) out.push(BODY_LABEL[t.body])
-  if (out.length < 4 && t.drink) out.push(DRINK_LABEL[t.drink])
-  return out.slice(0, 4)
+  if (out.length < 5 && t.body) out.push(BODY_LABEL[t.body])
+  if (out.length < 5 && t.drinks.length) out.push(t.drinks.map((d) => DRINK_LABEL[d]).join(' y '))
+  return out.slice(0, 5)
 }
 
 /** Texto para el prompt de recetas ("Preferencia de taza"). */
@@ -62,8 +79,9 @@ export function tasteToPreferences(t: TasteProfile | null | undefined): string |
   if (t.flavors.length) parts.push(`le gustan los perfiles ${t.flavors.map((f) => FLAVOR_LABEL[f].toLowerCase()).join(' y ')}`)
   if (t.acidity) parts.push(`prefiere acidez ${t.acidity}`)
   if (t.body) parts.push(`cuerpo ${t.body}`)
-  if (t.process) parts.push(`disfruta los cafés de proceso ${PROCESS_LABEL[t.process].toLowerCase()}`)
+  if (t.processes.length) parts.push(`disfruta los cafés de proceso ${t.processes.map((p) => PROCESS_LABEL[p].toLowerCase()).join(' y ')}`)
   if (t.roast) parts.push(`tueste ${t.roast}`)
+  if (t.drinks.length) parts.push(`suele tomarlo en ${t.drinks.map((d) => DRINK_LABEL[d].toLowerCase()).join(', ')}`)
   return parts.length ? `Perfil de gusto del usuario: ${parts.join(', ')}.` : null
 }
 
@@ -139,11 +157,11 @@ export function inferTaste(logs: CoffeeLog[]): InferredTaste {
 
 /** Perfil "efectivo": lo declarado manda; lo inferido completa huecos cuando hay muestra suficiente. */
 export function effectiveTaste(declared: TasteProfile | null, inferred: InferredTaste): TasteProfile {
-  const t: TasteProfile = { ...emptyTaste, ...(declared ?? {}), flavors: [...(declared?.flavors ?? [])] }
+  const t: TasteProfile = { ...emptyTaste, ...(declared ?? {}), flavors: [...(declared?.flavors ?? [])], processes: [...(declared?.processes ?? [])], drinks: [...(declared?.drinks ?? [])] }
   if (inferred.sample >= 3) {
-    if (!t.process) {
+    if (t.processes.length === 0) {
       const top = Object.entries(inferred.processes).sort((a, b) => b[1] - a[1])[0]
-      if (top && top[1] >= 2) t.process = top[0] as ProcessPref
+      if (top && top[1] >= 2) t.processes = [top[0] as ProcessPref]
     }
     if (t.flavors.length === 0) {
       t.flavors = (Object.entries(inferred.flavors) as [FlavorFamily, number][])
