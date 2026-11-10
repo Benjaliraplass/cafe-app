@@ -6,3 +6,5 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Las Edge Functions se declaran en el propio archivo (export const config) en netlify/edge-functions/.

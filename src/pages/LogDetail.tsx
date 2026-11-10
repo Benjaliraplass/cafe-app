@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Heart, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe } from '@/lib/api'
+import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe, setLogPublic } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
 import { BREW_METHODS, equipmentToText, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { absoluteUrl, shareLink } from '@/lib/share'
 import { Card } from '@/components/ui/card'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
@@ -61,7 +63,7 @@ export function LogDetail() {
       defaultEquipment={equipmentText}
       error={error}
       onGenerate={async (method, equipment) =>
-        suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, servings: 1, equipment: equipment || undefined })
+        suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, dose_g: method === 'Espresso' ? 18 : 15, servings: 1, equipment: equipment || undefined })
       }
       onSaveRecipe={async (recipe) => {
         if (!user) return
@@ -82,6 +84,15 @@ export function LogDetail() {
           setError(e instanceof Error ? e.message : 'No se pudo actualizar')
         }
       }}
+      onTogglePublic={async (value) => {
+        setLog({ ...log, is_public: value })
+        try {
+          await setLogPublic(log.id, value)
+        } catch (e) {
+          setLog({ ...log, is_public: !value })
+          setError(e instanceof Error ? e.message : 'No se pudo actualizar')
+        }
+      }}
     />
   )
 }
@@ -96,6 +107,7 @@ export function LogDetailView({
   onSaveRecipe,
   onDelete,
   onToggleFavorite,
+  onTogglePublic,
 }: {
   log: CoffeeLog
   recipes: Recipe[]
@@ -105,6 +117,7 @@ export function LogDetailView({
   onSaveRecipe: (recipe: RecipeData) => Promise<void>
   onDelete: () => Promise<void>
   onToggleFavorite?: () => Promise<void>
+  onTogglePublic?: (value: boolean) => Promise<void>
 }) {
   // brew_method puede traer varios métodos separados por coma; el primero es el método por defecto de la receta
   const [method, setMethod] = useState<string>(log.brew_method?.split(',')[0]?.trim() ?? '')
@@ -142,6 +155,20 @@ export function LogDetailView({
       setError(e instanceof Error ? e.message : 'No se pudo guardar la receta')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const [shared, setShared] = useState<'idle' | 'copied'>('idle')
+  async function shareCoffee() {
+    if (!c) return
+    const res = await shareLink({
+      title: `${c.name} · ${c.roaster?.name ?? 'Dripo'}`,
+      text: [c.roaster?.name, c.name, c.origin_country, c.process].filter(Boolean).join(' · '),
+      url: absoluteUrl(`/c/${c.id}`),
+    })
+    if (res === 'copied') {
+      setShared('copied')
+      setTimeout(() => setShared('idle'), 1800)
     }
   }
 
@@ -236,6 +263,26 @@ export function LogDetailView({
           </div>
         )}
         {log.notes && <p className="text-[17px] italic leading-[1.35] text-muted-foreground">“{log.notes}”</p>}
+
+        {c && (
+          <div className="flex flex-col gap-3 rounded-[20px] bg-card p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[15px] font-medium">Compartir mi registro</span>
+                <span className="text-xs text-muted-foreground">Tu puntaje y tus notas aparecen con tu nombre en la ficha pública de este café.</span>
+              </div>
+              <Switch checked={log.is_public} onCheckedChange={(v) => onTogglePublic?.(v)} disabled={!onTogglePublic} aria-label="Compartir mi registro" />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" onClick={shareCoffee}>
+                <Share2 className="size-4" strokeWidth={1.8} /> {shared === 'copied' ? 'Enlace copiado' : 'Compartir café'}
+              </Button>
+              <Button asChild variant="secondary" size="sm" className="flex-1">
+                <Link to={`/c/${c.id}`}>Ver ficha pública</Link>
+              </Button>
+            </div>
+          </div>
+        )}
       </section>
 
       <Separator />
