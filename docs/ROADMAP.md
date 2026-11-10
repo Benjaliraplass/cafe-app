@@ -45,7 +45,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [ ] Vista de un café del catálogo: todos mis registros de ese café
 - [ ] Estadísticas simples en Home: cafés este mes, origen más repetido, puntaje promedio
 - [ ] Cerrar registros (beta por invitación) y lista de invitados
-- [x] Google OAuth: proyecto Google Cloud `app-cafe`, app publicada (pantalla de consentimiento con política de privacidad en tostadoclub.com/pages/privacidad-dripo), proveedor habilitado en Supabase, Site URL y Redirect URLs configuradas. Pendiente: prueba en teléfono
+- [x] Google OAuth: proyecto Google Cloud `app-cafe`, app publicada (pantalla de consentimiento con política de privacidad en tostadoclub.com/pages/privacidad-dripo), proveedor habilitado en Supabase, Site URL y Redirect URLs configuradas. Probado en teléfono
 
 ## Lote 3 — Inicio, catálogo compartido, compartir y cafeterías (2026-11-10)
 
@@ -66,7 +66,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Recetas visibles: botón central "+" con hoja Escanear / Pedir receta; tarjeta "Receta para hoy" en Inicio (2 toques hasta la receta); bloque de receta bajo la ficha en el detalle; "Recetario" en Mis cafés
 - [ ] Instagram de las cafeterías del seed; fotos de recetas destacadas
 - [x] Dominio propio `dripocoffee.com` conectado a Netlify (GoDaddy: A + CNAME), certificado Let's Encrypt; política de privacidad dentro de la app en `/privacidad` (enlazada desde Login y Perfil) y declarada en Google Cloud
-- [x] Login con Google vía Google Identity Services (`signInWithIdToken`); la pantalla de Google muestra dripocoffee.com. Pendiente: prueba en teléfono y verificación de marca en Google para mostrar el nombre "Dripo"
+- [x] Login con Google vía Google Identity Services (`signInWithIdToken`); la pantalla de Google muestra dripocoffee.com. Probado en teléfono (2026-11-10). Opcional: verificación de marca en Google para mostrar el nombre "Dripo"
 
 ## Fase 2 — Recetas
 
