@@ -74,7 +74,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Tabla `events` (RLS cerrada) + RPC `track_event` + funciones `admin_user_facts`, `admin_daily_metrics`, `admin_funnel`, `admin_retention`, `admin_top`; pruebas con usuarios simulados
 - [x] `src/lib/analytics.ts`: PostHog (carga diferida) + Supabase, id anónimo, sesión, UTM/ref de primer toque; instrumentación completa; `?ref=` en enlaces compartidos
 - [x] Pestaña Métricas en `/admin`: usuarios, activación, viralidad (factor K), actividad diaria, embudo, retención semanal, top, lista de usuarios y export CSV (`/preview?v=metrics`)
-- [ ] Clave de PostHog en Netlify (`VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`) y dashboard base en PostHog
+- [x] PostHog activo (proyecto Dripo, US Cloud, id 725420; `VITE_POSTHOG_KEY` en Netlify). Pendiente: dashboard base en PostHog (embudo, retención, activos, top eventos)
 - [ ] Cuando haya volumen: materializar `daily_metrics` con `pg_cron`; alertas (caída de activación, errores de escaneo)
 
 ## Fase 2 — Recetas

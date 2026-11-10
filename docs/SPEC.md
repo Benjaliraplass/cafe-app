@@ -142,7 +142,7 @@ Definiciones: **activado** = primer `coffee_log` guardado. **Activo** = al menos
 
 ### Front
 
-`src/lib/analytics.ts`: `initAnalytics()`, `identify(user)`, `track(name, props)`. Envía a PostHog (`posthog-js`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST`) y a `track_event`. Sin PostHog configurado, sigue escribiendo en Supabase. Ambos fallan en silencio: la analítica nunca rompe la app.
+`src/lib/analytics.ts`: `initAnalytics()`, `identify(user)`, `track(name, props)`. Envía a PostHog (proyecto Dripo, US Cloud, id 725420; `posthog-js` con import dinámico, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST`) y a `track_event`. Sin PostHog configurado, sigue escribiendo en Supabase. Ambos fallan en silencio: la analítica nunca rompe la app.
 
 Métricas en `/admin` → pestaña "Métricas": activación, retención, funnel, factor K y top, desde las funciones `admin_*`. PostHog para exploración ad hoc y session replay.
 
