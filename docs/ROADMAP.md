@@ -56,7 +56,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Bloque 4: Explorar con mapa (MapLibre GL + OpenFreeMap vectorial, estilo claro; marcadores propios, mi ubicación, "Buscar en esta zona"), lista ordenada por distancia, filtros, "Mis propuestas" con estado; `/explore/new` con geocodificación Nominatim y marcador arrastrable; pestaña Cafeterías en `/admin` (aprobar / rechazar con motivo); sección "Cafeterías cerca" en Inicio; Explorar, Admin y Preview en chunks aparte (bundle 586 → 296 KB)
 - [ ] Aviso al admin cuando llega una cafetería nueva (hoy se ve el contador en `/admin`)
 - [x] Seed inicial de cafeterías: 33 locales (4 en Pichilemu, 29 en Santiago) cargados aprobados desde la lista de Benjamín (`supabase/seed/cafes_2026_11.sql`). Cada local con enlace a su ficha de Google Maps (`cafes.google_maps_url`, seed `cafes_2026_11_google_maps.sql`). Pendiente: Instagram de cada local
-- [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`)
+- [x] Bloque 5: login con Google vía Google Identity Services (`VITE_GOOGLE_CLIENT_ID` en Netlify)
 - [ ] Fotos para las recetas destacadas (subirlas desde `/admin`)
 
 ## Lote 4 — Mapa pulido, perfil de gusto y acceso a Recetas (2026-11-10)
@@ -66,7 +66,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Recetas visibles: botón central "+" con hoja Escanear / Pedir receta; tarjeta "Receta para hoy" en Inicio (2 toques hasta la receta); bloque de receta bajo la ficha en el detalle; "Recetario" en Mis cafés
 - [ ] Instagram de las cafeterías del seed; fotos de recetas destacadas
 - [x] Dominio propio `dripocoffee.com` conectado a Netlify (GoDaddy: A + CNAME), certificado Let's Encrypt; política de privacidad dentro de la app en `/privacidad` (enlazada desde Login y Perfil) y declarada en Google Cloud
-- [ ] Login con Google vía GIS
+- [x] Login con Google vía Google Identity Services (`signInWithIdToken`); la pantalla de Google muestra dripocoffee.com. Pendiente: prueba en teléfono y verificación de marca en Google para mostrar el nombre "Dripo"
 
 ## Fase 2 — Recetas
 

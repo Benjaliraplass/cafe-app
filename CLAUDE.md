@@ -32,6 +32,7 @@ src/
   lib/countries.ts     lista de países (español) para tostador y nacionalidad
   lib/recommend.ts     "cafés que van contigo": orden por afinidad con los cafés bien puntuados
   lib/share.ts         Web Share API con fallback a portapapeles
+  lib/google.ts        Google Identity Services: carga del script, nonce, tipos (login con Google sin pasar por el dominio de Supabase)
   lib/geo.ts           distancia, geolocalización, geocodificación Nominatim, enlaces a mapas
   lib/taste.ts         perfil de gusto: tipos, etiquetas, inferencia desde el diario, texto para el prompt de recetas
   hooks/useAuth.tsx    sesión de Supabase + perfil (rol admin) en contexto
@@ -68,7 +69,7 @@ docs/                  SPEC.md, ROADMAP.md
 - Vistas con datos las separamos en contenedor (fetch) + vista presentacional (`HomeView`, `LogDetailView`) para poder previsualizarlas en `/preview`.
 - Commits en español, imperativo, cortos. Un cambio por commit.
 - Alias `@/` apunta a `src/` (tsconfig + vite).
-- Variables de entorno del frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`). Nunca la service role key en el cliente.
+- Variables de entorno del frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_GOOGLE_CLIENT_ID` (ver `.env.example`). Nunca la service role key en el cliente.
 
 ## Comandos
 

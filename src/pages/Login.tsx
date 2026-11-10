@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { GOOGLE_CLIENT_ID, createNonce, loadGoogleIdentity } from '@/lib/google'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorBox, Field } from '@/components/primitives'
@@ -15,6 +16,52 @@ export function Login() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [googleLoading, setGoogleLoading] = useState(false)
+  // Botón de Google Identity Services (GIS). Si no se puede montar, usamos el flujo OAuth de Supabase.
+  const gisRef = useRef<HTMLDivElement>(null)
+  const [gisReady, setGisReady] = useState(false)
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [id, { nonce, hashedNonce }] = await Promise.all([loadGoogleIdentity(), createNonce()])
+        if (cancelled || !gisRef.current) return
+        id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          nonce: hashedNonce,
+          use_fedcm_for_prompt: true,
+          itp_support: true,
+          callback: async ({ credential }) => {
+            setError(null)
+            setGoogleLoading(true)
+            const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: credential, nonce })
+            if (error) {
+              setError(translate(error.message))
+              setGoogleLoading(false)
+            }
+            // Con éxito, useAuth detecta la sesión y el Gate muestra la app.
+          },
+        })
+        id.renderButton(gisRef.current, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'pill',
+          logo_alignment: 'center',
+          locale: 'es',
+          width: Math.min(gisRef.current.clientWidth || 360, 400),
+        })
+        setGisReady(true)
+      } catch {
+        // Sin GIS: queda el botón de respaldo (OAuth vía Supabase).
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   async function signInWithGoogle() {
     setError(null)
@@ -107,10 +154,14 @@ export function Login() {
           <Button type="submit" disabled={loading}>
             {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
           </Button>
-          <Button type="button" variant="outline" onClick={signInWithGoogle} disabled={googleLoading || loading}>
-            <GoogleMark />
-            {googleLoading ? 'Redirigiendo...' : 'Continuar con Google'}
-          </Button>
+          {/* Botón GIS (Google lo dibuja). Mientras no esté listo, o si falla, se ve el de respaldo. */}
+          <div ref={gisRef} className={gisReady && !googleLoading ? 'flex h-11 justify-center overflow-hidden' : 'hidden'} />
+          {(!gisReady || googleLoading) && (
+            <Button type="button" variant="outline" onClick={signInWithGoogle} disabled={googleLoading || loading}>
+              <GoogleMark />
+              {googleLoading ? 'Entrando...' : 'Continuar con Google'}
+            </Button>
+          )}
         </div>
         <button
           type="button"
