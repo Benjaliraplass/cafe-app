@@ -51,7 +51,6 @@ export function ExploreView({
   const [selected, setSelected] = useState<string | null>(null)
   const [viewport, setViewport] = useState<MapViewport | null>(null)
   const [areaOnly, setAreaOnly] = useState(false)
-  const [fly, setFly] = useState<{ point: LatLng; zoom?: number; key: number } | null>(null)
   const [fit, setFit] = useState<{ points: LatLng[]; key: number } | null>(null)
   const [locating, setLocating] = useState(false)
   const listRef = useRef<HTMLUListElement>(null)
@@ -85,10 +84,9 @@ export function ExploreView({
     return list
   }, [cafes, q, kind, areaOnly, viewport, me])
 
-  function select(id: string) {
+  function select(id: string | null) {
     setSelected(id)
-    const c = cafes?.find((x) => x.id === id)
-    if (c?.lat != null && c.lng != null) setFly({ point: { lat: c.lat, lng: c.lng }, key: Date.now() })
+    if (!id) return
     const el = listRef.current?.querySelector<HTMLElement>(`[data-id="${id}"]`)
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
@@ -108,8 +106,8 @@ export function ExploreView({
           cafes={cafes ?? []}
           selectedId={selected}
           onSelect={select}
+          bottomInset={20}
           user={me}
-          flyTo={fly}
           fitTo={fit}
           onMoveEnd={(v) => setViewport(v)}
           className="absolute inset-0 z-0"
