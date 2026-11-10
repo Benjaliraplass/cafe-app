@@ -9,7 +9,7 @@ import { avatarUrl } from '@/lib/supabase'
 import type { Cafe, Coffee, CoffeeLog, FeaturedRecipe } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBox, Eyebrow, Title } from '@/components/primitives'
-import { CafeRow, CoffeeCard, FeaturedRecipeCard, HScroll, SectionHeader } from '@/components/cards'
+import { CafeRow, CoffeeCard, FeaturedRecipeCard, HScroll, LogCard, SectionHeader } from '@/components/cards'
 
 export function Inicio() {
   const { user, profile } = useAuth()
@@ -39,7 +39,7 @@ export function Inicio() {
       profile={profile}
       featured={featured}
       recommended={coffees && logs ? recommendCoffees(coffees, logs) : null}
-      logsCount={logs?.length ?? 0}
+      logs={logs}
       cafes={cafes}
       me={me}
       error={error}
@@ -52,7 +52,7 @@ export function InicioView({
   profile,
   featured,
   recommended,
-  logsCount,
+  logs,
   cafes,
   me,
   error,
@@ -61,11 +61,13 @@ export function InicioView({
   profile: Profile | null
   featured: FeaturedRecipe[] | null
   recommended: Coffee[] | null
-  logsCount: number
+  logs: CoffeeLog[] | null
   cafes: Cafe[] | null
   me: LatLng | null
   error: string | null
 }) {
+  const logsCount = logs?.length ?? 0
+  const recent = (logs ?? []).slice(0, 8)
   const nearby = (cafes ?? [])
     .filter((c) => c.lat != null && c.lng != null)
     .map((c) => ({ c, km: me ? distanceKm(me, { lat: c.lat!, lng: c.lng! }) : null }))
@@ -93,6 +95,40 @@ export function InicioView({
       <div className="px-6">
         <ErrorBox message={error} />
       </div>
+
+      {/* Últimos escaneos */}
+      <section className="flex flex-col gap-4 px-6">
+        <SectionHeader title="Tus últimos escaneos" hint={logsCount ? `${logsCount} ${logsCount === 1 ? 'café' : 'cafés'} en tu diario.` : 'Tu diario empieza con una foto a la etiqueta.'} to={logsCount ? '/logs' : undefined} />
+        {logs === null ? (
+          <HScroll>
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-[236px] w-[150px] shrink-0 rounded-[20px]" />
+            ))}
+          </HScroll>
+        ) : recent.length === 0 ? (
+          <Link to="/scan" className="flex items-center gap-4 rounded-[20px] border border-dashed border-border-strong px-4 py-5 transition-colors active:bg-card">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+              <Camera className="size-5" strokeWidth={1.7} />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-[15px] font-medium">Escanea tu primer café</span>
+              <span className="text-sm text-muted-foreground">Leemos la etiqueta y llenamos la ficha por ti.</span>
+            </span>
+          </Link>
+        ) : (
+          <HScroll>
+            {recent.map((l) => (
+              <LogCard key={l.id} log={l} />
+            ))}
+            <Link to="/scan" className="flex w-[150px] shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-border-strong text-center">
+              <span className="flex size-10 items-center justify-center rounded-full bg-foreground text-background">
+                <Camera className="size-4" strokeWidth={1.8} />
+              </span>
+              <span className="px-3 text-sm font-medium">Escanear otro</span>
+            </Link>
+          </HScroll>
+        )}
+      </section>
 
       {/* Recetas destacadas */}
       <section className="flex flex-col gap-4 px-6">

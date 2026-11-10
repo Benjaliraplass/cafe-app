@@ -38,7 +38,7 @@ src/
   components/ui/       primitivos shadcn: button, input, textarea, select, label, badge, chip, card, skeleton, separator
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
-  components/cards.tsx  HScroll, FeaturedRecipeCard, CoffeeCard, CafeRow, SectionHeader (Inicio y listados)
+  components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, CoffeeCard, CafeRow, SectionHeader (Inicio y listados)
   components/CafeMap.tsx  mapa Leaflet con marcadores propios; PickLocationMap para fijar un punto
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con Escanear central (utilidades `glass` / `glass-solid` en index.css)
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),

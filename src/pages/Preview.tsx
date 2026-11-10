@@ -63,7 +63,7 @@ export function Preview() {
       <main className="flex-1 pb-32">
         {v === 'home' && <HomeView logs={logs} error={null} onToggleFavorite={noop} />}
         {v === 'inicio' && (
-          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logsCount={5} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
+          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logs={logs} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
         )}
         {v === 'featured' && <FeaturedRecipeView r={featured[0]} />}
         {v === 'explore' && <ExploreView cafes={cafes} mine={[{ ...cafes[0], id: 'p1', name: 'Mi propuesta', status: 'pending' }]} error={null} me={{ lat: -33.4372, lng: -70.6506 }} onLocate={noop} />}

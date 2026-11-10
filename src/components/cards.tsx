@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { AtSign, Navigation, Star } from 'lucide-react'
-import type { Cafe, Coffee, CoffeePublicStats, FeaturedRecipe } from '@/lib/types'
+import type { Cafe, Coffee, CoffeeLog, CoffeePublicStats, FeaturedRecipe } from '@/lib/types'
 import { directionsUrl, instagramUrl } from '@/lib/geo'
 import { photoUrl } from '@/lib/supabase'
-import { Photo } from '@/components/primitives'
+import { Photo, Rating } from '@/components/primitives'
 import { cn } from '@/lib/utils'
 
 export const AUTHOR_ROLE_LABEL: Record<FeaturedRecipe['author_role'], string> = {
@@ -43,6 +43,34 @@ export function FeaturedRecipeCard({ r, className }: { r: FeaturedRecipe; classN
       </div>
     </Link>
   )
+}
+
+/** Tarjeta de un registro propio (últimos escaneos en Inicio). */
+export function LogCard({ log, className }: { log: CoffeeLog; className?: string }) {
+  const c = log.coffee
+  return (
+    <Link
+      to={`/log/${log.id}`}
+      className={cn('flex w-[150px] shrink-0 snap-start flex-col gap-2.5 rounded-[20px] bg-card p-2.5 transition-transform active:scale-[0.985]', className)}
+    >
+      <Photo src={photoUrl(log.photo_path)} className="aspect-square w-full rounded-[14px]" />
+      <div className="flex flex-col gap-0.5 px-1 pb-1">
+        <span className="eyebrow truncate text-[10px]">{c?.roaster?.name ?? 'Tostador'}</span>
+        <span className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[-0.01em]">{c?.name ?? 'Café'}</span>
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          {log.rating ? <Rating value={log.rating} size="sm" /> : <span className="text-xs text-tertiary">Sin puntaje</span>}
+          <span className="text-[11px] text-tertiary">{shortDate(log.consumed_at)}</span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function shortDate(iso: string): string {
+  const d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''))
+  const today = new Date()
+  if (d.toDateString() === today.toDateString()) return 'Hoy'
+  return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }).replace('.', '')
 }
 
 /** Tarjeta de café del catálogo público. */
