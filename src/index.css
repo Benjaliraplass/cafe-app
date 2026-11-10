@@ -166,18 +166,19 @@
   animation: pulse-soft 1.4s ease-in-out infinite;
 }
 
-/* Leaflet: atribución discreta y acorde al diseño */
-.leaflet-container .leaflet-control-attribution {
-  background: color-mix(in oklab, var(--background) 75%, transparent);
-  color: var(--tertiary);
-  font: 10px/1.4 "DM Sans", sans-serif;
-  padding: 2px 6px;
-  border-radius: 0 0 8px 0;
-  margin: 0;
-}
-.leaflet-container .leaflet-control-attribution a {
-  color: var(--muted-foreground);
-}
-.leaflet-container .leaflet-top {
+/* MapLibre: atribución discreta y bajo la zona segura */
+.maplibregl-ctrl-top-left {
   top: env(safe-area-inset-top);
+}
+.maplibregl-ctrl-attrib {
+  background: color-mix(in oklab, var(--background) 75%, transparent) !important;
+  color: var(--tertiary);
+  font: 10px/1.4 "DM Sans", sans-serif !important;
+  border-radius: 0 0 8px 0;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--muted-foreground) !important;
+}
+.maplibregl-canvas {
+  outline: none;
 }

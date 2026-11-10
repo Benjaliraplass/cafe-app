@@ -15,7 +15,7 @@ se escribe primero en `docs/SPEC.md` y después en código.
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), shadcn/ui (estilo new-york, componentes en `src/components/ui`, `components.json` listo para `npx shadcn add`), lucide-react, react-router-dom, vite-plugin-pwa, Leaflet + react-leaflet (mapa, tiles de OpenStreetMap) |
+| Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), shadcn/ui (estilo new-york, componentes en `src/components/ui`, `components.json` listo para `npx shadcn add`), lucide-react, react-router-dom, vite-plugin-pwa, MapLibre GL + OpenFreeMap (mapa vectorial, sin API key) |
 | Backend | Supabase (proyecto `cafe-app`, ref `pfpqqwvnfusxrttajndu`, región sa-east-1): Postgres + RLS, Auth, Storage, Edge Functions (Deno) |
 | IA | Gemini API (Google) desde Edge Functions, con cadena de modelos de respaldo (`gemini-3.5-flash` → `gemini-flash-latest` → `gemini-3.5-flash-lite` → `gemini-2.5-flash`), timeout 20 s por llamada y reintentos ante 429/503. Secret `GEMINI_API_KEY` en Supabase. Anthropic queda como proveedor alternativo (`ANTHROPIC_API_KEY`); la capa está en `supabase/functions/_shared/ai.ts` |
 | Hosting | Netlify (cuenta benjamin@tostadoclub.com), sitio conectado al repo, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml`. URL actual: https://sweet-faloodeh-218899.netlify.app |
@@ -39,11 +39,11 @@ src/
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
   components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, CoffeeCard, CafeRow, SectionHeader (Inicio y listados)
-  components/CafeMap.tsx  mapa Leaflet con marcadores propios; PickLocationMap para fijar un punto
+  components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con Escanear central (utilidades `glass` / `glass-solid` en index.css)
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore|featured|coffee|home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   seed/                datos curados (recetas destacadas); idempotente por slug

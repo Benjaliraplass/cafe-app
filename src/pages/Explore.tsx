@@ -52,17 +52,23 @@ export function ExploreView({
   const [viewport, setViewport] = useState<MapViewport | null>(null)
   const [areaOnly, setAreaOnly] = useState(false)
   const [fly, setFly] = useState<{ point: LatLng; zoom?: number; key: number } | null>(null)
+  const [fit, setFit] = useState<{ points: LatLng[]; key: number } | null>(null)
   const [locating, setLocating] = useState(false)
   const listRef = useRef<HTMLUListElement>(null)
 
-  // Al obtener la posición por primera vez, centrar el mapa ahí.
+  // Al obtener la posición por primera vez, encuadrar al usuario junto a las cafeterías más cercanas.
   const flewToUser = useRef(false)
   useEffect(() => {
-    if (me && !flewToUser.current) {
-      flewToUser.current = true
-      setFly({ point: me, zoom: 14, key: Date.now() })
-    }
-  }, [me])
+    if (!me || flewToUser.current || cafes === null) return
+    flewToUser.current = true
+    const nearest = [...cafes]
+      .filter((c) => c.lat != null && c.lng != null)
+      .sort((a, b) => dist(a, me) - dist(b, me))
+      .slice(0, 3)
+      .filter((c) => dist(c, me) < 15)
+      .map((c) => ({ lat: c.lat!, lng: c.lng! }))
+    setFit({ points: [me, ...nearest], key: Date.now() })
+  }, [me, cafes])
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase()
@@ -71,7 +77,7 @@ export function ExploreView({
       if (!s) return true
       return [c.name, c.comuna, c.city, c.region, c.address].some((v) => v?.toLowerCase().includes(s))
     })
-    if (areaOnly && viewport) list = list.filter((c) => c.lat != null && c.lng != null && viewport.bounds.contains([c.lat, c.lng]))
+    if (areaOnly && viewport) list = list.filter((c) => c.lat != null && c.lng != null && viewport.bounds.contains([c.lng, c.lat]))
     const origin = me ?? viewport?.center ?? null
     if (origin) {
       list = [...list].sort((a, b) => dist(a, origin) - dist(b, origin))
@@ -104,6 +110,7 @@ export function ExploreView({
           onSelect={select}
           user={me}
           flyTo={fly}
+          fitTo={fit}
           onMoveEnd={(v) => setViewport(v)}
           className="absolute inset-0 z-0"
         />
