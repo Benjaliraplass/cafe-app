@@ -26,7 +26,7 @@ export function Profile() {
   useEffect(() => {
     if (!user) return
     getProfile(user.id)
-      .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, equipment: {} }))
+      .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, role: 'user', equipment: {} }))
       .catch((e) => setError(e.message))
   }, [user])
 

@@ -1,5 +1,18 @@
 import { supabase, PHOTOS_BUCKET, AVATARS_BUCKET } from './supabase'
-import type { Cafe, Coffee, CoffeeLog, Equipment, MethodFamily, Recipe, RecipeData, ScanResult } from './types'
+import type {
+  Cafe,
+  Coffee,
+  CoffeeLog,
+  CoffeePublicStats,
+  Equipment,
+  FeaturedRecipe,
+  MethodFamily,
+  PublicLog,
+  Recipe,
+  RecipeData,
+  ScanResult,
+  UserRole,
+} from './types'
 
 // ---------- Utilidades ----------
 
@@ -201,9 +214,15 @@ const LOG_SELECT = `
   is_public, is_favorite, consumed_at, created_at,
   coffee:coffees (
     id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl,
-    roast_level, roast_profile, tasting_notes,
+    roast_level, roast_profile, tasting_notes, photo_path, is_published,
     roaster:roasters ( id, name, slug, country, city, website, instagram )
   )
+`
+
+const COFFEE_SELECT = `
+  id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl,
+  roast_level, roast_profile, tasting_notes, photo_path, is_published, published_at,
+  roaster:roasters ( id, name, slug, country, city, website, instagram )
 `
 
 export async function listMyLogs(userId: string): Promise<CoffeeLog[]> {
@@ -390,10 +409,11 @@ export interface Profile {
   display_name: string | null
   avatar_url: string | null
   country: string | null
+  role: UserRole
   equipment: Equipment
 }
 
-const PROFILE_SELECT = 'id, display_name, avatar_url, country, equipment'
+const PROFILE_SELECT = 'id, display_name, avatar_url, country, role, equipment'
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase.from('profiles').select(PROFILE_SELECT).eq('id', userId).maybeSingle()
@@ -404,6 +424,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     display_name: data.display_name,
     avatar_url: data.avatar_url,
     country: data.country,
+    role: (data.role ?? 'user') as UserRole,
     equipment: (data.equipment ?? {}) as Equipment,
   }
 }
@@ -450,4 +471,150 @@ export async function uploadAvatar(userId: string, blob: Blob): Promise<string> 
   if (old.length) await supabase.storage.from(AVATARS_BUCKET).remove(old)
 
   return path
+}
+
+// ---------- Catálogo público de cafés ----------
+
+/** Cafés publicados en el catálogo, más recientes primero. */
+export async function listPublishedCoffees(limit = 20): Promise<Coffee[]> {
+  const { data, error } = await supabase
+    .from('coffees')
+    .select(COFFEE_SELECT)
+    .eq('is_published', true)
+    .order('published_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as unknown as Coffee[]
+}
+
+/** Ficha pública: café + estadísticas + registros compartidos. Funciona sin sesión. */
+export async function getPublicCoffee(id: string): Promise<{ coffee: Coffee; stats: CoffeePublicStats | null; logs: PublicLog[] } | null> {
+  const { data: coffee, error } = await supabase.from('coffees').select(COFFEE_SELECT).eq('id', id).maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!coffee) return null
+  const [{ data: stats }, { data: logs, error: logsErr }] = await Promise.all([
+    supabase.from('coffee_public_stats').select('coffee_id, avg_rating, ratings_count').eq('coffee_id', id).maybeSingle(),
+    supabase
+      .from('coffee_logs')
+      .select('id, rating, notes, brew_method, consumed_at, profile:profiles ( display_name, avatar_url )')
+      .eq('coffee_id', id)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ])
+  if (logsErr) throw new Error(logsErr.message)
+  return {
+    coffee: coffee as unknown as Coffee,
+    stats: (stats as CoffeePublicStats | null) ?? null,
+    logs: (logs ?? []) as unknown as PublicLog[],
+  }
+}
+
+/** El usuario comparte (o deja de compartir) su registro en la ficha pública del café. */
+export async function setLogPublic(id: string, value: boolean): Promise<void> {
+  const { error } = await supabase.from('coffee_logs').update({ is_public: value }).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+/** Solo admin: publica un café en el catálogo (opcionalmente con la foto de un registro). */
+export async function setCoffeePublished(coffeeId: string, value: boolean, photoPath?: string | null): Promise<void> {
+  const patch: Record<string, unknown> = { is_published: value, published_at: value ? new Date().toISOString() : null }
+  if (photoPath !== undefined) patch.photo_path = photoPath
+  const { error } = await supabase.from('coffees').update(patch).eq('id', coffeeId)
+  if (error) throw new Error(error.message)
+}
+
+// ---------- Recetas destacadas ----------
+
+const FEATURED_SELECT =
+  'id, slug, title, author, author_role, country, event, method_family, dripper, params, steps, story, source_url, photo_path, is_published, sort_order, created_at'
+
+export async function listFeaturedRecipes(opts: { includeDrafts?: boolean } = {}): Promise<FeaturedRecipe[]> {
+  let q = supabase.from('featured_recipes').select(FEATURED_SELECT).order('sort_order').order('created_at', { ascending: false })
+  if (!opts.includeDrafts) q = q.eq('is_published', true)
+  const { data, error } = await q
+  if (error) throw new Error(error.message)
+  return (data ?? []) as unknown as FeaturedRecipe[]
+}
+
+export async function getFeaturedRecipe(slug: string): Promise<FeaturedRecipe | null> {
+  const { data, error } = await supabase.from('featured_recipes').select(FEATURED_SELECT).eq('slug', slug).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as unknown as FeaturedRecipe) ?? null
+}
+
+export type FeaturedRecipeInput = Omit<FeaturedRecipe, 'id' | 'created_at'> & { id?: string }
+
+/** Solo admin: crea o actualiza una receta destacada. */
+export async function upsertFeaturedRecipe(userId: string, input: FeaturedRecipeInput): Promise<string> {
+  const row = { ...input, created_by: userId }
+  const { data, error } = await supabase.from('featured_recipes').upsert(row).select('id').single()
+  if (error) throw new Error(error.message)
+  return data.id as string
+}
+
+export async function deleteFeaturedRecipe(id: string): Promise<void> {
+  const { error } = await supabase.from('featured_recipes').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// ---------- Cafeterías: alta y moderación ----------
+
+const CAFE_SELECT =
+  'id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng, status, photo_path, created_by, rejection_reason, created_at'
+
+export interface NewCafeInput {
+  name: string
+  kind: Cafe['kind']
+  address: string | null
+  comuna: string | null
+  city: string | null
+  region: string | null
+  lat: number | null
+  lng: number | null
+  instagram: string | null
+  website: string | null
+  description: string | null
+  photo_path: string | null
+}
+
+/** Un usuario propone una cafetería; queda pendiente de aprobación. */
+export async function submitCafe(userId: string, input: NewCafeInput): Promise<string> {
+  const base = slugify(input.name) || 'cafeteria'
+  const slug = `${base}-${Math.random().toString(36).slice(2, 7)}`
+  const { data, error } = await supabase
+    .from('cafes')
+    .insert({ ...input, slug, status: 'pending', created_by: userId })
+    .select('id')
+    .single()
+  if (error) throw new Error(error.message)
+  return data.id as string
+}
+
+/** Cafeterías del usuario (incluye pendientes y rechazadas, por RLS solo las propias). */
+export async function listMyCafes(userId: string): Promise<Cafe[]> {
+  const { data, error } = await supabase.from('cafes').select(CAFE_SELECT).eq('created_by', userId).order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Cafe[]
+}
+
+/** Solo admin: cola de moderación. */
+export async function listPendingCafes(): Promise<Cafe[]> {
+  const { data, error } = await supabase.from('cafes').select(CAFE_SELECT).eq('status', 'pending').order('created_at')
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Cafe[]
+}
+
+/** Solo admin: aprueba o rechaza una cafetería. */
+export async function moderateCafe(adminId: string, cafeId: string, decision: 'approved' | 'rejected', reason?: string): Promise<void> {
+  const { error } = await supabase
+    .from('cafes')
+    .update({
+      status: decision,
+      approved_by: adminId,
+      approved_at: new Date().toISOString(),
+      rejection_reason: decision === 'rejected' ? reason ?? null : null,
+    })
+    .eq('id', cafeId)
+  if (error) throw new Error(error.message)
 }

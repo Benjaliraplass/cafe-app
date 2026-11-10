@@ -51,7 +51,7 @@ export function Preview() {
         {v === 'profile' && (
           <ProfileView
             email="benjamin@tostadoclub.com"
-            profile={{ id: 'u', display_name: 'Benjamín', avatar_url: null, country: 'Chile', equipment: { grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] } }}
+            profile={{ id: 'u', display_name: 'Benjamín', avatar_url: null, country: 'Chile', role: 'admin', equipment: { grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] } }}
             error={null}
             onError={() => {}}
             onProfileChange={() => {}}

@@ -45,7 +45,51 @@ export interface Coffee {
   roast_level: string | null
   roast_profile: RoastProfile | null
   tasting_notes: string[]
+  photo_path?: string | null
+  is_published?: boolean
+  published_at?: string | null
   roaster?: Roaster | null
+}
+
+export type UserRole = 'user' | 'admin'
+
+/** Puntaje promedio de los registros públicos de un café (vista coffee_public_stats). */
+export interface CoffeePublicStats {
+  coffee_id: string
+  avg_rating: number | null
+  ratings_count: number
+}
+
+/** Registro público de otro usuario en la ficha de un café. */
+export interface PublicLog {
+  id: string
+  rating: number | null
+  notes: string | null
+  brew_method: string | null
+  consumed_at: string
+  profile: { display_name: string | null; avatar_url: string | null } | null
+}
+
+export type FeaturedAuthorRole = 'tostador' | 'campeon' | 'barista' | 'otro'
+
+export interface FeaturedRecipe {
+  id: string
+  slug: string
+  title: string
+  author: string
+  author_role: FeaturedAuthorRole
+  country: string | null
+  event: string | null
+  method_family: MethodFamily
+  dripper: string
+  params: Partial<RecipeParams>
+  steps: Array<{ time: string; action: string }>
+  story: string | null
+  source_url: string | null
+  photo_path: string | null
+  is_published: boolean
+  sort_order: number
+  created_at: string
 }
 
 export interface CoffeeLog {
@@ -113,6 +157,11 @@ export interface Cafe {
   description: string | null
   lat: number | null
   lng: number | null
+  status?: 'pending' | 'approved' | 'rejected'
+  photo_path?: string | null
+  created_by?: string | null
+  rejection_reason?: string | null
+  created_at?: string
 }
 
 export const BREW_METHODS = [
