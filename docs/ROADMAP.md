@@ -55,7 +55,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Bloque 3: switch "Compartir mi registro" y botón Compartir en el detalle; Netlify Edge Function `og.ts` con meta tags OG para `/r/*` y `/c/*`
 - [x] Bloque 4: Explorar con mapa (MapLibre GL + OpenFreeMap vectorial, estilo claro; marcadores propios, mi ubicación, "Buscar en esta zona"), lista ordenada por distancia, filtros, "Mis propuestas" con estado; `/explore/new` con geocodificación Nominatim y marcador arrastrable; pestaña Cafeterías en `/admin` (aprobar / rechazar con motivo); sección "Cafeterías cerca" en Inicio; Explorar, Admin y Preview en chunks aparte (bundle 586 → 296 KB)
 - [ ] Aviso al admin cuando llega una cafetería nueva (hoy se ve el contador en `/admin`)
-- [ ] Seed inicial de cafeterías de Santiago (Benjamín propone la lista; se cargan aprobadas)
+- [x] Seed inicial de cafeterías: 33 locales (4 en Pichilemu, 29 en Santiago) cargados aprobados desde la lista de Benjamín (`supabase/seed/cafes_2026_11.sql`). Pendiente: dirección exacta de Bourbon Coffee, fotos e Instagram de cada local
 - [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`); renombrar sitio en Netlify
 - [ ] Fotos para las recetas destacadas (subirlas desde `/admin`)
 
