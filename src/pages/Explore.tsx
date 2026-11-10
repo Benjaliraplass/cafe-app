@@ -53,7 +53,6 @@ export function ExploreView({
   const [areaOnly, setAreaOnly] = useState(false)
   const [fit, setFit] = useState<{ points: LatLng[]; key: number } | null>(null)
   const [locating, setLocating] = useState(false)
-  const listRef = useRef<HTMLUListElement>(null)
 
   // Al obtener la posición por primera vez, encuadrar al usuario junto a las cafeterías más cercanas.
   const flewToUser = useRef(false)
@@ -77,18 +76,18 @@ export function ExploreView({
       return [c.name, c.comuna, c.city, c.region, c.address].some((v) => v?.toLowerCase().includes(s))
     })
     if (areaOnly && viewport) list = list.filter((c) => c.lat != null && c.lng != null && viewport.bounds.contains([c.lng, c.lat]))
+    // Orden: la seleccionada primero; el resto de más cerca a más lejos (del usuario o del centro del mapa).
     const origin = me ?? viewport?.center ?? null
-    if (origin) {
-      list = [...list].sort((a, b) => dist(a, origin) - dist(b, origin))
-    }
+    list = [...list].sort((a, b) => {
+      if (a.id === selected) return -1
+      if (b.id === selected) return 1
+      return origin ? dist(a, origin) - dist(b, origin) : 0
+    })
     return list
-  }, [cafes, q, kind, areaOnly, viewport, me])
+  }, [cafes, q, kind, areaOnly, viewport, me, selected])
 
   function select(id: string | null) {
     setSelected(id)
-    if (!id) return
-    const el = listRef.current?.querySelector<HTMLElement>(`[data-id="${id}"]`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 
   async function locate() {
@@ -175,7 +174,7 @@ export function ExploreView({
         )}
 
         {filtered.length > 0 && (
-          <ul ref={listRef} className="flex flex-col divide-y divide-border">
+          <ul className="flex flex-col divide-y divide-border">
             {filtered.map((c) => (
               <CafeRow key={c.id} c={c} active={c.id === selected} onClick={() => select(c.id)} distance={me && c.lat != null && c.lng != null ? formatDistance(distanceKm(me, { lat: c.lat, lng: c.lng })) : null} />
             ))}
