@@ -47,6 +47,7 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 | `featured_recipes` | Recetas destacadas curadas: autor, rol (tostador/campeón/barista), país, evento, familia, dripper, `params`, `steps`, historia, fuente, foto, `is_published`, `sort_order` | Publicadas: lectura pública (anon incluido). Escribe solo admin |
 | `recipes` | Recetas generadas/guardadas por usuario, ligadas a un `coffee_log` | Solo el dueño |
 | `cafes` | Cafeterías/tostadurías con local, `kind` (cafe/roastery/both), `status` de moderación, `lat/lng`, `google_maps_url` (ficha del local: fotos, horario, reseñas; formato `https://maps.google.com/?cid=...`), `photo_path`, `approved_by/approved_at`, `rejection_reason` | Se ven las aprobadas y las propias; alta como `pending`; el autor edita la suya mientras está pendiente pero no puede cambiar el estado; el admin ve y modera todo |
+| `events` | Eventos de producto (ver §8): `name`, `props`, `user_id`/`anonymous_id`/`session_id`, `utm`, `ref`, dispositivo. Append-only | Sin políticas: nadie lee ni escribe directo. Escritura vía RPC `track_event` (anon y authenticated); lectura agregada vía funciones `admin_*` (solo admin) |
 | `taste_profiles` | Perfil de gusto declarado (`data` jsonb: processes[], flavors[≤2], acidity, body, roast, drinks[]; `normalizeTaste` acepta la forma antigua en singular). Tabla aparte de `profiles` para que sea privado | Solo el dueño (select/insert/update/delete) |
 | Storage `coffee-photos` | Bucket público, ruta `{user_id}/{uuid}.jpg`, máx 10 MB | Escribe solo en su carpeta |
 | Storage `avatars` | Bucket público, ruta `{user_id}/avatar-{ts}.jpg`, máx 5 MB, 512 px | Escribe solo en su carpeta |
@@ -94,7 +95,58 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 - Componentes: inputs `card` con borde `border` radio 12 y alto 48; botón primario negro radio 14 alto 54; chips redondeados (activo negro); fotos con esquinas 14-20; listas con divisores en vez de tarjetas.
 - Implementación: shadcn/ui (Radix + cva + Tailwind v4) con los tokens anteriores como variables CSS.
 
-## 8. Pendientes conocidos
+## 8. Datos y analítica (decidido 2026-11-10)
+
+Objetivo: entender activación, retención y viralidad desde el primer usuario. Tres capas:
+
+| Capa | Qué es | Dónde |
+|---|---|---|
+| Producto | Estado actual (tablas de la sección 4) | Supabase |
+| Eventos | Qué hizo cada usuario y cuándo. Append-only. Cada evento se escribe dos veces: en PostHog (exploración: funnels, retención, cohortes, replay) y en la tabla `events` de Supabase (fuente de verdad, cruzable con producto) | PostHog + Supabase |
+| Derivados | Métricas por usuario y por día calculadas desde las dos anteriores. Nunca se escriben a mano | Funciones SQL `admin_*` (security definer, exigen `is_admin()`) |
+
+### Tabla `events`
+
+`id`, `ts`, `user_id` (null si anónimo; `on delete set null`), `anonymous_id` (id persistente en localStorage, une la visita anónima con el signup), `session_id` (sessionStorage), `name`, `props` jsonb, `path`, `display_mode` (standalone/browser), `device` (ios/android/desktop), `app_version`, `utm` jsonb (`source, medium, campaign, content`), `ref` (id corto del usuario que compartió el enlace). Índices por `(name, ts)`, `(user_id, ts)`, `(anonymous_id)`.
+
+RLS: nadie lee desde el cliente (ni admin; las lecturas van por las funciones `admin_*`). La escritura es solo vía RPC `track_event(...)` (security definer, `anon` y `authenticated`), que fija `user_id = auth.uid()`, valida el nombre (`^[a-z_]{3,40}$`) y limita `props` a 4 KB. Sin PII en `props` (nada de correos ni teléfonos); el join es por `user_id`.
+
+### Taxonomía de eventos (v1)
+
+| Área | Eventos (props principales) |
+|---|---|
+| Ciclo de vida | `app_opened` (display_mode, utm, ref), `signup_completed` (provider), `login_completed` (provider), `pwa_installed` |
+| Escaneo | `scan_started` (from), `scan_completed` (duration_ms, fields_filled), `scan_failed` (reason), `log_saved` (rating, method, is_new_coffee), `log_edited`, `log_deleted` |
+| Recetas | `recipe_requested` (family, dripper, from), `recipe_generated` (duration_ms), `recipe_saved`, `recipe_failed` (reason) |
+| Descubrimiento | `featured_recipe_viewed` (slug), `public_coffee_viewed` (coffee_id, logged_in), `catalog_viewed`, `cafe_viewed` (cafe_id), `cafe_maps_clicked` (cafe_id), `cafe_proposed` |
+| Social | `share_clicked` (type: log/coffee/recipe, result: shared/copied), `share_link_opened` (type, ref, logged_in), `log_made_public` (value) |
+| Perfil | `taste_profile_saved`, `profile_updated`, `feedback_clicked` |
+
+Propiedades comunes en todos: `user_id`, `anonymous_id`, `session_id`, `path`, `display_mode`, `device`, `app_version`. UTM y `ref` se capturan en la primera carga, se guardan en localStorage y viajan en `app_opened` y `signup_completed` para atribuir el registro.
+
+### Viralidad
+
+Todo enlace compartido lleva `?ref=<8 primeros caracteres del user_id>`. Al abrirlo se registra `share_link_opened`; si esa persona se registra, `signup_completed` lleva ese `ref`. Factor K = (shares por usuario activo) x (signups por share).
+
+### Modelos derivados (funciones `admin_*`)
+
+| Función | Devuelve |
+|---|---|
+| `admin_user_facts()` | Una fila por usuario: identidad (email desde `auth.users`, provider, país, created_at), adquisición (utm, ref, first_path, device), activación (`first_scan_at`, `first_log_at`, `first_recipe_at`, `first_share_at`, `time_to_first_log`), uso (logs, escaneos, recetas, favoritos, cafeterías propuestas, tostadores y orígenes distintos, rating promedio), retención (`last_active_at`, `active_days_7d/30d`), social (`shares_sent`, `share_opens`, `signups_referred`, `public_logs`) |
+| `admin_daily_metrics(days)` | Por día: signups, usuarios activos, escaneos, logs, recetas, shares, aperturas de enlaces |
+| `admin_funnel(days)` | Usuarios únicos por paso: app_opened → signup → scan_started → scan_completed → log_saved → recipe_requested → share_clicked |
+| `admin_retention()` | Cohortes semanales de registro x semanas desde el registro (% activos) |
+| `admin_top(days)` | Top cafés vistos/escaneados, cafeterías vistas, tostadores |
+
+Definiciones: **activado** = primer `coffee_log` guardado. **Activo** = al menos un evento en el período. Las funciones leen `events` y las tablas de producto; el volumen esperado del primer año no requiere materializar.
+
+### Front
+
+`src/lib/analytics.ts`: `initAnalytics()`, `identify(user)`, `track(name, props)`. Envía a PostHog (`posthog-js`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST`) y a `track_event`. Sin PostHog configurado, sigue escribiendo en Supabase. Ambos fallan en silencio: la analítica nunca rompe la app.
+
+Métricas en `/admin` → pestaña "Métricas": activación, retención, funnel, factor K y top, desde las funciones `admin_*`. PostHog para exploración ad hoc y session replay.
+
+## 9. Pendientes conocidos
 
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
 - Red desde claude.ai: para QA end-to-end real (crear usuario de prueba, escanear, guardar) hace falta permitir `*.supabase.co` y `*.netlify.app` en claude.ai → Settings → Capabilities. Hoy la QA de RLS se hace con SQL simulando usuarios y la visual con `/preview`.
