@@ -29,11 +29,11 @@ from admin, (values
   ('cafe-altura-mut', 'Café Altura MUT', 'cafe', 'Av. Apoquindo 2730, piso -2', 'Las Condes', 'Santiago', 'Metropolitana', -33.4176822, -70.6012411),
   ('coffee-culture-maipu', 'Coffee Culture Coffee Roasters (CCCR)', 'both', 'Gral. Ordóñez 199', 'Maipú', 'Santiago', 'Metropolitana', -33.5077625, -70.7599075),
   ('coffee-culture-la-paz', 'Coffee Culture Coffee Roasters (CCCR)', 'cafe', 'Av. La Paz 482', 'Recoleta', 'Santiago', 'Metropolitana', -33.4252454, -70.6514521),
-  ('bourbon-coffee', 'Bourbon Coffee Tostadores de Café', 'both', null, 'Ñuñoa', 'Santiago', 'Metropolitana', -33.4476629, -70.5934143),
+  ('bourbon-coffee', 'Bourbon Coffee Tostadores de Café', 'both', 'Jaime Guzmán Errázuriz 3399', 'Ñuñoa', 'Santiago', 'Metropolitana', -33.4476629, -70.5934143),
   ('draga-coffee-roman-diaz', 'Draga Coffee', 'cafe', 'Román Díaz 56', 'Providencia', 'Santiago', 'Metropolitana', -33.4308868, -70.6222371),
   ('draga-coffee-huelen', 'Draga Coffee', 'cafe', 'Huelén 71', 'Providencia', 'Santiago', 'Metropolitana', -33.4317209, -70.6230032),
   ('felix-cafe', 'Felix Café', 'cafe', 'Coyancura 2223', 'Providencia', 'Santiago', 'Metropolitana', -33.4236939, -70.6084217),
-  ('bassotto-cafe', 'Bassotto Café', 'cafe', 'Av. Presidente Riesco 6005', 'Las Condes', 'Santiago', 'Metropolitana', -33.4027013, -70.5704902),
+  ('bassotto-cafe', 'Bassotto Café', 'cafe', 'Pdte. Riesco 6007, locales 8 y 9', 'Las Condes', 'Santiago', 'Metropolitana', -33.4027013, -70.5704902),
   ('cafe-black-mamba', 'Café Black Mamba', 'cafe', 'Eliodoro Yáñez 1200', 'Providencia', 'Santiago', 'Metropolitana', -33.4333121, -70.6183506),
   ('puelo-coffee-roasters', 'Puelo Coffee Roasters', 'both', 'Navidad 1526', 'Vitacura', 'Santiago', 'Metropolitana', -33.4042749, -70.5960713),
   ('mirlo-cafeteria', 'Mirlo Cafetería', 'cafe', 'Eliodoro Yáñez 961', 'Providencia', 'Santiago', 'Metropolitana', -33.4337872, -70.6223947)
