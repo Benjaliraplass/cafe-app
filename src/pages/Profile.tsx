@@ -301,7 +301,13 @@ export function ProfileView({
         <Card className="mt-6 flex flex-col gap-3 p-4 text-sm text-muted-foreground">
           <div className="flex flex-col gap-1">
             <p className="font-medium text-foreground">Dripo · beta</p>
-            <p>Versión inicial. Tus fotos y notas son privadas por defecto. Si algo falla o se te ocurre una mejora, escríbenos.</p>
+            <p>
+              Versión inicial. Tus fotos y notas son privadas por defecto (ver{' '}
+              <Link to="/privacidad" className="underline underline-offset-4">
+                política de privacidad
+              </Link>
+              ). Si algo falla o se te ocurre una mejora, escríbenos.
+            </p>
           </div>
           <Button asChild variant="outline" size="sm" className="w-full">
             <a href={FEEDBACK_MAILTO}>

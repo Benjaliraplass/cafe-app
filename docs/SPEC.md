@@ -98,8 +98,9 @@ Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS`
 
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
 - Red desde claude.ai: para QA end-to-end real (crear usuario de prueba, escanear, guardar) hace falta permitir `*.supabase.co` y `*.netlify.app` en claude.ai → Settings → Capabilities. Hoy la QA de RLS se hace con SQL simulando usuarios y la visual con `/preview`.
-- Dominio e íconos definitivos (los actuales son una gota monocroma provisoria).
-- Google OAuth (configurado 2026-11-09): proyecto Google Cloud `app-cafe` (Google Auth Platform), cliente web "Dripo web" con callback `https://pfpqqwvnfusxrttajndu.supabase.co/auth/v1/callback`; app en producción con página principal `https://tostadoclub.com` y política de privacidad `https://tostadoclub.com/pages/privacidad-dripo` (página de Shopify, fuera del menú). En Supabase: proveedor Google activo, Site URL = Netlify, Redirect URLs `https://sweet-faloodeh-218899.netlify.app/**` y `http://localhost:5173/**`. Al cambiar de dominio hay que actualizar orígenes en Google Cloud y Site URL/Redirect URLs en Supabase.
+- Íconos definitivos (los actuales son una gota monocroma provisoria).
+- Dominio (2026-11-10): `dripocoffee.com` (GoDaddy) como dominio principal en Netlify; `www` redirige al apex. DNS en GoDaddy: A `@` → `75.2.60.5`, CNAME `www` → `sweet-faloodeh-218899.netlify.app`. El sitio sigue respondiendo también en `sweet-faloodeh-218899.netlify.app`.
+- Google OAuth (configurado 2026-11-09): proyecto Google Cloud `app-cafe` (Google Auth Platform), cliente web "Dripo web" con callback `https://pfpqqwvnfusxrttajndu.supabase.co/auth/v1/callback`; app en producción con página principal `https://dripocoffee.com` y política de privacidad `https://dripocoffee.com/privacidad` (ruta pública de la app, `src/pages/Privacy.tsx`; la copia en `tostadoclub.com/pages/privacidad-dripo` queda como respaldo). En Supabase: proveedor Google activo, Site URL `https://dripocoffee.com`, Redirect URLs `https://dripocoffee.com/**`, `https://sweet-faloodeh-218899.netlify.app/**` y `http://localhost:5173/**`.
 - Cerrar registros (beta por invitación): en Supabase Auth desactivar "Allow new users to sign up" e invitar desde el dashboard, o tabla de allowlist.
 - Perfil público / social (seguir, feed) — fuera del MVP.
 - Capacitor para tiendas — fuera del MVP.

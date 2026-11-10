@@ -10,7 +10,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Secret `GEMINI_API_KEY` cargado en Supabase (se cambió de Anthropic a Gemini)
 - [x] Scaffold PWA: auth, diario, escaneo, detalle, recetas, explorar, perfil
 - [x] Repo con CLAUDE.md, SPEC, ROADMAP
-- [x] Sitio en Netlify (cuenta Tostado Club) conectado al repo, env vars y primer deploy: https://sweet-faloodeh-218899.netlify.app
+- [x] Sitio en Netlify (cuenta Tostado Club) conectado al repo, env vars y primer deploy: https://dripocoffee.com (alias técnico https://sweet-faloodeh-218899.netlify.app)
 - [x] `scan-label` probado end-to-end con etiqueta sintética (200 OK, 6,9 s, todos los campos correctos)
 - [x] `suggest-recipe` probado (200 OK, receta V60 coherente con el café) pero tardó 51 s
 - [ ] Prueba end-to-end en teléfono: registro → escaneo real → guardar → receta
@@ -56,7 +56,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Bloque 4: Explorar con mapa (MapLibre GL + OpenFreeMap vectorial, estilo claro; marcadores propios, mi ubicación, "Buscar en esta zona"), lista ordenada por distancia, filtros, "Mis propuestas" con estado; `/explore/new` con geocodificación Nominatim y marcador arrastrable; pestaña Cafeterías en `/admin` (aprobar / rechazar con motivo); sección "Cafeterías cerca" en Inicio; Explorar, Admin y Preview en chunks aparte (bundle 586 → 296 KB)
 - [ ] Aviso al admin cuando llega una cafetería nueva (hoy se ve el contador en `/admin`)
 - [x] Seed inicial de cafeterías: 33 locales (4 en Pichilemu, 29 en Santiago) cargados aprobados desde la lista de Benjamín (`supabase/seed/cafes_2026_11.sql`). Cada local con enlace a su ficha de Google Maps (`cafes.google_maps_url`, seed `cafes_2026_11_google_maps.sql`). Pendiente: Instagram de cada local
-- [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`); renombrar sitio en Netlify
+- [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`)
 - [ ] Fotos para las recetas destacadas (subirlas desde `/admin`)
 
 ## Lote 4 — Mapa pulido, perfil de gusto y acceso a Recetas (2026-11-10)
@@ -65,7 +65,8 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Perfil de gusto: tabla privada `taste_profiles` (4/4 pruebas RLS), cuestionario de 6 preguntas, inferencia desde el diario (familias de sabor desde notas de cata), uso en recetas ("Usar mi perfil de gusto") y en Cafés que van contigo
 - [x] Recetas visibles: botón central "+" con hoja Escanear / Pedir receta; tarjeta "Receta para hoy" en Inicio (2 toques hasta la receta); bloque de receta bajo la ficha en el detalle; "Recetario" en Mis cafés
 - [ ] Instagram de las cafeterías del seed; fotos de recetas destacadas
-- [ ] Login con Google vía GIS; renombrar sitio en Netlify
+- [x] Dominio propio `dripocoffee.com` conectado a Netlify (GoDaddy: A + CNAME), certificado Let's Encrypt; política de privacidad dentro de la app en `/privacidad` (enlazada desde Login y Perfil) y declarada en Google Cloud
+- [ ] Login con Google vía GIS
 
 ## Fase 2 — Recetas
 

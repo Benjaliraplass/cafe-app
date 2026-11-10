@@ -18,6 +18,7 @@ import { Recipes } from '@/pages/Recipes'
 import { Profile } from '@/pages/Profile'
 import { FeaturedList, FeaturedRecipePage } from '@/pages/FeaturedRecipe'
 import { Catalog, PublicCoffeePage } from '@/pages/PublicCoffee'
+import { Privacy } from '@/pages/Privacy'
 import { Spinner } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
 
@@ -56,7 +57,7 @@ function Gate() {
 }
 
 /**
- * Rutas públicas (fichas compartibles). Con sesión se muestran dentro del Layout normal;
+ * Rutas públicas (fichas compartibles y política de privacidad). Con sesión se muestran dentro del Layout normal;
  * sin sesión, con una barra mínima que invita a abrir Dripo.
  */
 function PublicShell() {
@@ -97,6 +98,7 @@ function Root() {
       <Route element={<PublicShell />}>
         <Route path="r/:slug" element={<FeaturedRecipePage />} />
         <Route path="c/:id" element={<PublicCoffeePage />} />
+        <Route path="privacidad" element={<Privacy />} />
       </Route>
       <Route path="/*" element={<Gate />} />
     </Routes>

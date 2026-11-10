@@ -18,7 +18,7 @@ se escribe primero en `docs/SPEC.md` y después en código.
 | Frontend | Vite 8 + React 19 + TypeScript, Tailwind v4 (`@tailwindcss/vite`), shadcn/ui (estilo new-york, componentes en `src/components/ui`, `components.json` listo para `npx shadcn add`), lucide-react, react-router-dom, vite-plugin-pwa, MapLibre GL + OpenFreeMap (mapa vectorial, sin API key) |
 | Backend | Supabase (proyecto `cafe-app`, ref `pfpqqwvnfusxrttajndu`, región sa-east-1): Postgres + RLS, Auth, Storage, Edge Functions (Deno) |
 | IA | Gemini API (Google) desde Edge Functions, con cadena de modelos de respaldo (`gemini-3.5-flash` → `gemini-flash-latest` → `gemini-3.5-flash-lite` → `gemini-2.5-flash`), timeout 20 s por llamada y reintentos ante 429/503. Secret `GEMINI_API_KEY` en Supabase. Anthropic queda como proveedor alternativo (`ANTHROPIC_API_KEY`); la capa está en `supabase/functions/_shared/ai.ts` |
-| Hosting | Netlify (cuenta benjamin@tostadoclub.com), sitio conectado al repo, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml`. URL actual: https://sweet-faloodeh-218899.netlify.app |
+| Hosting | Netlify (cuenta benjamin@tostadoclub.com), sitio conectado al repo, build `npm run build`, publish `dist`, SPA redirect en `netlify.toml`. Dominio: https://dripocoffee.com (GoDaddy, DNS A + CNAME hacia Netlify; alias técnico https://sweet-faloodeh-218899.netlify.app) |
 | Repo | github.com/Benjaliraplass/cafe-app, rama `main` deploya a producción |
 
 ## Estructura
@@ -44,7 +44,7 @@ src/
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
-                       Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
+                       Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
   pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
@@ -59,7 +59,7 @@ docs/                  SPEC.md, ROADMAP.md
 ## Convenciones
 
 - Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente (excepción puntual: subida de foto en Admin).
-- Rutas públicas (`/r/:slug`, `/c/:id`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
+- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.
 - JSON estructurado desde la IA: definir el schema como tool (`input_schema`) y llamar `callStructured` (ver `_shared/ai.ts`); Gemini usa `responseSchema`, Anthropic `tool_choice` forzado. Nunca parsear texto libre.

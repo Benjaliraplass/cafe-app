@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -130,6 +131,13 @@ export function Login() {
             </>
           )}
         </button>
+        <p className="pt-4 text-center text-xs text-muted-foreground">
+          Al continuar aceptas la{' '}
+          <Link to="/privacidad" className="underline underline-offset-4">
+            política de privacidad
+          </Link>
+          .
+        </p>
       </form>
     </div>
   )
