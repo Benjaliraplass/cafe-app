@@ -37,6 +37,7 @@ export function NewCafe() {
   const [region, setRegion] = useState('')
   const [instagram, setInstagram] = useState('')
   const [website, setWebsite] = useState('')
+  const [mapsUrl, setMapsUrl] = useState('')
   const [description, setDescription] = useState('')
   const [photoPath, setPhotoPath] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -109,6 +110,7 @@ export function NewCafe() {
         instagram: instagram.trim().replace(/^@/, '') || null,
         website: website.trim() || null,
         description: description.trim() || null,
+        google_maps_url: mapsUrl.trim() || null,
         photo_path: photoPath,
       }
       await submitCafe(user.id, input)
@@ -214,6 +216,9 @@ export function NewCafe() {
         </Field>
         <Field label="Sitio web">
           <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" inputMode="url" autoCapitalize="none" />
+        </Field>
+        <Field label="Enlace de Google Maps" hint="Opcional. Compartir desde Google Maps y pegar el enlace; así mostramos fotos y horario." className="col-span-2">
+          <Input value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/..." inputMode="url" autoCapitalize="none" />
         </Field>
       </div>
 

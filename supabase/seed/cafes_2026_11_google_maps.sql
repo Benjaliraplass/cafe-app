@@ -1,0 +1,38 @@
+-- Enlaces a la ficha de Google Maps de cada local del seed inicial.
+update public.cafes as c set google_maps_url = v.url
+from (values
+  ('bourbon-coffee', 'https://maps.google.com/?cid=9003486043437225322'),
+  ('felix-cafe', 'https://maps.google.com/?cid=12226685130231766297'),
+  ('bassotto-cafe', 'https://maps.google.com/?cid=1818069529415136727'),
+  ('cafe-black-mamba', 'https://maps.google.com/?cid=2358022185070864777'),
+  ('puelo-coffee-roasters', 'https://maps.google.com/?cid=430079041761095769'),
+  ('mirlo-cafeteria', 'https://maps.google.com/?cid=4167625865808439695'),
+  ('mana-cafe', 'https://maps.google.com/?cid=15036474808154945644'),
+  ('cafe-triciclo', 'https://maps.google.com/?cid=11975809360108668337'),
+  ('tangara-coffee-roasters-pichilemu', 'https://maps.google.com/?cid=6784159182245546067'),
+  ('cardumen-cafe-los-alerces', 'https://maps.google.com/?cid=17356509182643426636'),
+  ('cardumen-cafe-centro', 'https://maps.google.com/?cid=5725238593397681759'),
+  ('el-brunch-pichilemu', 'https://maps.google.com/?cid=2791232764508184757'),
+  ('la-pastora-antonio-varas', 'https://maps.google.com/?cid=14564410311528477735'),
+  ('la-pastora-suecia', 'https://maps.google.com/?cid=11577641269726448507'),
+  ('la-pastora-parque-bustamante', 'https://maps.google.com/?cid=2586721485697253953'),
+  ('la-pastora-roasters-barrio-italia', 'https://maps.google.com/?cid=13718488067751499320'),
+  ('cafecito-house-2', 'https://maps.google.com/?cid=12909721145248545503'),
+  ('cafecito-house', 'https://maps.google.com/?cid=1993385438337917936'),
+  ('id-coffee', 'https://maps.google.com/?cid=12864129102664274060'),
+  ('the-elephant-coffee-napoleon', 'https://maps.google.com/?cid=18043738909621182594'),
+  ('the-elephant-coffee-las-hortensias', 'https://maps.google.com/?cid=15391889722436507358'),
+  ('we-are-four-pedro-de-valdivia', 'https://maps.google.com/?cid=15772287181057327732'),
+  ('we-are-four-apoquindo', 'https://maps.google.com/?cid=18255409800471358252'),
+  ('we-are-four-los-leones', 'https://maps.google.com/?cid=15733849084304485822'),
+  ('cafe-altura-manuel-montt', 'https://maps.google.com/?cid=10839742344358797914'),
+  ('cafe-altura-la-vega', 'https://maps.google.com/?cid=11990533122647451550'),
+  ('cafe-altura-paseo-san-agustin', 'https://maps.google.com/?cid=17177812545970116756'),
+  ('cafe-altura-bulnes', 'https://maps.google.com/?cid=923479461914547889'),
+  ('cafe-altura-mut', 'https://maps.google.com/?cid=16654794408069262593'),
+  ('coffee-culture-maipu', 'https://maps.google.com/?cid=2213077076198640235'),
+  ('coffee-culture-la-paz', 'https://maps.google.com/?cid=3925579356245881092'),
+  ('draga-coffee-roman-diaz', 'https://maps.google.com/?cid=5364466723655720426'),
+  ('draga-coffee-huelen', 'https://maps.google.com/?cid=11027969854487626296')
+) as v(slug, url)
+where c.slug = v.slug;

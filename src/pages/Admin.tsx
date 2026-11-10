@@ -579,9 +579,9 @@ function CafesAdmin({ userId }: { userId: string }) {
                   <span className="text-[17px] font-medium leading-tight">{c.name}</span>
                   <span className="text-sm text-muted-foreground">{[c.address, c.comuna, c.city].filter(Boolean).join(', ')}</span>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-[13px]">
-                    {c.lat != null && c.lng != null && (
-                      <a href={directionsUrl({ lat: c.lat, lng: c.lng })} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 underline-offset-4 hover:underline">
-                        <Navigation className="size-3.5" /> Ver en el mapa
+                    {(c.google_maps_url || (c.lat != null && c.lng != null)) && (
+                      <a href={c.google_maps_url ?? directionsUrl({ lat: c.lat!, lng: c.lng! })} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 underline-offset-4 hover:underline">
+                        <Navigation className="size-3.5" /> {c.google_maps_url ? 'Ficha en Google Maps' : 'Ver en el mapa'}
                       </a>
                     )}
                     {c.instagram && (

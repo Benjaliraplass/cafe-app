@@ -380,7 +380,7 @@ export async function saveRecipe(input: {
 export async function listCafes(): Promise<Cafe[]> {
   const { data, error } = await supabase
     .from('cafes')
-    .select('id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng, status, photo_path, created_by, created_at')
+    .select('id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng, status, google_maps_url, photo_path, created_by, created_at')
     .eq('status', 'approved')
     .order('city')
     .order('name')
@@ -561,7 +561,7 @@ export async function deleteFeaturedRecipe(id: string): Promise<void> {
 // ---------- Cafeterías: alta y moderación ----------
 
 const CAFE_SELECT =
-  'id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng, status, photo_path, created_by, rejection_reason, created_at'
+  'id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng, status, google_maps_url, photo_path, created_by, rejection_reason, created_at'
 
 export interface NewCafeInput {
   name: string
@@ -575,6 +575,7 @@ export interface NewCafeInput {
   instagram: string | null
   website: string | null
   description: string | null
+  google_maps_url: string | null
   photo_path: string | null
 }
 

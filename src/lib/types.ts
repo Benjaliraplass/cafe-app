@@ -158,6 +158,7 @@ export interface Cafe {
   lat: number | null
   lng: number | null
   status?: 'pending' | 'approved' | 'rejected'
+  google_maps_url?: string | null
   photo_path?: string | null
   created_by?: string | null
   rejection_reason?: string | null

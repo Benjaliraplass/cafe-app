@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { AtSign, Navigation, Star } from 'lucide-react'
+import { AtSign, MapPin, Navigation, Star } from 'lucide-react'
 import type { Cafe, Coffee, CoffeeLog, CoffeePublicStats, FeaturedRecipe } from '@/lib/types'
 import { directionsUrl, instagramUrl } from '@/lib/geo'
 import { photoUrl } from '@/lib/supabase'
@@ -120,34 +120,36 @@ export const KIND_LABEL: Record<Cafe['kind'], string> = {
   both: 'Cafetería y tostaduría',
 }
 
-/** Fila de cafetería (Explorar e Inicio). */
+/** Fila de cafetería (Explorar e Inicio). Sin foto: el detalle visual vive en la ficha de Google Maps. */
 export function CafeRow({ c, active, onClick, distance }: { c: Cafe; active?: boolean; onClick?: () => void; distance: string | null }) {
+  const point = c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null
+  const mapsUrl = c.google_maps_url ?? (point ? `https://www.google.com/maps/search/?api=1&query=${point.lat},${point.lng}` : null)
   return (
-    <li data-id={c.id} className={cn('-mx-3 flex gap-3.5 rounded-2xl px-3 py-3.5 transition-colors', active && 'bg-card')}>
-      <button type="button" onClick={onClick} className="shrink-0" aria-label={`Ver ${c.name} en el mapa`}>
-        <Photo src={photoUrl(c.photo_path)} className="size-[72px] rounded-[14px]" />
+    <li data-id={c.id} className={cn('-mx-3 flex flex-col gap-2 rounded-2xl px-3 py-3.5 transition-colors', active && 'bg-card')}>
+      <button type="button" onClick={onClick} className="flex flex-col items-start gap-0.5 text-left">
+        <span className="eyebrow text-[10px]">
+          {KIND_LABEL[c.kind]}
+          {distance ? ` · ${distance}` : ''}
+        </span>
+        <span className="text-[17px] font-medium leading-tight tracking-[-0.01em]">{c.name}</span>
+        <span className="text-sm text-muted-foreground">{[c.address, c.comuna ?? c.city].filter(Boolean).join(', ')}</span>
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <button type="button" onClick={onClick} className="flex flex-col items-start gap-0.5 text-left">
-          <span className="eyebrow text-[10px]">
-            {KIND_LABEL[c.kind]}
-            {distance ? ` · ${distance}` : ''}
-          </span>
-          <span className="text-[17px] font-medium leading-tight tracking-[-0.01em]">{c.name}</span>
-          <span className="text-sm text-muted-foreground">{[c.address, c.comuna ?? c.city].filter(Boolean).join(', ')}</span>
-        </button>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 pt-0.5 text-[13px]">
-          {c.lat != null && c.lng != null && (
-            <a href={directionsUrl({ lat: c.lat, lng: c.lng })} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline">
-              <Navigation className="size-3.5" strokeWidth={1.8} /> Cómo llegar
-            </a>
-          )}
-          {c.instagram && (
-            <a href={instagramUrl(c.instagram)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
-              <AtSign className="size-3.5" strokeWidth={1.8} /> {c.instagram.replace(/^@/, '')}
-            </a>
-          )}
-        </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+        {mapsUrl && (
+          <a href={mapsUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline">
+            <MapPin className="size-3.5" strokeWidth={1.8} /> Ver en Google Maps
+          </a>
+        )}
+        {point && (
+          <a href={directionsUrl(point)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
+            <Navigation className="size-3.5" strokeWidth={1.8} /> Cómo llegar
+          </a>
+        )}
+        {c.instagram && (
+          <a href={instagramUrl(c.instagram)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
+            <AtSign className="size-3.5" strokeWidth={1.8} /> {c.instagram.replace(/^@/, '')}
+          </a>
+        )}
       </div>
     </li>
   )
