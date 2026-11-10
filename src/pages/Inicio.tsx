@@ -82,6 +82,7 @@ export function InicioView({
         <div className="flex flex-col gap-1.5">
           <Eyebrow>{greeting()}</Eyebrow>
           <Title className="text-[34px]">{name}</Title>
+          <p className="text-[15px] text-muted-foreground">{quip(logsCount)}</p>
         </div>
         <Link to="/profile" aria-label="Perfil" className="size-12 shrink-0 overflow-hidden rounded-full bg-muted ring-1 ring-border">
           {src ? (
@@ -213,4 +214,26 @@ function greeting(): string {
   if (h < 12) return 'Buenos días'
   if (h < 20) return 'Buenas tardes'
   return 'Buenas noches'
+}
+
+/**
+ * Frase corta según la hora. Varias por franja; se elige por día (no por recarga) para que
+ * cambie a diario sin parpadear. Sin emojis, tono cercano y neutro.
+ */
+const QUIPS: Record<string, string[]> = {
+  madrugada: ['¿Todavía despierto? Ese café fue fuerte.', 'A esta hora, mejor un descafeinado.', 'El café también sabe mejor con sueño.'],
+  manana: ['¿Ya pasó el primer café?', 'Hora de moler. ¿Qué toca hoy?', 'Un buen día empieza con una buena extracción.', 'El agua ya debería estar hirviendo.'],
+  mediodia: ['¿Café después de almuerzo? Siempre.', 'Buen momento para un filtrado largo.', 'Mitad del día, segunda taza.'],
+  tarde: ['La taza de la tarde es la mejor del día.', '¿Un espresso para rematar la jornada?', 'Hora perfecta para probar algo nuevo.', '¿Qué estás tomando ahora?'],
+  noche: ['¿Aún tomando café?', 'Café de noche: valiente.', '¿Un último sorbo antes de dormir?', 'Mañana se muele de nuevo.'],
+}
+
+function quip(logsCount: number): string {
+  const d = new Date()
+  const h = d.getHours()
+  const slot = h < 6 ? 'madrugada' : h < 12 ? 'manana' : h < 15 ? 'mediodia' : h < 20 ? 'tarde' : 'noche'
+  if (logsCount === 0 && slot !== 'madrugada') return 'Tu diario está vacío. Escanea tu primer café.'
+  const list = QUIPS[slot]
+  const dayIndex = Math.floor(d.getTime() / 86_400_000)
+  return list[dayIndex % list.length]
 }
