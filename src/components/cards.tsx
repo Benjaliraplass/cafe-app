@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { AtSign, MapPin, Navigation, Star } from 'lucide-react'
+import { AtSign, MapPin, Star } from 'lucide-react'
 import type { Cafe, Coffee, CoffeeLog, CoffeePublicStats, FeaturedRecipe } from '@/lib/types'
-import { directionsUrl, instagramUrl } from '@/lib/geo'
+import { instagramUrl } from '@/lib/geo'
 import { photoUrl } from '@/lib/supabase'
 import { Photo, Rating } from '@/components/primitives'
 import { cn } from '@/lib/utils'
@@ -138,11 +138,6 @@ export function CafeRow({ c, active, onClick, distance }: { c: Cafe; active?: bo
         {mapsUrl && (
           <a href={mapsUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline">
             <MapPin className="size-3.5" strokeWidth={1.8} /> Ver en Google Maps
-          </a>
-        )}
-        {point && (
-          <a href={directionsUrl(point)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
-            <Navigation className="size-3.5" strokeWidth={1.8} /> Cómo llegar
           </a>
         )}
         {c.instagram && (
