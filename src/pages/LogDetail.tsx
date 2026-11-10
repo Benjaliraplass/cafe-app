@@ -46,7 +46,7 @@ export function LogDetail() {
     return (
       <div className="px-6 pt-8">
         <p className="text-muted-foreground">No encontramos este registro.</p>
-        <Link to="/" className="mt-4 inline-block text-foreground underline underline-offset-4">
+        <Link to="/logs" className="mt-4 inline-block text-foreground underline underline-offset-4">
           Volver a mis cafés
         </Link>
       </div>
@@ -70,7 +70,7 @@ export function LogDetail() {
       }}
       onDelete={async () => {
         await deleteLog(log.id)
-        navigate('/', { replace: true })
+        navigate('/logs', { replace: true })
       }}
       onToggleFavorite={async () => {
         const next = !log.is_favorite
@@ -162,7 +162,7 @@ export function LogDetailView({
         <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+10px)]">
           <Button asChild variant="secondary" size="icon" className="bg-background/55 backdrop-blur-md">
-            <Link to="/" aria-label="Volver">
+            <Link to="/logs" aria-label="Volver">
               <ChevronLeft strokeWidth={1.8} className="size-5" />
             </Link>
           </Button>

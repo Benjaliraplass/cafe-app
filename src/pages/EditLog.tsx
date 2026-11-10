@@ -71,7 +71,7 @@ export function EditLog({ previewLog }: { previewLog?: CoffeeLog } = {}) {
     return (
       <div className="px-6 pt-8">
         <p className="text-muted-foreground">No encontramos este registro.</p>
-        <Link to="/" className="mt-4 inline-block underline underline-offset-4">
+        <Link to="/logs" className="mt-4 inline-block underline underline-offset-4">
           Volver a mis cafés
         </Link>
       </div>

@@ -47,6 +47,16 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [ ] Cerrar registros (beta por invitación) y lista de invitados
 - [x] Google OAuth: proyecto Google Cloud `app-cafe`, app publicada (pantalla de consentimiento con política de privacidad en tostadoclub.com/pages/privacidad-dripo), proveedor habilitado en Supabase, Site URL y Redirect URLs configuradas. Pendiente: prueba en teléfono
 
+## Lote 3 — Inicio, catálogo compartido, compartir y cafeterías (2026-11-10)
+
+- [x] Bloque 0: roles admin (`profiles.role`, `is_admin()`), cafés publicables, `featured_recipes`, moderación de cafeterías; 17/17 pruebas RLS con usuarios simulados (se cerró un hueco: el autor podía autoaprobar su cafetería)
+- [x] Bloque 1: Recetas con gramos como campo principal y personas a 200 ml; `suggest-recipe` v7
+- [x] Bloque 2: pestaña Inicio (recetas destacadas, cafés que van contigo, accesos rápidos), barra de 5 ítems con Escanear central, fichas públicas `/r/:slug` y `/c/:id` con Compartir, `/featured`, `/catalog`, panel `/admin` (recetas destacadas y publicación de cafés), seed de 7 recetas destacadas (Hoffmann V60/Aeropress/prensa, Kasuya 4:6, Wendelboe V60, Kalita y espresso base de Dripo) en `supabase/seed/featured_recipes.sql`
+- [ ] Bloque 3: toggle "compartir mi registro" en el detalle del café; meta tags OG para vistas previas en WhatsApp (Netlify Edge Function)
+- [ ] Bloque 4: Explorar con mapa (Leaflet + OSM), panel deslizable, alta de cafeterías y cola de moderación en `/admin`
+- [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`); renombrar sitio en Netlify
+- [ ] Fotos para las recetas destacadas (subirlas desde `/admin`)
+
 ## Fase 2 — Recetas
 
 - [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas

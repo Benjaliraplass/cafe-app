@@ -30,16 +30,21 @@ src/
   lib/api.ts           TODAS las lecturas/escrituras a Supabase y llamadas a Edge Functions
   lib/image.ts         redimensiona fotos a JPEG base64 antes de enviarlas
   lib/countries.ts     lista de países (español) para tostador y nacionalidad
-  hooks/useAuth.tsx    sesión de Supabase (contexto)
+  lib/recommend.ts     "cafés que van contigo": orden por afinidad con los cafés bien puntuados
+  lib/share.ts         Web Share API con fallback a portapapeles
+  hooks/useAuth.tsx    sesión de Supabase + perfil (rol admin) en contexto
   lib/utils.ts         cn() (clsx + tailwind-merge)
   components/ui/       primitivos shadcn: button, input, textarea, select, label, badge, chip, card, skeleton, separator
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
-  components/Layout.tsx  Layout + BottomNav flotante "liquid glass" (utilidades `glass` / `glass-solid` en index.css)
-  pages/               Login (correo + Google), Home (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard), Recipes (+RecipesView), Explore, Profile (+ProfileView)
-  pages/Preview.tsx    solo en dev: /preview?v=home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo
+  components/cards.tsx  HScroll, FeaturedRecipeCard, CoffeeCard, SectionHeader (Inicio y listados)
+  components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con Escanear central (utilidades `glass` / `glass-solid` en index.css)
+  pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
+                       Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Explore, Profile (+ProfileView), Admin (/admin, solo rol admin)
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|featured|coffee|home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
+  seed/                datos curados (recetas destacadas); idempotente por slug
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
   functions/scan-label/            foto de etiqueta -> JSON estructurado
   functions/suggest-recipe/        café + método -> receta estructurada
@@ -48,7 +53,8 @@ docs/                  SPEC.md, ROADMAP.md
 
 ## Convenciones
 
-- Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente.
+- Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente (excepción puntual: subida de foto en Admin).
+- Rutas públicas (`/r/:slug`, `/c/:id`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.
 - JSON estructurado desde la IA: definir el schema como tool (`input_schema`) y llamar `callStructured` (ver `_shared/ai.ts`); Gemini usa `responseSchema`, Anthropic `tool_choice` forzado. Nunca parsear texto libre.

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Camera, Mail } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Camera, Mail, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getProfile, updateEquipment, updateProfile, uploadAvatar, type Profile as ProfileData } from '@/lib/api'
 import { avatarUrl } from '@/lib/supabase'
@@ -19,7 +20,7 @@ export const FEEDBACK_MAILTO = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComp
 )}`
 
 export function Profile() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, refreshProfile } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,9 +42,14 @@ export function Profile() {
       onProfileChange={setProfile}
       onUploadAvatar={async (file) => {
         const { blob } = await imageToJpegBase64(file, 512, 0.85)
-        return uploadAvatar(user.id, blob)
+        const path = await uploadAvatar(user.id, blob)
+        refreshProfile()
+        return path
       }}
-      onSaveIdentity={(fields) => updateProfile(user.id, fields)}
+      onSaveIdentity={async (fields) => {
+        await updateProfile(user.id, fields)
+        refreshProfile()
+      }}
       onSaveEquipment={(eq) => updateEquipment(user.id, eq)}
       onSignOut={signOut}
     />
@@ -279,6 +285,13 @@ export function ProfileView({
             </a>
           </Button>
         </Card>
+        {profile?.role === 'admin' && (
+          <Button asChild variant="secondary" className="mt-4 w-full">
+            <Link to="/admin">
+              <Shield className="size-4" strokeWidth={1.8} /> Administración
+            </Link>
+          </Button>
+        )}
         <Button variant="outline" className="mt-4 w-full" onClick={onSignOut}>
           Cerrar sesión
         </Button>

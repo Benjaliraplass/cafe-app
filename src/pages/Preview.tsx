@@ -1,6 +1,6 @@
 // Solo en desarrollo: previsualiza las vistas con datos de ejemplo sin iniciar sesión.
 import { useSearchParams } from 'react-router-dom'
-import type { CoffeeLog, RecipeData } from '@/lib/types'
+import type { CoffeeLog, FeaturedRecipe, RecipeData } from '@/lib/types'
 import { HomeView } from '@/pages/Home'
 import { LogDetailView } from '@/pages/LogDetail'
 import { Login } from '@/pages/Login'
@@ -8,6 +8,9 @@ import { Scan } from '@/pages/Scan'
 import { RecipesView } from '@/pages/Recipes'
 import { EditLog } from '@/pages/EditLog'
 import { ProfileView } from '@/pages/Profile'
+import { InicioView } from '@/pages/Inicio'
+import { FeaturedRecipeView } from '@/pages/FeaturedRecipe'
+import { PublicCoffeeView } from '@/pages/PublicCoffee'
 import { BottomNav } from '@/components/Layout'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
@@ -33,6 +36,18 @@ const recipe: RecipeData = {
   rest_advice: 'Han pasado 14 días desde el tueste: ventana ideal para filtro.',
 }
 
+const featured: FeaturedRecipe[] = [
+  { id: 'f1', slug: 'v60-kasuya-4-6', title: 'Método 4:6 de Tetsu Kasuya', author: 'Tetsu Kasuya', author_role: 'campeon', country: 'Japón', event: 'WBrC 2016', method_family: 'conico', dripper: 'V60',
+    params: { dose_g: 20, water_g: 300, ratio: '1:15', water_temp_c: 92, grind: 'Gruesa', total_time: '3:30', grind_reference: 'Parecida a sal gruesa' },
+    steps: [{ time: '0:00', action: 'Primer vertido: 60 g de agua.' }, { time: '0:45', action: 'Segundo vertido: 60 g.' }, { time: '1:30', action: 'Tercer vertido: 60 g.' }, { time: '2:15', action: 'Cuarto vertido: 60 g.' }, { time: '3:00', action: 'Quinto vertido: 60 g.' }],
+    story: 'El agua se divide en dos bloques: el primer 40 % controla el sabor y el 60 % restante la fuerza.', source_url: 'https://en.philocoffea.com/blogs/blog/coffee-brewing-method', photo_path: null, is_published: true, sort_order: 20, created_at: '' },
+  { id: 'f2', slug: 'v60-hoffmann-ultimate', title: 'V60 para dos: la técnica de James Hoffmann', author: 'James Hoffmann', author_role: 'campeon', country: 'Reino Unido', event: 'WBC 2007', method_family: 'conico', dripper: 'V60',
+    params: { dose_g: 30, water_g: 500, ratio: '1:16,7', water_temp_c: 96, grind: 'Media fina', total_time: '3:30' }, steps: [], story: null, source_url: null, photo_path: null, is_published: true, sort_order: 10, created_at: '' },
+  { id: 'f3', slug: 'espresso-base-dripo', title: 'Espresso de especialidad, punto de partida', author: 'Dripo', author_role: 'otro', country: 'Chile', event: null, method_family: 'espresso', dripper: 'Espresso',
+    params: { dose_g: 18, yield_g: 38, ratio: '1:2,1', water_temp_c: 93, grind: 'Fina', pressure_bar: 9, total_time: '0:28' }, steps: [], story: null, source_url: null, photo_path: null, is_published: true, sort_order: 70, created_at: '' },
+]
+const publishedCoffees = logs.map((l) => ({ ...l.coffee!, is_published: true, published_at: l.created_at }))
+
 export function Preview() {
   const [sp] = useSearchParams()
   const v = sp.get('v') ?? 'home'
@@ -41,6 +56,20 @@ export function Preview() {
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
       <main className="flex-1 pb-32">
         {v === 'home' && <HomeView logs={logs} error={null} onToggleFavorite={noop} />}
+        {v === 'inicio' && (
+          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logsCount={5} error={null} />
+        )}
+        {v === 'featured' && <FeaturedRecipeView r={featured[0]} />}
+        {v === 'coffee' && (
+          <PublicCoffeeView
+            coffee={publishedCoffees[0]}
+            stats={{ coffee_id: '1', avg_rating: 4.6, ratings_count: 7 }}
+            logs={[
+              { id: 'p1', rating: 5, notes: 'Mucho mango en caliente, cítrico al enfriar.', brew_method: 'V60', consumed_at: '2026-11-08', profile: { display_name: 'Benjamín', avatar_url: null } },
+              { id: 'p2', rating: 4, notes: null, brew_method: 'Aeropress', consumed_at: '2026-11-07', profile: { display_name: 'Camila', avatar_url: null } },
+            ]}
+          />
+        )}
         {v === 'empty' && <HomeView logs={[]} error={null} />}
         {v === 'scan' && <Scan />}
         {v === 'recipes' && (
@@ -73,7 +102,7 @@ export function Preview() {
           />
         )}
       </main>
-      <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'recipes' ? '/recipes' : '/'} />
+      <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'inicio' || v === 'featured' || v === 'coffee' ? '/' : '/logs'} />
     </div>
   )
 }
