@@ -195,7 +195,7 @@ export function CafeMap({
       return
     }
     if (!popup.current) {
-      popup.current = new Popup({ closeButton: false, closeOnClick: false, offset: [0, -(PIN_H + 2)], maxWidth: '260px', className: 'dripo-popup-wrap' }).addTo(m)
+      popup.current = new Popup({ closeButton: false, closeOnClick: false, focusAfterOpen: false, offset: [0, -(PIN_H + 2)], maxWidth: '260px', className: 'dripo-popup-wrap' }).addTo(m)
     }
     popup.current.setLngLat([c.lng, c.lat]).setHTML(popupHtml(c))
 
