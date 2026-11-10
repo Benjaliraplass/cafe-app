@@ -48,6 +48,7 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 | `recipes` | Recetas generadas/guardadas por usuario, ligadas a un `coffee_log` | Solo el dueño |
 | `cafes` | Cafeterías/tostadurías con local, `kind` (cafe/roastery/both), `status` de moderación, `lat/lng`, `google_maps_url` (ficha del local: fotos, horario, reseñas; formato `https://maps.google.com/?cid=...`), `photo_path`, `approved_by/approved_at`, `rejection_reason` | Se ven las aprobadas y las propias; alta como `pending`; el autor edita la suya mientras está pendiente pero no puede cambiar el estado; el admin ve y modera todo |
 | `events` | Eventos de producto (ver §8): `name`, `props`, `user_id`/`anonymous_id`/`session_id`, `utm`, `ref`, dispositivo. Append-only | Sin políticas: nadie lee ni escribe directo. Escritura vía RPC `track_event` (anon y authenticated); lectura agregada vía funciones `admin_*` (solo admin) |
+| `kb_sources`, `kb_methods`, `kb_recipes`, `kb_recipe_steps`, `kb_rules` | Base de conocimiento de preparación (ver §9): fuentes verificables, métodos, recetas de referencia con pasos y reglas/principios para la IA | Lectura pública (anon y authenticated); escribe solo admin (`is_admin()`) |
 | `taste_profiles` | Perfil de gusto declarado (`data` jsonb: processes[], flavors[≤2], acidity, body, roast, drinks[]; `normalizeTaste` acepta la forma antigua en singular). Tabla aparte de `profiles` para que sea privado | Solo el dueño (select/insert/update/delete) |
 | Storage `coffee-photos` | Bucket público, ruta `{user_id}/{uuid}.jpg`, máx 10 MB | Escribe solo en su carpeta |
 | Storage `avatars` | Bucket público, ruta `{user_id}/avatar-{ts}.jpg`, máx 5 MB, 512 px | Escribe solo en su carpeta |
@@ -146,7 +147,33 @@ Definiciones: **activado** = primer `coffee_log` guardado. **Activo** = al menos
 
 Métricas en `/admin` → pestaña "Métricas": activación, retención, funnel, factor K y top, desde las funciones `admin_*`. PostHog para exploración ad hoc y session replay; dashboard "Dripo — Crecimiento" (id 2331176) con 12 insights creados vía API (los nombres de evento y propiedades deben coincidir con `EventName`).
 
-## 9. Pendientes conocidos
+## 9. Base de conocimiento de preparación (KB, decidido 2026-11-10)
+
+Fuente: investigación de Benjamín (`docs/kb/coffee_kb_research_y_recetas.xlsx`, `coffee_kb_reglas_ia.json`, `coffee_kb_implementacion.md`). Es **contexto de referencia** para la IA, no un recetario cerrado: el generador sigue siendo libre y la KB le da recetas de autores reales, principios y ajustes con fuente citable. Decisión explícita: la KB no cambia ni limita al generador.
+
+### Contenido (seed `supabase/seed/kb_2026_11.sql`)
+
+| Tabla | Filas | Qué guarda |
+|---|---|---|
+| `kb_sources` | 48 | Editor, autor, título, tipo, año, URL, advertencias; `url_status` / `url_checked_at` para la verificación periódica de enlaces |
+| `kb_methods` | 21 | V60, pour over genérico, Kalita Wave, Origami, April, Bee House, Chemex, W60, prensa francesa, AeroPress, Clever, Switch, espresso, moka, cezve, phin, sifón, nel drip, cold brew, flash brew, iced refrigerado. Física (percolación/inmersión/presión), geometría, filtro, dificultad, tipo de ratio, rasgo distintivo |
+| `kb_recipes` | 61 | 33 autores (Hoffmann, Kasuya, Wendelboe, Licata, campeones WAC y Brewers Cup, tostadurías de referencia). Por receta: `evidence` (A primaria / B secundaria / C inferida), `role` (base 28 / contextual 19 / competicion 13 / revisar 1), dosis, agua, bypass, hielo, salida, temperatura, molienda, tiempos, ratio, tueste, perfil objetivo, equipo, por qué y límites, `source_id` + URL |
+| `kb_recipe_steps` | 236 | Pasos ordenados con tiempo desde el inicio, fase, agua del vertido y acumulada, temperatura, instrucción y justificación |
+| `kb_rules` | 71 | `principle` (25): reglas generales con categoría y confianza. `adjustment` (24, A01-A24): señal → hipótesis → acción sobre una variable, magnitud, resultado esperado y salvedad. `prompt_block` (22): bloques de texto listos para el prompt |
+
+Integridad verificada al cargar: toda receta tiene pasos ordenados, la suma de vertidos coincide con `brew_water_g`, toda FK apunta a una fuente existente.
+
+### Regeneración
+
+`python3 scripts/kb_seed.py` lee el xlsx (hojas 01_FUENTES, 02_RECETAS, 03_PASOS, 04_METODOS) y el JSON de reglas, valida las FKs y escribe el seed con upserts idempotentes (`on conflict (id) do update`). Se aplica con el MCP de Supabase (`execute_sql` por trozos) o `psql`. Cambios de contenido: editar el xlsx/JSON, regenerar, aplicar y commitear seed y fuente juntos.
+
+### Uso previsto
+
+- **7b** — `suggest-recipe` v3: elige 2-3 recetas de la KB para el dripper (rol base primero, contextual si el café o la preferencia lo piden) y las inyecta como referencia junto con los principios; sale de la cadena de "escuelas" fijas (Hoffmann/Wendelboe/Campos). La salida agrega `base_recipe_id`, `source_url`, `assumptions` y `confidence`; la UI muestra "Referencia: autor, receta · ver fuente". Clics de molienda solo si el molino del usuario coincide con el de la fuente.
+- **7c** — Feedback post-preparación (acidez, amargor, cuerpo, agrado, "¿qué cambiarías?") mapeado a los ajustes A01-A24: una variable por intento.
+- Recetario público de la KB (61 recetas) como complemento de las destacadas.
+
+## 10. Pendientes conocidos
 
 - Seed de cafeterías/tostadurías de Chile (Fase 3).
 - Red desde claude.ai: para QA end-to-end real (crear usuario de prueba, escanear, guardar) hace falta permitir `*.supabase.co` y `*.netlify.app` en claude.ai → Settings → Capabilities. Hoy la QA de RLS se hace con SQL simulando usuarios y la visual con `/preview`.

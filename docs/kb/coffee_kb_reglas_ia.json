@@ -1,0 +1,789 @@
+{
+  "principles": [
+    {
+      "id": "P01",
+      "title": "Ratio no es extracción",
+      "rule": "Razón agua de infusión / café describe receta; espresso usa masa bebida / dosis. No mezclarlas.",
+      "category": "medición",
+      "source_id": "S046",
+      "confidence": "alta",
+      "caveat": "No usar g agua para inferir rendimiento espresso."
+    },
+    {
+      "id": "P02",
+      "title": "Cambiar una variable",
+      "rule": "Para interpretar resultados mantener constantes dosis, agua, método, filtro y cambiar una variable a la vez.",
+      "category": "experimentación",
+      "source_id": "S047",
+      "confidence": "editorial",
+      "caveat": "No garantiza causalidad si cambia temperatura ambiente, agua u operador."
+    },
+    {
+      "id": "P03",
+      "title": "Pesar dosis y bebida",
+      "rule": "Medir gramos es más reproducible que cucharadas/volumen. En espresso registrar masa bebida.",
+      "category": "medición",
+      "source_id": "S027",
+      "confidence": "alta",
+      "caveat": "El agua inicial del filtro NO equivale a bebida final."
+    },
+    {
+      "id": "P04",
+      "title": "Mojado de bloom",
+      "rule": "Preinfusión humedece cama y permite expulsión parcial de CO2; duración y volumen varían.",
+      "category": "extracción",
+      "source_id": "S001",
+      "confidence": "media",
+      "caveat": "No exigir 30s ni bloom idéntico en inmersión."
+    },
+    {
+      "id": "P05",
+      "title": "Molienda y superficie",
+      "rule": "Más fina aumenta superficie disponible y resistencia de flujo en percolación.",
+      "category": "extracción",
+      "source_id": "S010",
+      "confidence": "alta",
+      "caveat": "Finura extrema puede generar bypass/canalización/obstrucción."
+    },
+    {
+      "id": "P06",
+      "title": "Agua más caliente",
+      "rule": "Puede favorecer extracción de compuestos y compensar tueste claro; temperatura óptima depende de tueste.",
+      "category": "temperatura",
+      "source_id": "S015",
+      "confidence": "media",
+      "caveat": "No recomendar hervir en recetas explícitas a baja temperatura."
+    },
+    {
+      "id": "P07",
+      "title": "Calidad del agua",
+      "rule": "Alcalinidad/mineralización modifica percepción y extracción; medir composición si es posible.",
+      "category": "agua",
+      "source_id": "S046",
+      "confidence": "alta",
+      "caveat": "No prescribir agua pura desmineralizada como universal."
+    },
+    {
+      "id": "P08",
+      "title": "Cama uniforme",
+      "rule": "Nivelar y mojar la cama reduce riesgo de zonas secas, pero sobreagitación puede movilizar finos.",
+      "category": "técnica",
+      "source_id": "S001",
+      "confidence": "media",
+      "caveat": "En algunos métodos (AeroPress campeón) se agita mucho por diseño."
+    },
+    {
+      "id": "P09",
+      "title": "Tiempo no es calidad",
+      "rule": "Tiempo funciona como señal junto con molienda/flujo/sabor, no única meta.",
+      "category": "diagnóstico",
+      "source_id": "S010",
+      "confidence": "alta",
+      "caveat": "No ajustar molienda solo por alcanzar un tiempo exacto."
+    },
+    {
+      "id": "P10",
+      "title": "Papel cambia cuerpo",
+      "rule": "Chemex y otros filtros gruesos alteran retención de aceites/fino y caudal.",
+      "category": "filtro",
+      "source_id": "S015",
+      "confidence": "alta",
+      "caveat": "No atribuir todas las diferencias únicamente al papel."
+    },
+    {
+      "id": "P11",
+      "title": "Inmersión vs percolación",
+      "rule": "Inmersión equilibra interacción en volumen; percolación aporta agua nueva y depende del flujo.",
+      "category": "método",
+      "source_id": "S020",
+      "confidence": "alta",
+      "caveat": "No copiar calendario de V60 a French Press."
+    },
+    {
+      "id": "P12",
+      "title": "Clever water-first",
+      "rule": "Llenar con agua antes que café reduce sellado inicial de finos en receta oficial Clever.",
+      "category": "técnica",
+      "source_id": "S020",
+      "confidence": "media",
+      "caveat": "No extrapolar a V60 abierto."
+    },
+    {
+      "id": "P13",
+      "title": "Bypass separado",
+      "rule": "El agua añadida después de extraer cambia concentración, no extracción primaria.",
+      "category": "medición",
+      "source_id": "S026",
+      "confidence": "alta",
+      "caveat": "Reportar agua infusión vs bypass por separado."
+    },
+    {
+      "id": "P14",
+      "title": "Hielo separado",
+      "rule": "Flash brew sustituye parte del agua por hielo de recepción; distingue hielo del agua caliente.",
+      "category": "medición",
+      "source_id": "S040",
+      "confidence": "alta",
+      "caveat": "Registrar si el hielo realmente se derritió."
+    },
+    {
+      "id": "P15",
+      "title": "Temperaturas múltiples",
+      "rule": "En recetas con agua a varias temperaturas no promediar sin fundamento.",
+      "category": "medición",
+      "source_id": "S026",
+      "confidence": "alta",
+      "caveat": "Registrar temp de cada paso."
+    },
+    {
+      "id": "P16",
+      "title": "No todos los tiempos comparables",
+      "rule": "Tiempo total vs duración de infusión vs tiempo de presión son magnitudes diferentes.",
+      "category": "medición",
+      "source_id": "S018",
+      "confidence": "alta",
+      "caveat": "Tomar t0 al primer contacto según protocolo específico."
+    },
+    {
+      "id": "P17",
+      "title": "Tueste y solubilidad",
+      "rule": "Tuestes oscuros suelen aceptar temperaturas inferiores según receta de tostadores; validar con cata.",
+      "category": "temperatura",
+      "source_id": "S007",
+      "confidence": "media",
+      "caveat": "No tratar origen como variable que determina temperatura por sí sola."
+    },
+    {
+      "id": "P18",
+      "title": "Extraer no es gustar",
+      "rule": "Un TDS/EY objetivo no garantiza preferencia; separar medición técnica de agrado subjetivo.",
+      "category": "sensorial",
+      "source_id": "S045",
+      "confidence": "alta",
+      "caveat": "Gold Cup del programa de máquinas no es ley para espresso o AeroPress."
+    },
+    {
+      "id": "P19",
+      "title": "Gold Cup contextual",
+      "rule": "En certificación máquinas domésticas se ensaya TDS 1.15–1.45% y EY 18–22%, inicio 55g/L.",
+      "category": "estándar",
+      "source_id": "S045",
+      "confidence": "alta",
+      "caveat": "Solo protocolo de certificado doméstico; no universalizar."
+    },
+    {
+      "id": "P20",
+      "title": "Agua no evaporada",
+      "rule": "El rendimiento en taza es menor a agua vertida por retención de café/filtro, especialmente filtro.",
+      "category": "medición",
+      "source_id": "S008",
+      "confidence": "alta",
+      "caveat": "No calcular bebida final = agua añadida."
+    },
+    {
+      "id": "P21",
+      "title": "Recetas son anclas",
+      "rule": "Una receta oficial es punto de partida, no validación independiente universal ni prueba causal.",
+      "category": "metodología",
+      "source_id": "S003",
+      "confidence": "alta",
+      "caveat": "Registrar fuente, equipo y café original."
+    },
+    {
+      "id": "P22",
+      "title": "Competición contextual",
+      "rule": "Premios de AeroPress pueden exigir tamiz, bypass, agua especial o ratio de concentrado poco cotidiano.",
+      "category": "calidad",
+      "source_id": "S026",
+      "confidence": "alta",
+      "caveat": "En búsqueda inicial mostrar base antes de competición."
+    },
+    {
+      "id": "P23",
+      "title": "Descripción sensorial vs gusto",
+      "rule": "Separar notas descriptivas (ácido, floral, amargo) y juicio hedónico (me gusta 1-5).",
+      "category": "evaluación",
+      "source_id": "S047",
+      "confidence": "alta",
+      "caveat": "El usuario puede gustar de alta acidez."
+    },
+    {
+      "id": "P24",
+      "title": "Seguridad moka e invertida",
+      "rule": "No llenar encima de válvula moka; evitar vuelcos de AeroPress invertida con agua caliente.",
+      "category": "seguridad",
+      "source_id": "S032",
+      "confidence": "alta",
+      "caveat": "Seguir manual del fabricante, siempre."
+    },
+    {
+      "id": "P25",
+      "title": "Tratamiento de conflictos",
+      "rule": "Si encabezado y pasos de fuente se contradicen, excluir y elevar incidencia.",
+      "category": "ingesta",
+      "source_id": "S036",
+      "confidence": "alta",
+      "caveat": "No rellenar diferencias automáticamente."
+    }
+  ],
+  "adjustment_rules": [
+    {
+      "id": "A01",
+      "signal": "ácido/punzante y cuerpo bajo",
+      "method": "V60, Kalita, Origami, Chemex",
+      "hypothesis": "subextracción posible",
+      "action": "moler ligeramente más fino",
+      "variable": "molienda",
+      "magnitude": "cambiar un paso pequeño del propio molino",
+      "outcome": "comparar dulzor vs acidez con ratio idéntico",
+      "caveat": "no si hay astringencia y tiempos extremos",
+      "source_id": "S010",
+      "confidence": "media"
+    },
+    {
+      "id": "A02",
+      "signal": "amargo/seco y caída muy lenta",
+      "method": "percolación",
+      "hypothesis": "sobrerrestricción del lecho",
+      "action": "moler un poco más grueso",
+      "variable": "molienda",
+      "magnitude": "un paso pequeño relativo",
+      "outcome": "comparar astringencia/dulzor",
+      "caveat": "revisar finos y filtro; no confundir tueste oscuro",
+      "source_id": "S010",
+      "confidence": "media"
+    },
+    {
+      "id": "A03",
+      "signal": "ácido y amargo simultáneo",
+      "method": "espresso",
+      "hypothesis": "extracción desigual o canalización",
+      "action": "mejorar distribución y nivelado antes que ratio",
+      "variable": "distribución",
+      "magnitude": "mantener dosis y bebida fijas",
+      "outcome": "ver si mejora uniformidad",
+      "caveat": "no diagnosticar solo con dos descriptores",
+      "source_id": "S027",
+      "confidence": "media"
+    },
+    {
+      "id": "A04",
+      "signal": "bebida equilibrada pero débil",
+      "method": "filtro",
+      "hypothesis": "intensidad insuficiente",
+      "action": "reducir agua 3–5% sin alterar molienda",
+      "variable": "agua_brew_g",
+      "magnitude": "cambio inicial editorial 3–5%",
+      "outcome": "medir nuevo cuerpo; registrar masa",
+      "caveat": "no si se busca taza ligera",
+      "source_id": "S007",
+      "confidence": "editorial"
+    },
+    {
+      "id": "A05",
+      "signal": "equilibrada pero demasiado intensa",
+      "method": "filtro",
+      "hypothesis": "concentración alta",
+      "action": "aumentar agua 3–5% o bajar dosis",
+      "variable": "agua_brew_g",
+      "magnitude": "ensayo 3–5% editorial",
+      "outcome": "medir gusto y cuerpo",
+      "caveat": "no cambiar agua y café juntos en mismo experimento",
+      "source_id": "S007",
+      "confidence": "editorial"
+    },
+    {
+      "id": "A06",
+      "signal": "espresso ácido y rápido",
+      "method": "espresso",
+      "hypothesis": "subextracción posible",
+      "action": "moler más fino conservando dosis y bebida",
+      "variable": "molienda",
+      "magnitude": "paso pequeño",
+      "outcome": "tiempo y sabor",
+      "caveat": "control de puck y distribución primero si hay sprays",
+      "source_id": "S027",
+      "confidence": "media"
+    },
+    {
+      "id": "A07",
+      "signal": "espresso amargo y muy lento",
+      "method": "espresso",
+      "hypothesis": "sobreextracción/flujo restringido posible",
+      "action": "moler más grueso",
+      "variable": "molienda",
+      "magnitude": "paso pequeño",
+      "outcome": "observar tiempo y dulzor",
+      "caveat": "tamp uniforme; café oscuro puede dar amargor intrínseco",
+      "source_id": "S027",
+      "confidence": "media"
+    },
+    {
+      "id": "A08",
+      "signal": "espresso balanceado pero intenso",
+      "method": "espresso",
+      "hypothesis": "baja razón de bebida",
+      "action": "aumentar rendimiento en taza de forma gradual",
+      "variable": "bebida_salida_g",
+      "magnitude": "ej. +2g en prueba sobre 20g dosis; editorial",
+      "outcome": "cata y balance",
+      "caveat": "salida mayor puede modificar extracción y cuerpo",
+      "source_id": "S030",
+      "confidence": "editorial"
+    },
+    {
+      "id": "A09",
+      "signal": "espresso muy diluido",
+      "method": "espresso",
+      "hypothesis": "razón de bebida elevada",
+      "action": "reducir rendimiento de bebida, manteniendo dosis",
+      "variable": "bebida_salida_g",
+      "magnitude": "pasos de 2g editoriales",
+      "outcome": "cata del siguiente shot",
+      "caveat": "no suponer que menor yield siempre más dulce",
+      "source_id": "S029",
+      "confidence": "editorial"
+    },
+    {
+      "id": "A10",
+      "signal": "filtrado tarda mucho; taza no amarga",
+      "method": "V60, Chemex",
+      "hypothesis": "finos, papel o agitación",
+      "action": "revisar filtro, molienda y velocidad antes de corregir",
+      "variable": "revisión",
+      "magnitude": "registrar lote/papel/molino",
+      "outcome": "sabor y tiempo en paralelo",
+      "caveat": "no moler grueso por tiempo solo",
+      "source_id": "S001",
+      "confidence": "media"
+    },
+    {
+      "id": "A11",
+      "signal": "bloom seca / burbujas persistentes",
+      "method": "pour over",
+      "hypothesis": "mojado incompleto",
+      "action": "girar suavemente al comenzar preinfusión",
+      "variable": "técnica",
+      "magnitude": "un giro leve",
+      "outcome": "revisar zonas secas",
+      "caveat": "no agitar si recipe_source lo desaconseja",
+      "source_id": "S001",
+      "confidence": "alta"
+    },
+    {
+      "id": "A12",
+      "signal": "cold brew muy concentrado",
+      "method": "cold brew",
+      "hypothesis": "se preparó concentrado",
+      "action": "diluir en taza según fuente",
+      "variable": "agua_bypass_g",
+      "magnitude": "1:1 Counter Culture o 1:2 Stumptown según método",
+      "outcome": "comparar fuerza",
+      "caveat": "no reinterpretar dilución como extracción",
+      "source_id": "S037",
+      "confidence": "alta"
+    },
+    {
+      "id": "A13",
+      "signal": "cold brew muy débil",
+      "method": "cold brew",
+      "hypothesis": "dosis/tiempo/café variable",
+      "action": "validar tiempo, dosis y filtrado; probar cambio único",
+      "variable": "tiempo_s",
+      "magnitude": "cambio pequeño respecto receta",
+      "outcome": "evaluar intensidad",
+      "caveat": "no asumir 24h mejor; higiene refrigeración",
+      "source_id": "S039",
+      "confidence": "media"
+    },
+    {
+      "id": "A14",
+      "signal": "flash brew aguado",
+      "method": "flash brew",
+      "hypothesis": "hielo extra/no integrado",
+      "action": "medir hielo y agua caliente por separado",
+      "variable": "hielo_g",
+      "magnitude": "volver al protocolo 75g/200g de fuente",
+      "outcome": "registrar hielo remanente",
+      "caveat": "no tratar agua + hielo como temperatura uniforme",
+      "source_id": "S040",
+      "confidence": "alta"
+    },
+    {
+      "id": "A15",
+      "signal": "prensa con sedimento",
+      "method": "prensa francesa",
+      "hypothesis": "finos suspendidos",
+      "action": "decantar más tiempo sin mover émbolo bruscamente",
+      "variable": "decantación",
+      "magnitude": "+1min de espera como ensayo editorial",
+      "outcome": "medir textura vs aroma",
+      "caveat": "no asumir extracción aumentó",
+      "source_id": "S016",
+      "confidence": "media"
+    },
+    {
+      "id": "A16",
+      "signal": "Clever obstruido",
+      "method": "Clever Dripper",
+      "hypothesis": "finos sellen el papel",
+      "action": "probar agua primero; revisar molienda y filtro",
+      "variable": "secuencia",
+      "magnitude": "usar receta oficial",
+      "outcome": "tiempo de drenaje",
+      "caveat": "no extrapolar a filtrado convencional",
+      "source_id": "S020",
+      "confidence": "alta"
+    },
+    {
+      "id": "A17",
+      "signal": "Switch con acidez mayor que preferida",
+      "method": "Hario Switch",
+      "hypothesis": "etapa contacto y temp",
+      "action": "seleccionar receta Switch base antes de cambiar secuencias",
+      "variable": "selección",
+      "magnitude": "comparar dos protocolos publicados",
+      "outcome": "preferencia personal",
+      "caveat": "no fabricar secuencias híbridas atribuidas a campeones",
+      "source_id": "S023",
+      "confidence": "editorial"
+    },
+    {
+      "id": "A18",
+      "signal": "café muy tostado sabe áspero",
+      "method": "filtro",
+      "hypothesis": "tueste y calor podrían incidir",
+      "action": "probar extremo inferior del rango térmico de la fuente",
+      "variable": "temperatura",
+      "magnitude": "1–2°C por ensayo editorial",
+      "outcome": "comparar aspereza",
+      "caveat": "no bajar a 80°C sin respaldo salvo receta específica",
+      "source_id": "S007",
+      "confidence": "media"
+    },
+    {
+      "id": "A19",
+      "signal": "tueste claro y taza subextraída",
+      "method": "filtro",
+      "hypothesis": "temperatura quizás baja",
+      "action": "probar extremo superior permitido por fuente",
+      "variable": "temperatura",
+      "magnitude": "1–2°C dentro del rango",
+      "outcome": "comparar dulzor",
+      "caveat": "evitar sobrecorregir si agua contiene alta alcalinidad",
+      "source_id": "S015",
+      "confidence": "media"
+    },
+    {
+      "id": "A20",
+      "signal": "sabor cambia sin cambiar técnica",
+      "method": "todos",
+      "hypothesis": "agua, molienda, lote, reposo",
+      "action": "registrar agua, fecha de tueste y lote",
+      "variable": "observabilidad",
+      "magnitude": "sin cambio recomendado hasta completar datos",
+      "outcome": "identificar confusores",
+      "caveat": "no inferir perfil por país de origen solamente",
+      "source_id": "S046",
+      "confidence": "alta"
+    },
+    {
+      "id": "A21",
+      "signal": "receta de campeonato como default",
+      "method": "AeroPress, Origami",
+      "hypothesis": "selección indebida",
+      "action": "filtrar recipe.uso_ia != competición en recomendaciones iniciales",
+      "variable": "ranking",
+      "magnitude": "filtro estricto",
+      "outcome": "cobertura sin equipo raro",
+      "caveat": "ofrecer campeonato solo con opt-in de experto",
+      "source_id": "S026",
+      "confidence": "alta"
+    },
+    {
+      "id": "A22",
+      "signal": "recomendación con dato faltante",
+      "method": "todos",
+      "hypothesis": "parámetro no publicado",
+      "action": "devolver null y advertencia; preguntar o usar otra base",
+      "variable": "grounding",
+      "magnitude": "nunca interpolación oculta",
+      "outcome": "control de alucinación",
+      "caveat": "si se adapta, label=derivada, nueva recipe_id",
+      "source_id": "S036",
+      "confidence": "alta"
+    },
+    {
+      "id": "A23",
+      "signal": "tiempo de extracción objetivo no se cumple",
+      "method": "espresso / filtro",
+      "hypothesis": "flujo depende de molienda y equipo",
+      "action": "priorizar cata, después tiempo y ratio, descartar channeling",
+      "variable": "diagnóstico",
+      "magnitude": "una variable por ensayo",
+      "outcome": "preferencia y consistencia",
+      "caveat": "no afirmar que 30 segundos garantizan buen espresso",
+      "source_id": "S027",
+      "confidence": "alta"
+    },
+    {
+      "id": "A24",
+      "signal": "usuario quiere más dulzor 4:6",
+      "method": "V60",
+      "hypothesis": "hipótesis del autor Kasuya",
+      "action": "comparar reparto 50/70 del primer 40%",
+      "variable": "reparto_pulsos",
+      "magnitude": "solo usar en receta 4:6",
+      "outcome": "cata ciega si posible",
+      "caveat": "no afirmar causalidad universal",
+      "source_id": "S003",
+      "confidence": "contextual"
+    }
+  ],
+  "prompt_blocks": [
+    {
+      "key": "ROL",
+      "instruction": "Eres un barista asistente que recomienda recetas auditablemente, no un generador libre de cantidades."
+    },
+    {
+      "key": "JERARQUIA",
+      "instruction": "Consulta KB_Recetas, KB_Pasos, KB_Fuentes y KB_Principios por recipe_id/source_id. Las fuentes originales prevalecen sobre adaptaciones."
+    },
+    {
+      "key": "CONTROL",
+      "instruction": "No atribuyas a baristas cantidades no escritas. Valores null permanecen null; no estimar silently."
+    },
+    {
+      "key": "RANKING",
+      "instruction": "Primero filtra por equipo/método real, luego rol=base, luego tueste/preferencias; role=contextual solo con coincidencia; competición solo opt-in."
+    },
+    {
+      "key": "EVIDENCIA",
+      "instruction": "No confundir una receta ganadora con ensayo experimental riguroso; evidencia=fuente original, no validación causal."
+    },
+    {
+      "key": "RECETA",
+      "instruction": "Cita recipe_id, autor, editor, URL directa y dosis/agua/temperatura/tiempo con rangos cuando existan."
+    },
+    {
+      "key": "ESTRUCTURA",
+      "instruction": "No mezcles agua_brew, bypass, hielo y beverage_out. Espresso usa ratio bebida_salida_g/dosis_g; filtrado usa agua_brew_g/dosis_g."
+    },
+    {
+      "key": "TEMPERATURA",
+      "instruction": "Si se usan dos temperaturas distintas, indica cuál corresponde a cada paso; no promedies."
+    },
+    {
+      "key": "AJUSTE",
+      "instruction": "Si hay feedback, identifica síntoma, formula hipótesis probabilística, cambia una variable pequeña y pide cata comparativa."
+    },
+    {
+      "key": "PREFERENCIA",
+      "instruction": "Acidez/amargor son intensidades, no calidad por sí mismas; no corrijas una taza que obtuvo rating alto."
+    },
+    {
+      "key": "DESCONOCIDOS",
+      "instruction": "Si faltan molino, tueste o filtro, puedes proponer primera receta robusta, declarando incertidumbre, salvo datos críticos de seguridad."
+    },
+    {
+      "key": "NO_ALUCINAR",
+      "instruction": "No inventes tiempos, gramos, autorías, títulos de campeón, notas de cata del café ni valores de mineralización."
+    },
+    {
+      "key": "CONFLICTOS",
+      "instruction": "Si role=revisar, no recomendar. Si dos fuentes divergen, presentar alternativas y explicar contexto sin fusionarlas."
+    },
+    {
+      "key": "SESION",
+      "instruction": "Guardar receta base y configuración realmente ejecutada por separado; jamás sobrescribir receta original con el experimento del usuario."
+    },
+    {
+      "key": "EXPLICACION",
+      "instruction": "Para cada recomendación explicar por qué, hipótesis, dos parámetros decisivos y qué se probará en próxima sesión."
+    },
+    {
+      "key": "ETICA",
+      "instruction": "No sugerir equipos no disponibles ni recomendaciones de agua potencialmente insegura. La seguridad del fabricante prevalece."
+    },
+    {
+      "key": "CONFIDENCE",
+      "instruction": "Certeza alta solo si método/maquinaria/ingredientes coinciden, valores fuente completos y sin conflictos; contextual o incompleto = media/baja."
+    },
+    {
+      "key": "SALIDA_JSON",
+      "instruction": "{recipe_id, source_id, source_url, ingredient_weights:{coffee_g,brew_water_g,bypass_g,ice_g,beverage_out_g}, temperatures_by_step, step_timeline, reasons, assumptions, adjustment:{variable,old,new}, confidence, warnings}"
+    },
+    {
+      "key": "FAILSAFE",
+      "instruction": "Si no hay evidencia, devuelve no_verified_recipe_found y pide 1 dato crítico; no sintetices receta bajo nombre de un campeón."
+    },
+    {
+      "key": "RAG_PIPELINE",
+      "instruction": "1) filtrar método/rol/equipo 2) rankear por evidencia+afinidad 3) construir de pasos 4) validar números 5) generar explicación 6) guardar fuentes y versión."
+    },
+    {
+      "key": "VERIFICACIÓN",
+      "instruction": "Antes de responder, validar sum(pours)=agua_brew_g si pasos completos; en contrario explicar irregularidad. No comparar ratios de métodos distintos sin definición."
+    },
+    {
+      "key": "PRIVACIDAD",
+      "instruction": "Minimizar datos personales; guardar feedback por ID pseudónimo y permitir borrar historial."
+    }
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "prompt": "Usuario V60, 15g, quiere receta diaria",
+      "expected_recipe": "V60-002",
+      "acceptance": "Retornar 15/250 y cronograma 50/100/150/200/250, fuente S002",
+      "priority": "alta"
+    },
+    {
+      "id": "E02",
+      "prompt": "Usuario Switch, sin termómetro, quiere inicio",
+      "expected_recipe": "SWT-003",
+      "acceptance": "No inventar 93°C, indicar temperatura desconocida y pedir dato o alternativa",
+      "priority": "alta"
+    },
+    {
+      "id": "E03",
+      "prompt": "Usuario pide espresso 20g sin calibración",
+      "expected_recipe": "ESP-004",
+      "acceptance": "Usar 40g bebida, no 40g de agua de caldera",
+      "priority": "alta"
+    },
+    {
+      "id": "E04",
+      "prompt": "Usuario AeroPress principiante pide mejor receta",
+      "expected_recipe": "AP-001 o AP-003",
+      "acceptance": "No clasificar WAC 2025 como mejor para diario",
+      "priority": "alta"
+    },
+    {
+      "id": "E05",
+      "prompt": "Usuario sí tiene tamiz, Flow Control y quiere campeonato",
+      "expected_recipe": "AP-WAC-2025",
+      "acceptance": "Incluir 100g brew/70g bypass, 84°C y 50°C por fase",
+      "priority": "alta"
+    },
+    {
+      "id": "E06",
+      "prompt": "Usuario pide Nel Drip",
+      "expected_recipe": "NEL-001",
+      "acceptance": "Advertir fuente inconsistente y no recomendar sin revisión",
+      "priority": "alta"
+    },
+    {
+      "id": "E07",
+      "prompt": "Usuario describe ácido y amargo en espresso",
+      "expected_recipe": "A03",
+      "acceptance": "Comprobar distribución antes de afirmar sobre/underextraction",
+      "priority": "alta"
+    },
+    {
+      "id": "E08",
+      "prompt": "Usuario quiere duplicar V60 15g a 30g",
+      "expected_recipe": "V60-001 o V60-002",
+      "acceptance": "No duplicar tiempos arbitrariamente; proponer receta 30/500 documentada",
+      "priority": "alta"
+    },
+    {
+      "id": "E09",
+      "prompt": "Usuario quiere cold brew listo para beber",
+      "expected_recipe": "CB-003",
+      "acceptance": "Priorizar 55g/700g/8h sobre concentrado 200g/1600g",
+      "priority": "alta"
+    },
+    {
+      "id": "E10",
+      "prompt": "Usuario quiere receta fría japonesa con hielo",
+      "expected_recipe": "ICE-001",
+      "acceptance": "Separar 200g agua caliente y 75g hielo; no sumar como infusión",
+      "priority": "alta"
+    },
+    {
+      "id": "E11",
+      "prompt": "Usuario moka de 3 tazas quiere gramos precisos",
+      "expected_recipe": "MOK-001",
+      "acceptance": "Admitir que fuente no aporta gramos universales; pedir capacidad",
+      "priority": "alta"
+    },
+    {
+      "id": "E12",
+      "prompt": "Usuario tiene café etiopía natural, da notas cacao",
+      "expected_recipe": "todos",
+      "acceptance": "No inventar proceso/tueste/variedad por origen; si usuario lo dice, confiar",
+      "priority": "alta"
+    },
+    {
+      "id": "E13",
+      "prompt": "Usuario califica acidez alta pero rating 5/5",
+      "expected_recipe": "todos",
+      "acceptance": "No corregir acidez si le agrada",
+      "priority": "alta"
+    },
+    {
+      "id": "E14",
+      "prompt": "Sesión con dos cambios agua y molienda",
+      "expected_recipe": "todos",
+      "acceptance": "Etiquetar prueba multivariable, no atribuir causalidad",
+      "priority": "media"
+    },
+    {
+      "id": "E15",
+      "prompt": "Usuario tiene V60 con filtro Kalita",
+      "expected_recipe": "V60-002",
+      "acceptance": "Detectar incompatibilidad y preguntar filtro compatible",
+      "priority": "alta"
+    },
+    {
+      "id": "E16",
+      "prompt": "Usuario espresso sin balanza pero con volumen 40ml",
+      "expected_recipe": "ESP-004",
+      "acceptance": "No convertir ml crema espresso a 40g exactos",
+      "priority": "alta"
+    },
+    {
+      "id": "E17",
+      "prompt": "Usuario pide último ganador AeroPress 2025",
+      "expected_recipe": "AP-WAC-2025",
+      "acceptance": "Decir edición 2025, fuente publicada 31/10/2026",
+      "priority": "alta"
+    },
+    {
+      "id": "E18",
+      "prompt": "Usuario dice que café amarga pero es muy oscuro",
+      "expected_recipe": "todos",
+      "acceptance": "Considerar tueste y preferencia además de extracción",
+      "priority": "media"
+    },
+    {
+      "id": "E19",
+      "prompt": "Usuario cambia molino",
+      "expected_recipe": "todos",
+      "acceptance": "No aplicar clicks de otro molino ni micras no calibradas",
+      "priority": "alta"
+    },
+    {
+      "id": "E20",
+      "prompt": "Usuario pide receta V60 Tetsu para menos acidez",
+      "expected_recipe": "V60-003",
+      "acceptance": "Explicar teoría del autor sin afirmar causalidad probada",
+      "priority": "alta"
+    },
+    {
+      "id": "E21",
+      "prompt": "Usuario mide tiempo de Clever como V60",
+      "expected_recipe": "CLV-001",
+      "acceptance": "Aplicar pasos water-first y momento de activación de válvula",
+      "priority": "alta"
+    },
+    {
+      "id": "E22",
+      "prompt": "Usuario pregunta 1:2 espresso vs 1:16 filtrado",
+      "expected_recipe": "ESP-004/V60-002",
+      "acceptance": "Distinguir bebida de salida del agua de entrada",
+      "priority": "alta"
+    }
+  ]
+}

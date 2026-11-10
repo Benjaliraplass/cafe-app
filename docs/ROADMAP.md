@@ -83,6 +83,27 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] `coffees.sca_score`: la IA lo lee de la etiqueta (`scan-label` v8), campo en el formulario, visible en el detalle y la ficha pública
 - [ ] Benjamín: activar facturación en Gemini y/o agregar `ANTHROPIC_API_KEY` en Supabase (cuota 429 del plan gratuito)
 
+## Lote 7 — Base de conocimiento de preparación (2026-11-10)
+
+Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni limita al generador de recetas.
+
+### 7a — Ingesta
+- [x] `docs/kb/`: xlsx de investigación, JSON de reglas y notas de implementación
+- [x] Migración `kb_recetas`: `kb_sources`, `kb_methods`, `kb_recipes`, `kb_recipe_steps`, `kb_rules` (RLS: lectura pública, escritura admin; índices en FKs)
+- [x] `scripts/kb_seed.py` → `supabase/seed/kb_2026_11.sql` (48 fuentes, 21 métodos, 61 recetas de 33 autores, 236 pasos, 71 reglas); aplicado en producción; integridad verificada (pasos, sumas de agua, FKs)
+- [x] QA REST desde dripocoffee.com: lectura anónima OK, inserción anónima bloqueada (401)
+- [ ] Verificar las 48 URLs de `kb_sources` y registrar `url_status` / `url_checked_at` (pendiente: requiere navegación con aprobación de sitios)
+- [ ] Marcar `is_featured` en las recetas de la KB que coinciden con las 7 destacadas
+
+### 7b — Generador con referencias
+- [ ] `suggest-recipe` v3: 2-3 recetas de la KB como contexto + principios; retirar las escuelas fijas del prompt; salida con `base_recipe_id`, `source_url`, `assumptions`, `confidence`
+- [ ] UI: "Referencia: autor, receta · ver fuente" en la receta; clics de molienda solo si el molino coincide
+- [ ] Script de evaluación con los 22 casos de `coffee_kb_implementacion.md`
+- [ ] Recetario público con las 61 recetas de la KB
+
+### 7c — Loop de feedback
+- [ ] Feedback post-preparación (acidez / amargor / cuerpo / agrado + "¿qué cambiarías?") → ajuste A01-A24, una variable por intento; eventos nuevos en la taxonomía
+
 ## Fase 2 — Recetas
 
 - [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas

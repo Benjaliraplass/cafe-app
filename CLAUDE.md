@@ -51,12 +51,13 @@ src/
   pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail|edit|profile|scan|recipes|metrics|login|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
-  seed/                datos curados (recetas destacadas); idempotente por slug
+  seed/                datos curados: recetas destacadas (idempotente por slug) y `kb_2026_11.sql` (KB de preparación, upsert por id; generado, no editar a mano)
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
   functions/scan-label/            foto de etiqueta -> JSON estructurado
   functions/suggest-recipe/        café + método -> receta estructurada
 netlify/edge-functions/og.ts   meta tags Open Graph para /r/* y /c/* (lee Supabase con la clave pública)
-docs/                  SPEC.md, ROADMAP.md
+scripts/kb_seed.py     xlsx + JSON de `docs/kb/` -> `supabase/seed/kb_2026_11.sql` (tablas kb_sources, kb_methods, kb_recipes, kb_recipe_steps, kb_rules; ver SPEC §9)
+docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx, reglas JSON, notas)
 ```
 
 ## Convenciones
