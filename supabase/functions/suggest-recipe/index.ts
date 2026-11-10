@@ -8,7 +8,7 @@
 //   coffee_description?: string,     // texto libre si no hay café escaneado ("Etiopía natural tueste claro")
 //   method_family: "conico" | "flat" | "inmersion" | "espresso",
 //   dripper: string,                 // ej. "V60", "Origami", "Kalita Wave", "Orea", "April", "Aeropress", "Prensa francesa", "Clever", "Espresso"
-//   servings?: number,               // tazas (filtro / inmersión). 1 taza ≈ 250 g de agua
+//   servings?: number,               // personas (filtro / inmersión). 1 persona ≈ 200 ml de agua
 //   dose_g?: number,                 // gramos de café exactos (manda sobre servings; obligatorio en espresso)
 //   equipment?: string,              // ej. "Comandante C40, V60 02 plástico"
 //   preferences?: string,            // ej. "más dulce", "más brillante", "más cuerpo"
@@ -64,7 +64,7 @@ Tu criterio se apoya en tres escuelas, resumidas en principios (no copies textos
 
 Reglas por familia de método:
 - Filtro cónico (V60, Origami, Chemex): molienda media-fina, 2 a 3 vertidos después del bloom, giro suave al
-  final, tiempo total 2:45-3:30 para 1-2 tazas. Más tazas: molienda más gruesa y hasta 4:30.
+  final, tiempo total 2:45-3:30 para 1-2 personas (hasta ~400 g de agua). Más agua: molienda más gruesa y hasta 4:30.
 - Filtro de fondo plano (Kalita Wave, Orea, April, Fellow Stagg): extracción más pareja y tolerante; molienda
   media (un punto más gruesa que en cónico), vertidos en pulsos regulares de 50-60 g, poco o nada de giro,
   tiempo total 3:00-3:45.
@@ -75,9 +75,9 @@ Reglas por familia de método:
   temperatura 92-95 °C (tuestes claros más alto). Indica dosis, salida en gramos y tiempo.
 
 Reglas de cantidad:
-- 1 taza = 250 g de agua. Si se indican tazas, calcula el agua y deriva la dosis con el ratio elegido.
+- 1 persona = 200 ml (200 g) de agua. Si se indica la dosis de café, respétala y deriva el agua con el ratio elegido; si solo se indican personas, calcula el agua y deriva la dosis.
 - Si se indican gramos de café, respétalos y calcula el agua con el ratio.
-- Más de 2 tazas en un filtro: molienda más gruesa, vertidos más grandes y tiempo total mayor; sugiere el tamaño
+- Más de 400 g de agua en un filtro: molienda más gruesa, vertidos más grandes y tiempo total mayor; sugiere el tamaño
   de dripper adecuado (ej. V60 02 o 03) en grind_reference o en la justificación.
 
 Reglas de salida:
@@ -92,7 +92,7 @@ Reglas de salida:
 - "adjustments": exactamente 3, del tipo "si sabe X, haz Y", en orden de probabilidad.
 - Pasos con marca de tiempo ("0:00", "0:45") y una acción breve cada uno. Entre 4 y 9 pasos. En espresso, los
   pasos cubren molienda, dosis, distribución, prensado y extracción con tiempos.
-- title: corto y específico, incluye dripper y café (ej. "V60 para Catiope Honey, 2 tazas").
+- title: corto y específico, incluye dripper, café y dosis (ej. "V60 para Catiope Honey, 15 g").
 - brew_method: el nombre del dripper o método (ej. "V60", "Kalita Wave", "Aeropress", "Espresso").`;
 
 const TOOL = {
@@ -187,7 +187,13 @@ Deno.serve(async (req: Request) => {
       ``,
       `Familia de método: ${FAMILY_LABEL[family]}`,
       `Dripper / método: ${dripper}`,
-      doseG ? `Dosis de café: ${doseG} g (respetar)` : servings ? `Cantidad: ${servings} ${servings === 1 ? "taza" : "tazas"} (${servings * 250} g de agua aprox.)` : family === "espresso" ? `Dosis: elige la estándar (18 g)` : `Cantidad: 1 taza (250 g de agua)`,
+      doseG
+        ? `Dosis de café: ${doseG} g (respetar)${servings ? ` para ${servings} ${servings === 1 ? "persona" : "personas"}` : ""}`
+        : servings
+          ? `Cantidad: ${servings} ${servings === 1 ? "persona" : "personas"} (${servings * 200} g de agua aprox.)`
+          : family === "espresso"
+            ? `Dosis: elige la estándar (18 g)`
+            : `Cantidad: 1 persona (200 g de agua)`,
       body.equipment ? `Equipo del usuario: ${body.equipment}` : null,
       body.preferences ? `Preferencia de taza: ${body.preferences}` : null,
     ].filter((l) => l !== null);

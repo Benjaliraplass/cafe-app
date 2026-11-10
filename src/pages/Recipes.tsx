@@ -16,6 +16,10 @@ import { cn } from '@/lib/utils'
 
 type Step = 1 | 2 | 3 | 4 | 'result'
 
+/** Ratio café:agua por familia, usado para traducir gramos a agua y personas. */
+const RATIO_BY_FAMILY: Record<MethodFamily, number> = { conico: 16, flat: 16, inmersion: 15, espresso: 2 }
+const ML_PER_PERSON = 200
+
 export function Recipes() {
   const { user } = useAuth()
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
@@ -80,9 +84,8 @@ export function RecipesView({
   const [useOther, setUseOther] = useState(false)
   const [family, setFamily] = useState<MethodFamily | null>(null)
   const [dripper, setDripper] = useState<string | null>(null)
-  const [servings, setServings] = useState(1)
-  const [doseMode, setDoseMode] = useState(false)
-  const [dose, setDose] = useState('18')
+  // Cantidad: la dosis de café manda; las personas (200 ml c/u) se derivan con el ratio de la familia.
+  const [dose, setDose] = useState('15')
   const [equipment, setEquipment] = useState(() => equipmentToText(profileEquipment))
   const [showAllMethods, setShowAllMethods] = useState(!profileEquipment?.drippers?.length)
   const myDrippers = profileEquipment?.drippers ?? []
@@ -95,11 +98,29 @@ export function RecipesView({
 
   const fam = useMemo(() => METHOD_FAMILIES.find((f) => f.id === family) ?? null, [family])
   const isEspresso = family === 'espresso'
+  const ratio = family ? RATIO_BY_FAMILY[family] : 16
+  const doseNum = Number(dose) || 0
+  const waterMl = isEspresso ? null : Math.round(doseNum * ratio)
+  const people = waterMl ? Math.max(1, Math.round(waterMl / ML_PER_PERSON)) : null
+
+  // Al elegir familia, propone una dosis típica si el usuario no la tocó.
+  function chooseFamily(id: MethodFamily) {
+    setFamily(id)
+    if (dose === '15' || dose === '18') setDose(id === 'espresso' ? '18' : '15')
+  }
+  function setPeople(n: number) {
+    const p = Math.min(8, Math.max(1, n))
+    // Dosis necesaria para p personas con el ratio de la familia, redondeada a 0,5 g
+    setDose(String(Math.round(((p * ML_PER_PERSON) / ratio) * 2) / 2))
+  }
+  function bumpDose(delta: number) {
+    setDose(String(Math.max(1, Math.round((doseNum + delta) * 2) / 2)))
+  }
 
   const canNext: Record<Exclude<Step, 'result'>, boolean> = {
     1: !!log || (useOther && otherCoffee.trim().length > 2),
     2: !!family && !!dripper,
-    3: isEspresso ? Number(dose) > 0 : doseMode ? Number(dose) > 0 : servings > 0,
+    3: doseNum > 0,
     4: true,
   }
 
@@ -116,8 +137,8 @@ export function RecipesView({
         coffee_description: !log && useOther ? otherCoffee.trim() : undefined,
         method_family: family,
         dripper,
-        servings: !isEspresso && !doseMode ? servings : undefined,
-        dose_g: isEspresso || doseMode ? Number(dose) : undefined,
+        servings: !isEspresso && people ? people : undefined,
+        dose_g: doseNum,
         equipment: equipment.trim() || undefined,
         preferences: pref ?? undefined,
       }
@@ -255,7 +276,7 @@ export function RecipesView({
                       active={dripper === d}
                       onClick={() => {
                         setDripper(d)
-                        if (f) setFamily(f.id)
+                        if (f) chooseFamily(f.id)
                       }}
                     >
                       {d}
@@ -277,7 +298,7 @@ export function RecipesView({
                   key={f.id}
                   type="button"
                   onClick={() => {
-                    setFamily(f.id)
+                    chooseFamily(f.id)
                     setDripper(f.drippers.length === 1 ? f.drippers[0] : null)
                   }}
                   className={cn(
@@ -312,32 +333,52 @@ export function RecipesView({
         <section className="flex flex-col gap-4 px-6 pt-4">
           <StepTitle
             n={3}
-            title={isEspresso ? '¿Cuánta dosis?' : '¿Para cuántos?'}
-            hint={isEspresso ? 'Gramos de café en el portafiltro.' : 'Una taza equivale a 250 g de agua.'}
+            title="¿Cuánto café?"
+            hint={isEspresso ? 'Gramos de café en el portafiltro.' : `Indica los gramos de café. Calculamos el agua con ratio 1:${ratio} y para cuántas personas alcanza (200 ml por persona).`}
           />
-          {!isEspresso && !doseMode && (
-            <div className="flex items-center justify-between rounded-2xl bg-card px-5 py-4">
-              <button type="button" onClick={() => setServings(Math.max(1, servings - 1))} className="flex size-11 items-center justify-center rounded-full border border-border-strong" aria-label="Menos">
-                <Minus className="size-4" />
-              </button>
-              <div className="flex flex-col items-center">
-                <span className="text-[40px] font-medium leading-none tracking-tightest">{servings}</span>
-                <span className="pt-1 text-xs text-muted-foreground">{servings === 1 ? 'taza' : 'tazas'} · {servings * 250} g de agua</span>
-              </div>
-              <button type="button" onClick={() => setServings(Math.min(6, servings + 1))} className="flex size-11 items-center justify-center rounded-full border border-border-strong" aria-label="Más">
-                <Plus className="size-4" />
-              </button>
-            </div>
-          )}
-          {(isEspresso || doseMode) && (
-            <Field label="Gramos de café">
-              <Input inputMode="decimal" value={dose} onChange={(e) => setDose(e.target.value.replace(',', '.'))} placeholder={isEspresso ? '18' : '15'} />
-            </Field>
-          )}
-          {!isEspresso && (
-            <button type="button" onClick={() => setDoseMode(!doseMode)} className="self-start text-[13px] font-medium text-muted-foreground underline-offset-4 hover:underline">
-              {doseMode ? 'Prefiero elegir por tazas' : 'Prefiero indicar gramos de café'}
+          <div className="flex items-center justify-between rounded-2xl bg-card px-5 py-4">
+            <button type="button" onClick={() => bumpDose(-1)} className="flex size-11 items-center justify-center rounded-full border border-border-strong" aria-label="Menos café">
+              <Minus className="size-4" />
             </button>
+            <div className="flex flex-col items-center">
+              <div className="flex items-baseline gap-1">
+                <input
+                  inputMode="decimal"
+                  value={dose.replace('.', ',')}
+                  onChange={(e) => setDose(e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''))}
+                  onBlur={() => setDose(String(Math.max(1, doseNum || 1)))}
+                  aria-label="Gramos de café"
+                  className="w-[88px] bg-transparent text-center text-[40px] font-medium leading-none tracking-tightest outline-none"
+                />
+                <span className="text-lg text-muted-foreground">g</span>
+              </div>
+              <span className="pt-1 text-xs text-muted-foreground">
+                {isEspresso ? 'de café molido' : `de café · ${waterMl} ml de agua`}
+              </span>
+            </div>
+            <button type="button" onClick={() => bumpDose(1)} className="flex size-11 items-center justify-center rounded-full border border-border-strong" aria-label="Más café">
+              <Plus className="size-4" />
+            </button>
+          </div>
+
+          {!isEspresso && people !== null && (
+            <div className="flex items-center justify-between rounded-2xl border border-border px-5 py-3">
+              <div className="flex flex-col">
+                <Eyebrow className="text-[10px]">Para cuántos</Eyebrow>
+                <span className="text-sm text-muted-foreground">
+                  {people} {people === 1 ? 'persona' : 'personas'} · {ML_PER_PERSON} ml c/u
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setPeople(people - 1)} className="flex size-9 items-center justify-center rounded-full border border-border-strong" aria-label="Menos personas">
+                  <Minus className="size-3.5" />
+                </button>
+                <span className="w-6 text-center text-lg font-medium">{people}</span>
+                <button type="button" onClick={() => setPeople(people + 1)} className="flex size-9 items-center justify-center rounded-full border border-border-strong" aria-label="Más personas">
+                  <Plus className="size-3.5" />
+                </button>
+              </div>
+            </div>
           )}
         </section>
       )}
@@ -359,7 +400,7 @@ export function RecipesView({
               ))}
             </div>
           </div>
-          <Summary log={log} other={useOther ? otherCoffee : null} dripper={dripper} servings={isEspresso || doseMode ? null : servings} dose={isEspresso || doseMode ? dose : null} />
+          <Summary log={log} other={useOther ? otherCoffee : null} dripper={dripper} people={isEspresso ? null : people} dose={dose} waterMl={waterMl} />
         </section>
       )}
 
@@ -457,21 +498,24 @@ function Summary({
   log,
   other,
   dripper,
-  servings,
+  people,
   dose,
+  waterMl,
 }: {
   log: CoffeeLog | null
   other: string | null
   dripper: string | null
-  servings: number | null
-  dose: string | null
+  people: number | null
+  dose: string
+  waterMl: number | null
 }) {
   const coffee = log ? [log.coffee?.roaster?.name, log.coffee?.name].filter(Boolean).join(' · ') : other || 'Café general'
   return (
     <div className="flex flex-col gap-1.5 rounded-2xl bg-card px-4 py-3.5 text-sm">
       <Row k="Café" v={coffee} />
       <Row k="Método" v={dripper ?? '—'} />
-      <Row k="Cantidad" v={dose ? `${dose} g de café` : `${servings} ${servings === 1 ? 'taza' : 'tazas'}`} />
+      <Row k="Cantidad" v={`${dose.replace('.', ',')} g de café${waterMl ? ` · ${waterMl} ml de agua` : ''}`} />
+      {people !== null && <Row k="Para" v={`${people} ${people === 1 ? 'persona' : 'personas'}`} />}
     </div>
   )
 }
