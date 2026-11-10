@@ -59,6 +59,14 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`); renombrar sitio en Netlify
 - [ ] Fotos para las recetas destacadas (subirlas desde `/admin`)
 
+## Lote 4 — Mapa pulido, perfil de gusto y acceso a Recetas (2026-11-10)
+
+- [x] Mapa: burbuja anclada al pin (tipo, nombre, dirección, Ver en Google Maps), sin recentrar al seleccionar, pin SVG estable, tocar el mapa cierra
+- [x] Perfil de gusto: tabla privada `taste_profiles` (4/4 pruebas RLS), cuestionario de 6 preguntas, inferencia desde el diario (familias de sabor desde notas de cata), uso en recetas ("Usar mi perfil de gusto") y en Cafés que van contigo
+- [x] Recetas visibles: botón central "+" con hoja Escanear / Pedir receta; tarjeta "Receta para hoy" en Inicio (2 toques hasta la receta); bloque de receta bajo la ficha en el detalle; "Recetario" en Mis cafés
+- [ ] Instagram de las cafeterías del seed; fotos de recetas destacadas
+- [ ] Login con Google vía GIS; renombrar sitio en Netlify
+
 ## Fase 2 — Recetas
 
 - [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas

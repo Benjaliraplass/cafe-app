@@ -134,6 +134,34 @@ export function InicioView({
         )}
       </section>
 
+      {/* Receta para hoy */}
+      {logs !== null && (
+        <section className="px-6">
+          {(() => {
+            const last = recent[0]
+            const dripper = profile?.equipment?.drippers?.[0] ?? 'V60'
+            const to = last ? `/recipes?log=${last.id}&dripper=${encodeURIComponent(dripper)}` : '/recipes'
+            return (
+              <Link to={to} className="flex items-center gap-4 rounded-[22px] bg-foreground px-5 py-4 text-background transition-transform active:scale-[0.99]">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-background/15">
+                  <BookOpen className="size-5" strokeWidth={1.7} />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="eyebrow text-[10px] text-background/70">Receta para hoy</span>
+                  <span className="truncate text-[17px] font-medium leading-tight">
+                    {last?.coffee ? `Prepara ${last.coffee.name} en ${dripper}` : 'Pide una receta a medida'}
+                  </span>
+                  <span className="truncate text-[13px] text-background/70">
+                    {last?.coffee ? 'Con tu equipo y tu perfil de gusto, en dos toques.' : 'Elige café, método y cantidad; la IA hace el resto.'}
+                  </span>
+                </span>
+                <ChevronRight className="size-5 shrink-0 text-background/70" strokeWidth={1.7} />
+              </Link>
+            )
+          })()}
+        </section>
+      )}
+
       {/* Recetas destacadas */}
       <section className="flex flex-col gap-4 px-6">
         <SectionHeader title="Recetas destacadas" hint="De tostadores y campeones del mundo." to="/featured" />

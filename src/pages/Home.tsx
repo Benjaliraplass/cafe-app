@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { listMyLogs, setFavorite } from '@/lib/api'
-import { Heart } from 'lucide-react'
+import { BookOpen, ChevronRight, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { photoUrl } from '@/lib/supabase'
 import type { CoffeeLog } from '@/lib/types'
@@ -94,6 +94,15 @@ export function HomeView({
 
       <div className="px-6 pt-5">
         <ErrorBox message={error} />
+      </div>
+
+      <div className="px-6 pt-1">
+        <Link to="/recipes?view=saved" className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3 transition-colors active:bg-muted">
+          <BookOpen className="size-5 shrink-0" strokeWidth={1.7} />
+          <span className="flex-1 text-[15px] font-medium">Recetario</span>
+          <span className="text-[13px] text-muted-foreground">Mis recetas guardadas</span>
+          <ChevronRight className="size-4 shrink-0 text-tertiary" strokeWidth={1.7} />
+        </Link>
       </div>
 
       {!logs && !error && (

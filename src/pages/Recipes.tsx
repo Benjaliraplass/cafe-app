@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
@@ -21,8 +21,17 @@ type Step = 1 | 2 | 3 | 4 | 'result'
 const RATIO_BY_FAMILY: Record<MethodFamily, number> = { conico: 16, flat: 16, inmersion: 15, espresso: 2 }
 const ML_PER_PERSON = 200
 
+export interface RecipesInitial {
+  logId?: string | null
+  dripper?: string | null
+  /** 'saved' muestra solo el recetario. */
+  view?: string | null
+}
+
 export function Recipes() {
   const { user } = useAuth()
+  const [params] = useSearchParams()
+  const initial: RecipesInitial = { logId: params.get('log'), dripper: params.get('dripper'), view: params.get('view') }
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null)
   const [equipment, setEquipment] = useState<Equipment | null | undefined>(undefined)
@@ -55,6 +64,7 @@ export function Recipes() {
       saved={saved}
       equipment={equipment ?? null}
       taste={taste}
+      initial={initial}
       error={error}
       onGenerate={(input) => suggestRecipe(input)}
       onSave={async (recipe, log) => {
@@ -72,6 +82,7 @@ export function RecipesView({
   saved,
   equipment: profileEquipment,
   taste = null,
+  initial,
   error: outerError,
   onGenerate,
   onSave,
@@ -79,19 +90,22 @@ export function RecipesView({
   logs: CoffeeLog[] | null
   saved: SavedRecipe[] | null
   taste?: TasteProfile | null
+  initial?: RecipesInitial
   equipment: Equipment | null
   error: string | null
   onGenerate: (input: SuggestRecipeInput) => Promise<RecipeData>
   onSave: (recipe: RecipeData, log: CoffeeLog | null) => Promise<void>
 }) {
-  const [step, setStep] = useState<Step>(1)
-  const [log, setLog] = useState<CoffeeLog | null>(null)
+  const initialLog = initial?.logId ? (logs ?? []).find((l) => l.id === initial.logId) ?? null : null
+  const initialFamily = initial?.dripper ? (METHOD_FAMILIES.find((f) => f.drippers.includes(initial.dripper!))?.id ?? null) : null
+  const [step, setStep] = useState<Step>(initialLog && initialFamily ? 3 : initialLog ? 2 : 1)
+  const [log, setLog] = useState<CoffeeLog | null>(initialLog)
   const [otherCoffee, setOtherCoffee] = useState('')
   const [useOther, setUseOther] = useState(false)
-  const [family, setFamily] = useState<MethodFamily | null>(null)
-  const [dripper, setDripper] = useState<string | null>(null)
+  const [family, setFamily] = useState<MethodFamily | null>(initialFamily)
+  const [dripper, setDripper] = useState<string | null>(initialFamily ? (initial?.dripper ?? null) : null)
   // Cantidad: la dosis de café manda; las personas (200 ml c/u) se derivan con el ratio de la familia.
-  const [dose, setDose] = useState('15')
+  const [dose, setDose] = useState(initialFamily === 'espresso' ? '18' : '15')
   const [equipment, setEquipment] = useState(() => equipmentToText(profileEquipment))
   const [showAllMethods, setShowAllMethods] = useState(!profileEquipment?.drippers?.length)
   const myDrippers = profileEquipment?.drippers ?? []
@@ -178,6 +192,47 @@ export function RecipesView({
   }
 
   const stepIndex = step === 'result' ? 4 : step
+
+  if (initial?.view === 'saved') {
+    return (
+      <div>
+        <header className="flex flex-col gap-1.5 px-6 pt-4">
+          <Eyebrow>Recetas</Eyebrow>
+          <Title className="text-[38px]">Recetario</Title>
+          <p className="text-sm text-muted-foreground">Las recetas que guardaste. Toca una para ir al café.</p>
+        </header>
+        <div className="px-6 pt-5">
+          <Button asChild className="w-full">
+            <Link to="/recipes">Pedir una receta nueva</Link>
+          </Button>
+        </div>
+        {saved === null ? (
+          <div className="px-6 pt-6">
+            <Spinner />
+          </div>
+        ) : saved.length === 0 ? (
+          <p className="mx-6 mt-6 rounded-2xl bg-card px-4 py-5 text-sm text-muted-foreground">Todavía no guardas recetas. Al generar una, toca "Guardar receta".</p>
+        ) : (
+          <ul className="flex flex-col px-6 pt-4">
+            {saved.map((r, i) => (
+              <li key={r.id}>
+                <Link to={r.coffee_log_id ? `/log/${r.coffee_log_id}` : '#'} className="flex items-center justify-between gap-3 py-3.5">
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-[15px] font-medium">{r.title ?? r.brew_method}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {[r.coffee?.roaster?.name, r.coffee?.name].filter(Boolean).join(' · ') || 'Sin café asociado'}
+                    </span>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium">{r.brew_method}</span>
+                </Link>
+                {i < saved.length - 1 && <Separator />}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -481,7 +536,12 @@ export function RecipesView({
       {step === 1 && saved && saved.length > 0 && (
         <section className="flex flex-col gap-3 px-6 pt-10 pb-6">
           <Separator />
-          <Eyebrow className="pt-4 text-[10px]">Mis recetas guardadas</Eyebrow>
+          <div className="flex items-center justify-between pt-4">
+            <Eyebrow className="text-[10px]">Mis recetas guardadas</Eyebrow>
+            <Link to="/recipes?view=saved" className="text-[13px] font-medium text-muted-foreground underline-offset-4 hover:underline">
+              Ver todas
+            </Link>
+          </div>
           <ul className="flex flex-col">
             {saved.slice(0, 10).map((r, i) => (
               <li key={r.id}>

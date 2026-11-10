@@ -42,7 +42,7 @@ src/
   components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, CoffeeCard, CafeRow, SectionHeader (Inicio y listados)
   components/TasteProfileCard.tsx  tarjeta + cuestionario del perfil de gusto (Perfil)
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
-  components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con Escanear central (utilidades `glass` / `glass-solid` en index.css)
+  components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
   pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail|edit|profile|scan|recipes|login|empty|loading con datos de ejemplo

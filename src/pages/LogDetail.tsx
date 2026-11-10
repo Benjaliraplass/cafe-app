@@ -262,30 +262,7 @@ export function LogDetailView({
             </div>
           </div>
         )}
-        {log.notes && <p className="text-[17px] italic leading-[1.35] text-muted-foreground">“{log.notes}”</p>}
-
-        {c && (
-          <div className="flex flex-col gap-3 rounded-[20px] bg-card p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-[15px] font-medium">Compartir mi registro</span>
-                <span className="text-xs text-muted-foreground">Tu puntaje y tus notas aparecen con tu nombre en la ficha pública de este café.</span>
-              </div>
-              <Switch checked={log.is_public} onCheckedChange={(v) => onTogglePublic?.(v)} disabled={!onTogglePublic} aria-label="Compartir mi registro" />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" onClick={shareCoffee}>
-                <Share2 className="size-4" strokeWidth={1.8} /> {shared === 'copied' ? 'Enlace copiado' : 'Compartir café'}
-              </Button>
-              <Button asChild variant="secondary" size="sm" className="flex-1">
-                <Link to={`/c/${c.id}`}>Ver ficha pública</Link>
-              </Button>
-            </div>
-          </div>
-        )}
       </section>
-
-      <Separator />
 
       {/* Receta */}
       <section className="flex flex-col gap-4 px-6 pt-6 pb-10">
@@ -346,6 +323,34 @@ export function LogDetailView({
           </div>
         )}
       </section>
+
+      <Separator />
+
+      {/* Mi experiencia */}
+      <section className="flex flex-col gap-5 px-6 pt-6 pb-10">
+        {log.notes && <p className="text-[17px] italic leading-[1.35] text-muted-foreground">“{log.notes}”</p>}
+
+        {c && (
+          <div className="flex flex-col gap-3 rounded-[20px] bg-card p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[15px] font-medium">Compartir mi registro</span>
+                <span className="text-xs text-muted-foreground">Tu puntaje y tus notas aparecen con tu nombre en la ficha pública de este café.</span>
+              </div>
+              <Switch checked={log.is_public} onCheckedChange={(v) => onTogglePublic?.(v)} disabled={!onTogglePublic} aria-label="Compartir mi registro" />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" onClick={shareCoffee}>
+                <Share2 className="size-4" strokeWidth={1.8} /> {shared === 'copied' ? 'Enlace copiado' : 'Compartir café'}
+              </Button>
+              <Button asChild variant="secondary" size="sm" className="flex-1">
+                <Link to={`/c/${c.id}`}>Ver ficha pública</Link>
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
+
     </div>
   )
 }
