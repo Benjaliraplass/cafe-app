@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Camera, Mail, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { getProfile, updateEquipment, updateProfile, uploadAvatar, type Profile as ProfileData } from '@/lib/api'
+import { getProfile, getTasteProfile, listMyLogs, updateEquipment, updateProfile, uploadAvatar, upsertTasteProfile, type Profile as ProfileData } from '@/lib/api'
+import { inferTaste, type InferredTaste, type TasteProfile } from '@/lib/taste'
+import { TasteProfileCard } from '@/components/TasteProfileCard'
 import { avatarUrl } from '@/lib/supabase'
 import { imageToJpegBase64 } from '@/lib/image'
 import { METHOD_FAMILIES, type Equipment } from '@/lib/types'
@@ -22,6 +24,8 @@ export const FEEDBACK_MAILTO = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComp
 export function Profile() {
   const { user, signOut, refreshProfile } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [taste, setTaste] = useState<TasteProfile | null>(null)
+  const [inferred, setInferred] = useState<InferredTaste>(() => inferTaste([]))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -29,6 +33,10 @@ export function Profile() {
     getProfile(user.id)
       .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, role: 'user', equipment: {} }))
       .catch((e) => setError(e.message))
+    getTasteProfile(user.id).then(setTaste).catch(() => {})
+    listMyLogs(user.id)
+      .then((logs) => setInferred(inferTaste(logs)))
+      .catch(() => {})
   }, [user])
 
   if (!user) return null
@@ -51,6 +59,12 @@ export function Profile() {
         refreshProfile()
       }}
       onSaveEquipment={(eq) => updateEquipment(user.id, eq)}
+      taste={taste}
+      inferred={inferred}
+      onSaveTaste={async (t) => {
+        await upsertTasteProfile(user.id, t)
+        setTaste(t)
+      }}
       onSignOut={signOut}
     />
   )
@@ -65,6 +79,9 @@ export function ProfileView({
   onUploadAvatar,
   onSaveIdentity,
   onSaveEquipment,
+  taste,
+  inferred,
+  onSaveTaste,
   onSignOut,
 }: {
   email: string
@@ -75,6 +92,9 @@ export function ProfileView({
   onUploadAvatar: (file: File) => Promise<string>
   onSaveIdentity: (fields: { display_name?: string | null; country?: string | null }) => Promise<void>
   onSaveEquipment: (eq: Equipment) => Promise<void>
+  taste: TasteProfile | null
+  inferred: InferredTaste
+  onSaveTaste: (t: TasteProfile) => Promise<void>
   onSignOut: () => Promise<void>
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -205,6 +225,11 @@ export function ProfileView({
           </>
         )}
       </section>
+
+      {/* Perfil de gusto */}
+      <div className="px-6 pt-10">
+        <TasteProfileCard declared={taste} inferred={inferred} onSave={onSaveTaste} />
+      </div>
 
       {/* Equipo */}
       <section className="flex flex-col gap-4 px-6 pt-10">

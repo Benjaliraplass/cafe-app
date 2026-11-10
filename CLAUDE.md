@@ -33,12 +33,14 @@ src/
   lib/recommend.ts     "cafés que van contigo": orden por afinidad con los cafés bien puntuados
   lib/share.ts         Web Share API con fallback a portapapeles
   lib/geo.ts           distancia, geolocalización, geocodificación Nominatim, enlaces a mapas
+  lib/taste.ts         perfil de gusto: tipos, etiquetas, inferencia desde el diario, texto para el prompt de recetas
   hooks/useAuth.tsx    sesión de Supabase + perfil (rol admin) en contexto
   lib/utils.ts         cn() (clsx + tailwind-merge)
   components/ui/       primitivos shadcn: button, input, textarea, select, label, badge, chip, card, skeleton, separator
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
   components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, CoffeeCard, CafeRow, SectionHeader (Inicio y listados)
+  components/TasteProfileCard.tsx  tarjeta + cuestionario del perfil de gusto (Perfil)
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con Escanear central (utilidades `glass` / `glass-solid` en index.css)
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Camera, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { listCafes, listFeaturedRecipes, listMyLogs, listPublishedCoffees, type Profile } from '@/lib/api'
+import { getTasteProfile, listCafes, listFeaturedRecipes, listMyLogs, listPublishedCoffees, type Profile } from '@/lib/api'
+import type { TasteProfile } from '@/lib/taste'
 import { distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
 import { recommendCoffees } from '@/lib/recommend'
 import { avatarUrl } from '@/lib/supabase'
@@ -18,10 +19,12 @@ export function Inicio() {
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
   const [cafes, setCafes] = useState<Cafe[] | null>(null)
   const [me, setMe] = useState<LatLng | null>(null)
+  const [taste, setTaste] = useState<TasteProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
+    getTasteProfile(user.id).then(setTaste).catch(() => {})
     Promise.all([listFeaturedRecipes(), listPublishedCoffees(30), listMyLogs(user.id)])
       .then(([f, c, l]) => {
         setFeatured(f)
@@ -38,7 +41,7 @@ export function Inicio() {
       email={user?.email ?? ''}
       profile={profile}
       featured={featured}
-      recommended={coffees && logs ? recommendCoffees(coffees, logs) : null}
+      recommended={coffees && logs ? recommendCoffees(coffees, logs, 10, taste) : null}
       logs={logs}
       cafes={cafes}
       me={me}

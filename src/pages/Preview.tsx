@@ -2,6 +2,7 @@
 import { useSearchParams } from 'react-router-dom'
 import type { Cafe, CoffeeLog, FeaturedRecipe, RecipeData } from '@/lib/types'
 import { ExploreView } from '@/pages/Explore'
+import { inferTaste } from '@/lib/taste'
 import { HomeView } from '@/pages/Home'
 import { LogDetailView } from '@/pages/LogDetail'
 import { Login } from '@/pages/Login'
@@ -94,6 +95,9 @@ export function Preview() {
             onUploadAvatar={async () => ''}
             onSaveIdentity={noop}
             onSaveEquipment={noop}
+            taste={{ process: 'natural', flavors: ['frutal', 'dulce'], acidity: 'alta', body: 'medio', roast: 'claro', drink: 'filtro' }}
+            inferred={inferTaste(logs)}
+            onSaveTaste={noop}
             onSignOut={noop}
           />
         )}

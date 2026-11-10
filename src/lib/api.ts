@@ -13,6 +13,7 @@ import type {
   ScanResult,
   UserRole,
 } from './types'
+import { emptyTaste, type TasteProfile } from './taste'
 
 // ---------- Utilidades ----------
 
@@ -617,5 +618,19 @@ export async function moderateCafe(adminId: string, cafeId: string, decision: 'a
       rejection_reason: decision === 'rejected' ? reason ?? null : null,
     })
     .eq('id', cafeId)
+  if (error) throw new Error(error.message)
+}
+
+// ---------- Perfil de gusto (privado) ----------
+
+export async function getTasteProfile(userId: string): Promise<TasteProfile | null> {
+  const { data, error } = await supabase.from('taste_profiles').select('data').eq('user_id', userId).maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) return null
+  return { ...emptyTaste, ...(data.data as Partial<TasteProfile>), flavors: ((data.data as Partial<TasteProfile>).flavors ?? []) as TasteProfile['flavors'] }
+}
+
+export async function upsertTasteProfile(userId: string, taste: TasteProfile): Promise<void> {
+  const { error } = await supabase.from('taste_profiles').upsert({ user_id: userId, data: taste }, { onConflict: 'user_id' })
   if (error) throw new Error(error.message)
 }

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, getProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
+import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
+import { tasteSummary, tasteToPreferences, type TasteProfile } from '@/lib/taste'
 import { photoUrl } from '@/lib/supabase'
 import { METHOD_FAMILIES, TASTE_PREFERENCES, equipmentToText, type CoffeeLog, type Equipment, type MethodFamily, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -25,15 +26,17 @@ export function Recipes() {
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null)
   const [equipment, setEquipment] = useState<Equipment | null | undefined>(undefined)
+  const [taste, setTaste] = useState<TasteProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
-    Promise.all([listMyLogs(user.id), listMyRecipes(user.id), getProfile(user.id)])
-      .then(([l, r, p]) => {
+    Promise.all([listMyLogs(user.id), listMyRecipes(user.id), getProfile(user.id), getTasteProfile(user.id).catch(() => null)])
+      .then(([l, r, p, t]) => {
         setLogs(l)
         setSaved(r)
         setEquipment(p?.equipment ?? null)
+        setTaste(t)
       })
       .catch((e) => setError(e.message))
   }, [user])
@@ -51,6 +54,7 @@ export function Recipes() {
       logs={logs}
       saved={saved}
       equipment={equipment ?? null}
+      taste={taste}
       error={error}
       onGenerate={(input) => suggestRecipe(input)}
       onSave={async (recipe, log) => {
@@ -67,12 +71,14 @@ export function RecipesView({
   logs,
   saved,
   equipment: profileEquipment,
+  taste = null,
   error: outerError,
   onGenerate,
   onSave,
 }: {
   logs: CoffeeLog[] | null
   saved: SavedRecipe[] | null
+  taste?: TasteProfile | null
   equipment: Equipment | null
   error: string | null
   onGenerate: (input: SuggestRecipeInput) => Promise<RecipeData>
@@ -90,6 +96,7 @@ export function RecipesView({
   const [showAllMethods, setShowAllMethods] = useState(!profileEquipment?.drippers?.length)
   const myDrippers = profileEquipment?.drippers ?? []
   const [pref, setPref] = useState<string | null>(null)
+  const [useTaste, setUseTaste] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [recipe, setRecipe] = useState<RecipeData | null>(null)
   const [saving, setSaving] = useState(false)
@@ -140,7 +147,7 @@ export function RecipesView({
         servings: !isEspresso && people ? people : undefined,
         dose_g: doseNum,
         equipment: equipment.trim() || undefined,
-        preferences: pref ?? undefined,
+        preferences: [pref, useTaste ? tasteToPreferences(taste) : null].filter(Boolean).join('. ') || undefined,
       }
       setRecipe(await onGenerate(input))
     } catch (e) {
@@ -400,6 +407,19 @@ export function RecipesView({
               ))}
             </div>
           </div>
+          {taste && tasteSummary(taste).length > 0 && (
+            <button
+              type="button"
+              onClick={() => setUseTaste((v) => !v)}
+              className={cn('flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-colors', useTaste ? 'border-foreground bg-card' : 'border-border')}
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[13px] font-medium">Usar mi perfil de gusto</span>
+                <span className="truncate text-xs text-muted-foreground">{tasteSummary(taste).join(' · ')}</span>
+              </span>
+              <span className={cn('size-5 shrink-0 rounded-full border-2', useTaste ? 'border-foreground bg-foreground' : 'border-border-strong')} />
+            </button>
+          )}
           <Summary log={log} other={useOther ? otherCoffee : null} dripper={dripper} people={isEspresso ? null : people} dose={dose} waterMl={waterMl} />
         </section>
       )}
