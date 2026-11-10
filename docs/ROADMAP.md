@@ -93,7 +93,7 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] `scripts/kb_seed.py` → `supabase/seed/kb_2026_11.sql` (48 fuentes, 21 métodos, 61 recetas de 33 autores, 236 pasos, 71 reglas); aplicado en producción; integridad verificada (pasos, sumas de agua, FKs)
 - [x] QA REST desde dripocoffee.com: lectura anónima OK, inserción anónima bloqueada (401)
 - [ ] Verificar las 48 URLs de `kb_sources` y registrar `url_status` / `url_checked_at` (pendiente: requiere navegación con aprobación de sitios)
-- [ ] Marcar `is_featured` en las recetas de la KB que coinciden con las 7 destacadas
+- [x] `is_featured` en las recetas de la KB que coinciden con las destacadas (V60-001 Hoffmann, V60-003 Kasuya, PO-001 Wendelboe; AeroPress Hoffmann no tiene equivalente en la KB)
 
 ### 7b — Generador con referencias
 - [ ] `suggest-recipe` v3: 2-3 recetas de la KB como contexto + principios; retirar las escuelas fijas del prompt; salida con `base_recipe_id`, `source_url`, `assumptions`, `confidence`
