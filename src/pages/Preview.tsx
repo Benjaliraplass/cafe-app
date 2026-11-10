@@ -14,6 +14,9 @@ import { InicioView } from '@/pages/Inicio'
 import { FeaturedRecipeView } from '@/pages/FeaturedRecipe'
 import { PublicCoffeeView } from '@/pages/PublicCoffee'
 import { BottomNav } from '@/components/Layout'
+import { AdminMetricsView, type MetricsData } from '@/components/AdminMetrics'
+import type { UserFacts } from '@/lib/types'
+import { Eyebrow, Title } from '@/components/primitives'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
 const noop = async () => {}
@@ -101,6 +104,15 @@ export function Preview() {
             onSignOut={noop}
           />
         )}
+        {v === 'metrics' && (
+          <div className="flex flex-col gap-6 px-6 pt-4 pb-6">
+            <header className="flex flex-col gap-1.5">
+              <Eyebrow>Solo admin</Eyebrow>
+              <Title className="text-[34px]">Administración</Title>
+            </header>
+            <AdminMetricsView period={30} onPeriod={() => {}} data={metricsSample()} error={null} />
+          </div>
+        )}
         {v === 'detail' && (
           <LogDetailView
             log={{ ...logs[0], notes: 'Efervescente y complejo. Mucho mango en caliente, se vuelve más cítrico al enfriar.' }}
@@ -116,4 +128,36 @@ export function Preview() {
       <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'explore' ? '/explore' : v === 'inicio' || v === 'featured' || v === 'coffee' ? '/' : '/logs'} />
     </div>
   )
+}
+
+/** Datos de ejemplo para /preview?v=metrics. */
+function metricsSample(): MetricsData {
+  const day = (i: number) => new Date(Date.now() - i * 86400000).toISOString().slice(0, 10)
+  const user = (i: number, over: Partial<UserFacts>): UserFacts => ({
+    user_id: `0000000${i}-0000-0000-0000-00000000000${i}`, email: `persona${i}@correo.com`, provider: i % 3 === 0 ? 'google' : 'email',
+    display_name: ['Benjamín', 'Cata', 'Matías', 'Fran', 'Pedro', 'Sofía', 'Lucas', 'Ana'][i % 8], country: 'Chile', role: 'user', created_at: new Date(Date.now() - (i * 3 + 1) * 86400000).toISOString(),
+    utm: i % 4 === 0 ? { source: 'ig', campaign: 'lanz' } : null, ref: i % 5 === 0 ? 'f02b133f' : null, first_path: '/', device: i % 2 ? 'ios' : 'android', display_mode: 'standalone',
+    first_scan_at: day(i), first_log_at: i % 3 === 2 ? null : new Date(Date.now() - (i * 3 + 1) * 86400000 + 3600000 * (i + 1)).toISOString(), first_recipe_at: day(i), first_share_at: i % 2 ? day(i) : null,
+    hours_to_first_log: i % 3 === 2 ? null : i + 1, logs_count: 12 - i, scans_count: 14 - i, recipes_count: 6 - (i % 6), saved_recipes_count: 2, favorites_count: 3, public_logs_count: 1, cafes_proposed: i === 0 ? 2 : 0,
+    distinct_roasters: 5, distinct_origins: 4, avg_rating: 4.2, last_active_at: day(i % 4), active_days_7d: i < 5 ? 3 : 0, active_days_30d: 8, events_count: 120, shares_sent: 4 - (i % 4), share_opens: i === 0 ? 9 : 0, signups_referred: i === 0 ? 2 : 0,
+    ...over,
+  })
+  const users = Array.from({ length: 12 }, (_, i) => user(i, {}))
+  const daily = Array.from({ length: 30 }, (_, i) => ({ day: day(29 - i), signups: i % 4 === 0 ? 2 : i % 7 === 0 ? 1 : 0, active_users: 3 + ((i * 7) % 6), scans: (i * 3) % 5, logs: (i * 2) % 4, recipes: i % 3, shares: i % 4 === 1 ? 1 : 0, share_opens: i % 5 === 2 ? 2 : 0 }))
+  const funnel = [
+    { step_order: 1, step: 'app_opened', users: 48 }, { step_order: 2, step: 'signup_completed', users: 12 }, { step_order: 3, step: 'scan_started', users: 11 },
+    { step_order: 4, step: 'scan_completed', users: 10 }, { step_order: 5, step: 'log_saved', users: 9 }, { step_order: 6, step: 'recipe_requested', users: 6 }, { step_order: 7, step: 'share_clicked', users: 3 },
+  ]
+  const retention = [
+    { cohort_week: day(28), cohort_size: 5, week_n: 0, active_users: 5, pct: 100 }, { cohort_week: day(28), cohort_size: 5, week_n: 1, active_users: 3, pct: 60 },
+    { cohort_week: day(28), cohort_size: 5, week_n: 2, active_users: 2, pct: 40 }, { cohort_week: day(28), cohort_size: 5, week_n: 3, active_users: 2, pct: 40 },
+    { cohort_week: day(21), cohort_size: 4, week_n: 0, active_users: 4, pct: 100 }, { cohort_week: day(21), cohort_size: 4, week_n: 1, active_users: 2, pct: 50 }, { cohort_week: day(21), cohort_size: 4, week_n: 2, active_users: 1, pct: 25 },
+    { cohort_week: day(14), cohort_size: 3, week_n: 0, active_users: 3, pct: 100 }, { cohort_week: day(14), cohort_size: 3, week_n: 1, active_users: 2, pct: 67 },
+  ]
+  const top = [
+    { kind: 'coffee_logged' as const, id: 'c1', label: 'Asunto · Catiope', value: 6 }, { kind: 'coffee_logged' as const, id: 'c2', label: 'La Pastora · Perú Cajamarca', value: 4 },
+    { kind: 'roaster_logged' as const, id: 'r1', label: 'Asunto Coffee Roasters', value: 9 }, { kind: 'roaster_logged' as const, id: 'r2', label: 'La Pastora Coffee', value: 7 },
+    { kind: 'coffee_viewed' as const, id: 'c1', label: 'Asunto · Catiope', value: 23 }, { kind: 'cafe_viewed' as const, id: 'k1', label: 'La Pastora Suecia', value: 14 }, { kind: 'cafe_viewed' as const, id: 'k2', label: 'Bourbon Coffee', value: 9 },
+  ]
+  return { users, daily, funnel, retention, top }
 }

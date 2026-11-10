@@ -208,3 +208,74 @@ export function equipmentToText(e: Equipment | null | undefined): string {
     .filter(Boolean)
     .join('; ')
 }
+
+// ---------------- Analítica (funciones admin_*, SPEC §8) ----------------
+
+export interface UserFacts {
+  user_id: string
+  email: string | null
+  provider: string | null
+  display_name: string | null
+  country: string | null
+  role: UserRole | null
+  created_at: string
+  utm: Record<string, string> | null
+  ref: string | null
+  first_path: string | null
+  device: string | null
+  display_mode: string | null
+  first_scan_at: string | null
+  first_log_at: string | null
+  first_recipe_at: string | null
+  first_share_at: string | null
+  hours_to_first_log: number | null
+  logs_count: number
+  scans_count: number
+  recipes_count: number
+  saved_recipes_count: number
+  favorites_count: number
+  public_logs_count: number
+  cafes_proposed: number
+  distinct_roasters: number
+  distinct_origins: number
+  avg_rating: number | null
+  last_active_at: string | null
+  active_days_7d: number
+  active_days_30d: number
+  events_count: number
+  shares_sent: number
+  share_opens: number
+  signups_referred: number
+}
+
+export interface DailyMetric {
+  day: string
+  signups: number
+  active_users: number
+  scans: number
+  logs: number
+  recipes: number
+  shares: number
+  share_opens: number
+}
+
+export interface FunnelStep {
+  step_order: number
+  step: string
+  users: number
+}
+
+export interface RetentionCell {
+  cohort_week: string
+  cohort_size: number
+  week_n: number
+  active_users: number
+  pct: number
+}
+
+export interface TopItem {
+  kind: 'coffee_logged' | 'roaster_logged' | 'coffee_viewed' | 'cafe_viewed'
+  id: string
+  label: string
+  value: number
+}

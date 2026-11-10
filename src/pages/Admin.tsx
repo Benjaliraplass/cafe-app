@@ -25,12 +25,13 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CountrySelect, ErrorBox, Eyebrow, Field, Photo, SectionTitle, Spinner, Title } from '@/components/primitives'
+import { AdminMetrics } from '@/components/AdminMetrics'
 
-type Tab = 'recetas' | 'cafes' | 'cafeterias'
+type Tab = 'metricas' | 'recetas' | 'cafes' | 'cafeterias'
 
 export function Admin() {
   const { user, profile, isAdmin } = useAuth()
-  const [tab, setTab] = useState<Tab>('recetas')
+  const [tab, setTab] = useState<Tab>('metricas')
   if (!user) return null
   // El perfil puede estar cargando; no redirigir hasta saber el rol.
   if (profile && !isAdmin) return <Navigate to="/" replace />
@@ -47,7 +48,10 @@ export function Admin() {
         <Eyebrow>Solo admin</Eyebrow>
         <Title className="text-[34px]">Administración</Title>
       </header>
-      <div className="flex gap-2">
+      <div className="-mx-6 flex gap-2 overflow-x-auto px-6 [scrollbar-width:none]">
+        <Chip active={tab === 'metricas'} onClick={() => setTab('metricas')}>
+          Métricas
+        </Chip>
         <Chip active={tab === 'recetas'} onClick={() => setTab('recetas')}>
           Recetas destacadas
         </Chip>
@@ -58,6 +62,7 @@ export function Admin() {
           Cafeterías
         </Chip>
       </div>
+      {tab === 'metricas' && <AdminMetrics />}
       {tab === 'recetas' && <FeaturedAdmin userId={user.id} />}
       {tab === 'cafes' && <CatalogAdmin userId={user.id} />}
       {tab === 'cafeterias' && <CafesAdmin userId={user.id} />}

@@ -68,6 +68,15 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Dominio propio `dripocoffee.com` conectado a Netlify (GoDaddy: A + CNAME), certificado Let's Encrypt; política de privacidad dentro de la app en `/privacidad` (enlazada desde Login y Perfil) y declarada en Google Cloud
 - [x] Login con Google vía Google Identity Services (`signInWithIdToken`); la pantalla de Google muestra dripocoffee.com. Probado en teléfono (2026-11-10). Opcional: verificación de marca en Google para mostrar el nombre "Dripo"
 
+## Lote 5 — Datos y analítica (2026-11-10)
+
+- [x] Arquitectura en SPEC §8: producto / eventos / derivados; taxonomía de 25 eventos; definición de activado (primer café guardado)
+- [x] Tabla `events` (RLS cerrada) + RPC `track_event` + funciones `admin_user_facts`, `admin_daily_metrics`, `admin_funnel`, `admin_retention`, `admin_top`; pruebas con usuarios simulados
+- [x] `src/lib/analytics.ts`: PostHog (carga diferida) + Supabase, id anónimo, sesión, UTM/ref de primer toque; instrumentación completa; `?ref=` en enlaces compartidos
+- [x] Pestaña Métricas en `/admin`: usuarios, activación, viralidad (factor K), actividad diaria, embudo, retención semanal, top, lista de usuarios y export CSV (`/preview?v=metrics`)
+- [ ] Clave de PostHog en Netlify (`VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`) y dashboard base en PostHog
+- [ ] Cuando haya volumen: materializar `daily_metrics` con `pg_cron`; alertas (caída de activación, errores de escaneo)
+
 ## Fase 2 — Recetas
 
 - [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas

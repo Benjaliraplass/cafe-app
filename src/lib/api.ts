@@ -4,7 +4,12 @@ import type {
   Coffee,
   CoffeeLog,
   CoffeePublicStats,
+  DailyMetric,
   Equipment,
+  FunnelStep,
+  RetentionCell,
+  TopItem,
+  UserFacts,
   FeaturedRecipe,
   MethodFamily,
   PublicLog,
@@ -634,3 +639,17 @@ export async function upsertTasteProfile(userId: string, taste: TasteProfile): P
   const { error } = await supabase.from('taste_profiles').upsert({ user_id: userId, data: taste }, { onConflict: 'user_id' })
   if (error) throw new Error(error.message)
 }
+
+// ---------------- Analítica (solo admin; las funciones exigen is_admin()) ----------------
+
+async function adminRpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T[]> {
+  const { data, error } = await supabase.rpc(fn, args)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as T[]
+}
+
+export const adminUserFacts = () => adminRpc<UserFacts>('admin_user_facts')
+export const adminDailyMetrics = (days: number) => adminRpc<DailyMetric>('admin_daily_metrics', { p_days: days })
+export const adminFunnel = (days: number) => adminRpc<FunnelStep>('admin_funnel', { p_days: days })
+export const adminRetention = (weeks = 12) => adminRpc<RetentionCell>('admin_retention', { p_weeks: weeks })
+export const adminTop = (days: number, limit = 8) => adminRpc<TopItem>('admin_top', { p_days: days, p_limit: limit })
