@@ -380,7 +380,7 @@ export async function saveRecipe(input: {
 export async function listCafes(): Promise<Cafe[]> {
   const { data, error } = await supabase
     .from('cafes')
-    .select('id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng')
+    .select('id, name, slug, kind, address, comuna, city, region, instagram, website, description, lat, lng, status, photo_path, created_by, created_at')
     .eq('status', 'approved')
     .order('city')
     .order('name')

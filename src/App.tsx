@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { Layout } from '@/components/Layout'
@@ -7,14 +8,17 @@ import { Home } from '@/pages/Home'
 import { Scan } from '@/pages/Scan'
 import { LogDetail } from '@/pages/LogDetail'
 import { EditLog } from '@/pages/EditLog'
-import { Explore } from '@/pages/Explore'
+// Explorar carga Leaflet: se separa del bundle principal.
+const Explore = lazy(() => import('@/pages/Explore').then((m) => ({ default: m.Explore })))
+const NewCafe = lazy(() => import('@/pages/NewCafe').then((m) => ({ default: m.NewCafe })))
+// Vista previa solo en desarrollo; fuera del bundle de producción.
+const Preview = lazy(() => import('@/pages/Preview').then((m) => ({ default: m.Preview })))
+const Admin = lazy(() => import('@/pages/Admin').then((m) => ({ default: m.Admin })))
 import { Recipes } from '@/pages/Recipes'
 import { Profile } from '@/pages/Profile'
-import { Admin } from '@/pages/Admin'
 import { FeaturedList, FeaturedRecipePage } from '@/pages/FeaturedRecipe'
 import { Catalog, PublicCoffeePage } from '@/pages/PublicCoffee'
 import { Spinner } from '@/components/primitives'
-import { Preview } from '@/pages/Preview'
 import { Button } from '@/components/ui/button'
 
 function Loading() {
@@ -41,9 +45,10 @@ function Gate() {
         <Route path="recipes" element={<Recipes />} />
         <Route path="featured" element={<FeaturedList />} />
         <Route path="catalog" element={<Catalog />} />
-        <Route path="explore" element={<Explore />} />
+        <Route path="explore" element={<Suspense fallback={<Loading />}><Explore /></Suspense>} />
+        <Route path="explore/new" element={<Suspense fallback={<Loading />}><NewCafe /></Suspense>} />
         <Route path="profile" element={<Profile />} />
-        <Route path="admin" element={<Admin />} />
+        <Route path="admin" element={<Suspense fallback={<Loading />}><Admin /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
@@ -80,7 +85,13 @@ function PublicShell() {
 
 function Root() {
   // Vista previa con datos de ejemplo, solo en desarrollo (npm run dev): /preview?v=...
-  if (import.meta.env.DEV && window.location.pathname.startsWith('/preview')) return <Preview />
+  if (import.meta.env.DEV && window.location.pathname.startsWith('/preview')) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <Preview />
+      </Suspense>
+    )
+  }
   return (
     <Routes>
       <Route element={<PublicShell />}>

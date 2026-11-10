@@ -1,6 +1,7 @@
 // Solo en desarrollo: previsualiza las vistas con datos de ejemplo sin iniciar sesión.
 import { useSearchParams } from 'react-router-dom'
-import type { CoffeeLog, FeaturedRecipe, RecipeData } from '@/lib/types'
+import type { Cafe, CoffeeLog, FeaturedRecipe, RecipeData } from '@/lib/types'
+import { ExploreView } from '@/pages/Explore'
 import { HomeView } from '@/pages/Home'
 import { LogDetailView } from '@/pages/LogDetail'
 import { Login } from '@/pages/Login'
@@ -46,6 +47,11 @@ const featured: FeaturedRecipe[] = [
   { id: 'f3', slug: 'espresso-base-dripo', title: 'Espresso de especialidad, punto de partida', author: 'Dripo', author_role: 'otro', country: 'Chile', event: null, method_family: 'espresso', dripper: 'Espresso',
     params: { dose_g: 18, yield_g: 38, ratio: '1:2,1', water_temp_c: 93, grind: 'Fina', pressure_bar: 9, total_time: '0:28' }, steps: [], story: null, source_url: null, photo_path: null, is_published: true, sort_order: 70, created_at: '' },
 ]
+const cafes: Cafe[] = [
+  { id: 'c1', name: 'Café Altura', slug: 'cafe-altura', kind: 'cafe', address: 'Guardia Vieja 202', comuna: 'Providencia', city: 'Santiago', region: 'RM', instagram: 'cafealtura', website: null, description: null, lat: -33.4255, lng: -70.6115, status: 'approved', photo_path: null },
+  { id: 'c2', name: 'Asunto Coffee Roasters', slug: 'asunto', kind: 'both', address: 'Av. Italia 1234', comuna: 'Ñuñoa', city: 'Santiago', region: 'RM', instagram: 'asuntocoffee', website: null, description: null, lat: -33.4466, lng: -70.6223, status: 'approved', photo_path: null },
+  { id: 'c3', name: 'Tostaduría Barrio', slug: 'barrio', kind: 'roastery', address: 'Santa Isabel 55', comuna: 'Santiago Centro', city: 'Santiago', region: 'RM', instagram: null, website: null, description: null, lat: -33.4525, lng: -70.6398, status: 'approved', photo_path: null },
+]
 const publishedCoffees = logs.map((l) => ({ ...l.coffee!, is_published: true, published_at: l.created_at }))
 
 export function Preview() {
@@ -57,9 +63,10 @@ export function Preview() {
       <main className="flex-1 pb-32">
         {v === 'home' && <HomeView logs={logs} error={null} onToggleFavorite={noop} />}
         {v === 'inicio' && (
-          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logsCount={5} error={null} />
+          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logsCount={5} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
         )}
         {v === 'featured' && <FeaturedRecipeView r={featured[0]} />}
+        {v === 'explore' && <ExploreView cafes={cafes} mine={[{ ...cafes[0], id: 'p1', name: 'Mi propuesta', status: 'pending' }]} error={null} me={{ lat: -33.4372, lng: -70.6506 }} onLocate={noop} />}
         {v === 'coffee' && (
           <PublicCoffeeView
             coffee={publishedCoffees[0]}
@@ -102,7 +109,7 @@ export function Preview() {
           />
         )}
       </main>
-      <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'inicio' || v === 'featured' || v === 'coffee' ? '/' : '/logs'} />
+      <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'explore' ? '/explore' : v === 'inicio' || v === 'featured' || v === 'coffee' ? '/' : '/logs'} />
     </div>
   )
 }

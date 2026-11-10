@@ -2,19 +2,22 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Camera, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { listFeaturedRecipes, listMyLogs, listPublishedCoffees, type Profile } from '@/lib/api'
+import { listCafes, listFeaturedRecipes, listMyLogs, listPublishedCoffees, type Profile } from '@/lib/api'
+import { distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
 import { recommendCoffees } from '@/lib/recommend'
 import { avatarUrl } from '@/lib/supabase'
-import type { Coffee, CoffeeLog, FeaturedRecipe } from '@/lib/types'
+import type { Cafe, Coffee, CoffeeLog, FeaturedRecipe } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBox, Eyebrow, Title } from '@/components/primitives'
-import { CoffeeCard, FeaturedRecipeCard, HScroll, SectionHeader } from '@/components/cards'
+import { CafeRow, CoffeeCard, FeaturedRecipeCard, HScroll, SectionHeader } from '@/components/cards'
 
 export function Inicio() {
   const { user, profile } = useAuth()
   const [featured, setFeatured] = useState<FeaturedRecipe[] | null>(null)
   const [coffees, setCoffees] = useState<Coffee[] | null>(null)
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
+  const [cafes, setCafes] = useState<Cafe[] | null>(null)
+  const [me, setMe] = useState<LatLng | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -26,6 +29,8 @@ export function Inicio() {
         setLogs(l)
       })
       .catch((e) => setError(e.message))
+    listCafes().then(setCafes).catch(() => setCafes([]))
+    silentPosition().then(setMe)
   }, [user])
 
   return (
@@ -35,6 +40,8 @@ export function Inicio() {
       featured={featured}
       recommended={coffees && logs ? recommendCoffees(coffees, logs) : null}
       logsCount={logs?.length ?? 0}
+      cafes={cafes}
+      me={me}
       error={error}
     />
   )
@@ -46,6 +53,8 @@ export function InicioView({
   featured,
   recommended,
   logsCount,
+  cafes,
+  me,
   error,
 }: {
   email: string
@@ -53,8 +62,15 @@ export function InicioView({
   featured: FeaturedRecipe[] | null
   recommended: Coffee[] | null
   logsCount: number
+  cafes: Cafe[] | null
+  me: LatLng | null
   error: string | null
 }) {
+  const nearby = (cafes ?? [])
+    .filter((c) => c.lat != null && c.lng != null)
+    .map((c) => ({ c, km: me ? distanceKm(me, { lat: c.lat!, lng: c.lng! }) : null }))
+    .sort((a, b) => (a.km ?? 0) - (b.km ?? 0))
+    .slice(0, 4)
   const name = profile?.display_name?.trim().split(' ')[0] || email.split('@')[0]
   const src = avatarUrl(profile?.avatar_url)
 
@@ -121,6 +137,18 @@ export function InicioView({
           </HScroll>
         )}
       </section>
+
+      {/* Cafeterías cerca */}
+      {cafes && cafes.length > 0 && (
+        <section className="flex flex-col gap-3 px-6">
+          <SectionHeader title={me ? 'Cafeterías cerca' : 'Cafeterías de especialidad'} hint={me ? 'Ordenadas por distancia.' : 'Activa tu ubicación en Explorar para verlas por cercanía.'} to="/explore" />
+          <ul className="flex flex-col divide-y divide-border">
+            {nearby.map(({ c, km }) => (
+              <CafeRow key={c.id} c={c} distance={km != null ? formatDistance(km) : null} />
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Accesos rápidos */}
       <section className="flex flex-col gap-3 px-6">

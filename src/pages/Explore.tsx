@@ -1,87 +1,207 @@
-import { useEffect, useState } from 'react'
-import { AtSign, ExternalLink, Navigation } from 'lucide-react'
-import { listCafes } from '@/lib/api'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Clock, LocateFixed, Plus, Search } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { listCafes, listMyCafes } from '@/lib/api'
+import { photoUrl } from '@/lib/supabase'
+import { currentPosition, distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
 import type { Cafe } from '@/lib/types'
+import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Empty, ErrorBox, Eyebrow, Spinner, Title } from '@/components/primitives'
+import { Empty, ErrorBox, Eyebrow, Photo, Spinner } from '@/components/primitives'
+import { CafeMap, type MapViewport } from '@/components/CafeMap'
+import { CafeRow } from '@/components/cards'
+import { cn } from '@/lib/utils'
 
-const KIND_LABEL: Record<Cafe['kind'], string> = {
-  cafe: 'Cafetería',
-  roastery: 'Tostaduría',
-  both: 'Cafetería y tostaduría',
-}
 
 export function Explore() {
+  const { user } = useAuth()
   const [cafes, setCafes] = useState<Cafe[] | null>(null)
+  const [mine, setMine] = useState<Cafe[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [q, setQ] = useState('')
+  const [me, setMe] = useState<LatLng | null>(null)
 
   useEffect(() => {
     listCafes()
       .then(setCafes)
       .catch((e) => setError(e.message))
-  }, [])
+    if (user) listMyCafes(user.id).then(setMine).catch(() => {})
+    silentPosition().then(setMe)
+  }, [user])
 
-  const filtered = (cafes ?? []).filter((c) => {
+  return <ExploreView cafes={cafes} mine={mine.filter((c) => c.status !== 'approved')} error={error} me={me} onLocate={async () => setMe(await currentPosition())} />
+}
+
+export function ExploreView({
+  cafes,
+  mine,
+  error,
+  me,
+  onLocate,
+}: {
+  cafes: Cafe[] | null
+  mine: Cafe[]
+  error: string | null
+  me: LatLng | null
+  onLocate: () => Promise<void>
+}) {
+  const [q, setQ] = useState('')
+  const [kind, setKind] = useState<Cafe['kind'] | 'all'>('all')
+  const [selected, setSelected] = useState<string | null>(null)
+  const [viewport, setViewport] = useState<MapViewport | null>(null)
+  const [areaOnly, setAreaOnly] = useState(false)
+  const [fly, setFly] = useState<{ point: LatLng; zoom?: number; key: number } | null>(null)
+  const [locating, setLocating] = useState(false)
+  const listRef = useRef<HTMLUListElement>(null)
+
+  // Al obtener la posición por primera vez, centrar el mapa ahí.
+  const flewToUser = useRef(false)
+  useEffect(() => {
+    if (me && !flewToUser.current) {
+      flewToUser.current = true
+      setFly({ point: me, zoom: 14, key: Date.now() })
+    }
+  }, [me])
+
+  const filtered = useMemo(() => {
     const s = q.trim().toLowerCase()
-    if (!s) return true
-    return [c.name, c.comuna, c.city, c.region].some((v) => v?.toLowerCase().includes(s))
-  })
+    let list = (cafes ?? []).filter((c) => {
+      if (kind !== 'all' && c.kind !== kind && c.kind !== 'both') return false
+      if (!s) return true
+      return [c.name, c.comuna, c.city, c.region, c.address].some((v) => v?.toLowerCase().includes(s))
+    })
+    if (areaOnly && viewport) list = list.filter((c) => c.lat != null && c.lng != null && viewport.bounds.contains([c.lat, c.lng]))
+    const origin = me ?? viewport?.center ?? null
+    if (origin) {
+      list = [...list].sort((a, b) => dist(a, origin) - dist(b, origin))
+    }
+    return list
+  }, [cafes, q, kind, areaOnly, viewport, me])
+
+  function select(id: string) {
+    setSelected(id)
+    const c = cafes?.find((x) => x.id === id)
+    if (c?.lat != null && c.lng != null) setFly({ point: { lat: c.lat, lng: c.lng }, key: Date.now() })
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-id="${id}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
+
+  async function locate() {
+    setLocating(true)
+    await onLocate()
+    setLocating(false)
+    flewToUser.current = false
+  }
 
   return (
-    <div>
-      <header className="flex flex-col gap-1.5 px-6 pt-4">
-        <Eyebrow>Chile</Eyebrow>
-        <Title className="text-[38px]">Explorar</Title>
-        <p className="pt-1 text-sm text-muted-foreground">Cafeterías y tostadurías de especialidad.</p>
-      </header>
-
-      <div className="px-6 pt-5">
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nombre o comuna" />
+    <div className="-mt-[env(safe-area-inset-top)] flex flex-col">
+      {/* Mapa */}
+      <div className="relative h-[46vh] min-h-[320px] w-full">
+        <CafeMap
+          cafes={cafes ?? []}
+          selectedId={selected}
+          onSelect={select}
+          user={me}
+          flyTo={fly}
+          onMoveEnd={(v) => setViewport(v)}
+          className="absolute inset-0 z-0"
+        />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[400] flex items-start justify-end px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+          <div className="pointer-events-auto flex flex-col gap-2">
+            <Button variant="secondary" size="icon" className="glass bg-transparent" onClick={locate} aria-label="Mi ubicación" disabled={locating}>
+              <LocateFixed className={cn('size-[18px]', locating && 'animate-pulse')} strokeWidth={1.8} />
+            </Button>
+          </div>
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 z-[400] flex justify-center">
+          <button
+            type="button"
+            onClick={() => setAreaOnly((v) => !v)}
+            className={cn(
+              'pointer-events-auto rounded-full px-4 py-2 text-[13px] font-medium shadow-[0_8px_20px_-8px_rgba(0,0,0,0.4)] transition-colors',
+              areaOnly ? 'bg-foreground text-background' : 'glass',
+            )}
+          >
+            {areaOnly ? 'Mostrando esta zona' : 'Buscar en esta zona'}
+          </button>
+        </div>
       </div>
 
-      <div className="px-6 pt-4">
+      {/* Panel */}
+      <div className="relative z-10 -mt-5 flex flex-col gap-4 rounded-t-[28px] bg-background px-6 pt-3 pb-6 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.25)]">
+        <div className="mx-auto h-1 w-10 rounded-full bg-border-strong" />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-tertiary" strokeWidth={1.8} />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nombre, comuna o ciudad" className="pl-10" />
+          </div>
+          <Button asChild size="icon" className="size-12 rounded-xl" aria-label="Sumar cafetería">
+            <Link to="/explore/new">
+              <Plus className="size-5" strokeWidth={1.8} />
+            </Link>
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          {(['all', 'cafe', 'roastery'] as const).map((k) => (
+            <Chip key={k} active={kind === k} onClick={() => setKind(k)}>
+              {k === 'all' ? 'Todo' : k === 'cafe' ? 'Cafeterías' : 'Tostadurías'}
+            </Chip>
+          ))}
+        </div>
+
         <ErrorBox message={error} />
         {!cafes && !error && <Spinner label="Cargando lugares..." />}
+
+        {cafes && cafes.length === 0 && mine.length === 0 && (
+          <Empty
+            title="Estamos armando el mapa"
+            body="Sé el primero en sumar una cafetería o tostaduría de especialidad. La revisamos y la publicamos."
+            action={
+              <Button asChild size="sm">
+                <Link to="/explore/new">Sumar cafetería</Link>
+              </Button>
+            }
+          />
+        )}
+
+        {cafes && cafes.length > 0 && filtered.length === 0 && (
+          <p className="rounded-2xl bg-card px-4 py-4 text-sm text-muted-foreground">Nada por aquí con esos filtros. Prueba ampliar la zona del mapa.</p>
+        )}
+
+        {filtered.length > 0 && (
+          <ul ref={listRef} className="flex flex-col divide-y divide-border">
+            {filtered.map((c) => (
+              <CafeRow key={c.id} c={c} active={c.id === selected} onClick={() => select(c.id)} distance={me && c.lat != null && c.lng != null ? formatDistance(distanceKm(me, { lat: c.lat, lng: c.lng })) : null} />
+            ))}
+          </ul>
+        )}
+
+        {mine.length > 0 && (
+          <section className="flex flex-col gap-2 pt-2">
+            <Eyebrow className="text-[10px]">Mis propuestas</Eyebrow>
+            <ul className="flex flex-col divide-y divide-border">
+              {mine.map((c) => (
+                <li key={c.id} className="flex items-center gap-3 py-3">
+                  <Photo src={photoUrl(c.photo_path)} className="size-12 shrink-0 rounded-xl" />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-[15px] font-medium">{c.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{[c.comuna, c.city].filter(Boolean).join(', ')}</span>
+                    {c.status === 'rejected' && c.rejection_reason && <span className="text-xs text-destructive">Rechazada: {c.rejection_reason}</span>}
+                  </div>
+                  <span className={cn('flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium', c.status === 'pending' ? 'bg-muted text-muted-foreground' : 'bg-destructive/10 text-destructive')}>
+                    <Clock className="size-3" /> {c.status === 'pending' ? 'En revisión' : 'Rechazada'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
-
-      {cafes && cafes.length === 0 && (
-        <Empty title="Estamos armando el mapa" body="Pronto vas a poder explorar cafeterías y tostadurías de especialidad en todo Chile." />
-      )}
-
-      {filtered.length > 0 && (
-        <ul className="px-6 pt-2">
-          {filtered.map((c, i) => (
-            <li key={c.id}>
-              <div className="flex flex-col gap-1.5 py-4">
-                <Eyebrow className="text-[10px]">{KIND_LABEL[c.kind]}</Eyebrow>
-                <p className="text-[19px] font-medium leading-tight tracking-[-0.01em]">{c.name}</p>
-                <p className="text-sm text-muted-foreground">{[c.address, c.comuna, c.city].filter(Boolean).join(', ')}</p>
-                {c.description && <p className="pt-1 text-sm text-muted-foreground">{c.description}</p>}
-                <div className="flex gap-4 pt-1.5 text-[13px] font-medium">
-                  {c.instagram && (
-                    <a className="inline-flex items-center gap-1.5" href={`https://instagram.com/${c.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
-                      <AtSign className="size-3.5" strokeWidth={1.8} /> Instagram
-                    </a>
-                  )}
-                  {c.website && (
-                    <a className="inline-flex items-center gap-1.5" href={c.website} target="_blank" rel="noreferrer">
-                      <ExternalLink className="size-3.5" strokeWidth={1.8} /> Sitio web
-                    </a>
-                  )}
-                  {c.lat && c.lng && (
-                    <a className="inline-flex items-center gap-1.5" href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer">
-                      <Navigation className="size-3.5" strokeWidth={1.8} /> Cómo llegar
-                    </a>
-                  )}
-                </div>
-              </div>
-              {i < filtered.length - 1 && <Separator />}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
+}
+
+function dist(c: Cafe, o: LatLng): number {
+  return c.lat != null && c.lng != null ? distanceKm(o, { lat: c.lat, lng: c.lng }) : Number.POSITIVE_INFINITY
 }

@@ -6,7 +6,9 @@ import {
   deleteFeaturedRecipe,
   listFeaturedRecipes,
   listMyLogs,
+  listPendingCafes,
   listPublishedCoffees,
+  moderateCafe,
   setCoffeePublished,
   slugify,
   upsertFeaturedRecipe,
@@ -14,7 +16,9 @@ import {
 } from '@/lib/api'
 import { imageToJpegBase64 } from '@/lib/image'
 import { PHOTOS_BUCKET, photoUrl, supabase } from '@/lib/supabase'
-import { METHOD_FAMILIES, type Coffee, type CoffeeLog, type FeaturedAuthorRole, type FeaturedRecipe, type MethodFamily } from '@/lib/types'
+import { METHOD_FAMILIES, type Cafe, type Coffee, type CoffeeLog, type FeaturedAuthorRole, type FeaturedRecipe, type MethodFamily } from '@/lib/types'
+import { directionsUrl, instagramUrl } from '@/lib/geo'
+import { AtSign, Navigation } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
@@ -22,7 +26,7 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CountrySelect, ErrorBox, Eyebrow, Field, Photo, SectionTitle, Spinner, Title } from '@/components/primitives'
 
-type Tab = 'recetas' | 'cafes'
+type Tab = 'recetas' | 'cafes' | 'cafeterias'
 
 export function Admin() {
   const { user, profile, isAdmin } = useAuth()
@@ -50,8 +54,13 @@ export function Admin() {
         <Chip active={tab === 'cafes'} onClick={() => setTab('cafes')}>
           Catálogo de cafés
         </Chip>
+        <Chip active={tab === 'cafeterias'} onClick={() => setTab('cafeterias')}>
+          Cafeterías
+        </Chip>
       </div>
-      {tab === 'recetas' ? <FeaturedAdmin userId={user.id} /> : <CatalogAdmin userId={user.id} />}
+      {tab === 'recetas' && <FeaturedAdmin userId={user.id} />}
+      {tab === 'cafes' && <CatalogAdmin userId={user.id} />}
+      {tab === 'cafeterias' && <CafesAdmin userId={user.id} />}
     </div>
   )
 }
@@ -513,6 +522,89 @@ function CatalogAdmin({ userId }: { userId: string }) {
           </ul>
         )}
       </div>
+    </section>
+  )
+}
+
+// ---------------- Moderación de cafeterías ----------------
+
+function CafesAdmin({ userId }: { userId: string }) {
+  const [pending, setPending] = useState<Cafe[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const load = () => listPendingCafes().then(setPending).catch((e) => setError(e.message))
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function decide(c: Cafe, decision: 'approved' | 'rejected') {
+    let reason: string | undefined
+    if (decision === 'rejected') {
+      const r = prompt('Motivo del rechazo (lo verá quien la propuso):', 'No es una cafetería de especialidad')
+      if (r === null) return
+      reason = r.trim() || undefined
+    }
+    setBusy(c.id)
+    setError(null)
+    try {
+      await moderateCafe(userId, c.id, decision, reason)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <SectionTitle>Por revisar ({pending?.length ?? 0})</SectionTitle>
+        <p className="text-sm text-muted-foreground">Cafeterías propuestas por usuarios. Al aprobar aparecen en el mapa de inmediato.</p>
+      </div>
+      <ErrorBox message={error} />
+      {pending === null ? (
+        <Spinner />
+      ) : pending.length === 0 ? (
+        <p className="rounded-2xl bg-card px-4 py-4 text-sm text-muted-foreground">Nada pendiente.</p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {pending.map((c) => (
+            <li key={c.id} className="flex flex-col gap-3 rounded-[20px] bg-card p-3">
+              <div className="flex gap-3">
+                <Photo src={photoUrl(c.photo_path)} className="size-[72px] shrink-0 rounded-[14px]" />
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="eyebrow text-[10px]">{c.kind === 'cafe' ? 'Cafetería' : c.kind === 'roastery' ? 'Tostaduría' : 'Cafetería y tostaduría'}</span>
+                  <span className="text-[17px] font-medium leading-tight">{c.name}</span>
+                  <span className="text-sm text-muted-foreground">{[c.address, c.comuna, c.city].filter(Boolean).join(', ')}</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-[13px]">
+                    {c.lat != null && c.lng != null && (
+                      <a href={directionsUrl({ lat: c.lat, lng: c.lng })} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 underline-offset-4 hover:underline">
+                        <Navigation className="size-3.5" /> Ver en el mapa
+                      </a>
+                    )}
+                    {c.instagram && (
+                      <a href={instagramUrl(c.instagram)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
+                        <AtSign className="size-3.5" /> {c.instagram}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {c.description && <p className="text-sm text-muted-foreground">{c.description}</p>}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => decide(c, 'rejected')} disabled={busy === c.id}>
+                  Rechazar
+                </Button>
+                <Button size="sm" className="flex-1" onClick={() => decide(c, 'approved')} disabled={busy === c.id}>
+                  Aprobar
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

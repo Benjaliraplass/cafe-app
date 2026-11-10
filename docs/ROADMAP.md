@@ -52,8 +52,10 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Bloque 0: roles admin (`profiles.role`, `is_admin()`), cafés publicables, `featured_recipes`, moderación de cafeterías; 17/17 pruebas RLS con usuarios simulados (se cerró un hueco: el autor podía autoaprobar su cafetería)
 - [x] Bloque 1: Recetas con gramos como campo principal y personas a 200 ml; `suggest-recipe` v7
 - [x] Bloque 2: pestaña Inicio (recetas destacadas, cafés que van contigo, accesos rápidos), barra de 5 ítems con Escanear central, fichas públicas `/r/:slug` y `/c/:id` con Compartir, `/featured`, `/catalog`, panel `/admin` (recetas destacadas y publicación de cafés), seed de 7 recetas destacadas (Hoffmann V60/Aeropress/prensa, Kasuya 4:6, Wendelboe V60, Kalita y espresso base de Dripo) en `supabase/seed/featured_recipes.sql`
-- [ ] Bloque 3: toggle "compartir mi registro" en el detalle del café; meta tags OG para vistas previas en WhatsApp (Netlify Edge Function)
-- [ ] Bloque 4: Explorar con mapa (Leaflet + OSM), panel deslizable, alta de cafeterías y cola de moderación en `/admin`
+- [x] Bloque 3: switch "Compartir mi registro" y botón Compartir en el detalle; Netlify Edge Function `og.ts` con meta tags OG para `/r/*` y `/c/*`
+- [x] Bloque 4: Explorar con mapa (Leaflet + OSM, marcadores propios, mi ubicación, "Buscar en esta zona"), lista ordenada por distancia, filtros, "Mis propuestas" con estado; `/explore/new` con geocodificación Nominatim y marcador arrastrable; pestaña Cafeterías en `/admin` (aprobar / rechazar con motivo); sección "Cafeterías cerca" en Inicio; Explorar, Admin y Preview en chunks aparte (bundle 586 → 296 KB)
+- [ ] Aviso al admin cuando llega una cafetería nueva (hoy se ve el contador en `/admin`)
+- [ ] Seed inicial de cafeterías de Santiago (Benjamín propone la lista; se cargan aprobadas)
 - [ ] Bloque 5: login con Google vía Google Identity Services (necesita `VITE_GOOGLE_CLIENT_ID`); renombrar sitio en Netlify
 - [ ] Fotos para las recetas destacadas (subirlas desde `/admin`)
 
