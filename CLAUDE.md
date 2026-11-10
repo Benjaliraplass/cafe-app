@@ -32,6 +32,7 @@ src/
   lib/countries.ts     lista de países (español) para tostador y nacionalidad
   lib/recommend.ts     "cafés que van contigo": orden por afinidad con los cafés bien puntuados
   lib/share.ts         Web Share API con fallback a portapapeles
+  lib/analytics.ts     eventos de producto: track()/identify(), PostHog (carga diferida) + RPC track_event; atribución UTM/ref; refParam para enlaces compartidos
   lib/google.ts        Google Identity Services: carga del script, nonce, tipos (login con Google sin pasar por el dominio de Supabase)
   lib/geo.ts           distancia, geolocalización, geocodificación Nominatim, enlaces a mapas
   lib/taste.ts         perfil de gusto: tipos, etiquetas, inferencia desde el diario, texto para el prompt de recetas
@@ -62,6 +63,7 @@ docs/                  SPEC.md, ROADMAP.md
 - Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente (excepción puntual: subida de foto en Admin).
 - Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
+- Analítica: todo evento nuevo se declara en `EventName` (`src/lib/analytics.ts`) y en la taxonomía de `docs/SPEC.md` §8; se dispara con `track()` desde el contenedor (no desde la vista), sin PII en props.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.
 - JSON estructurado desde la IA: definir el schema como tool (`input_schema`) y llamar `callStructured` (ver `_shared/ai.ts`); Gemini usa `responseSchema`, Anthropic `tool_choice` forzado. Nunca parsear texto libre.
 - UI: diseño V3 de Figma (claro, escala de grises, DM Sans). Tokens como variables CSS en `src/index.css` (`:root` light, `.dark` dark) mapeadas a Tailwind con `@theme inline`; nombres shadcn (`background`, `card`, `muted`, `border`, `primary`...) más `tertiary` y `border-strong`. Utilidad `eyebrow` para etiquetas en mayúsculas. Fuente única: DM Sans (Google Fonts, cargada en `index.html`).
@@ -69,7 +71,7 @@ docs/                  SPEC.md, ROADMAP.md
 - Vistas con datos las separamos en contenedor (fetch) + vista presentacional (`HomeView`, `LogDetailView`) para poder previsualizarlas en `/preview`.
 - Commits en español, imperativo, cortos. Un cambio por commit.
 - Alias `@/` apunta a `src/` (tsconfig + vite).
-- Variables de entorno del frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_GOOGLE_CLIENT_ID` (ver `.env.example`). Nunca la service role key en el cliente.
+- Variables de entorno del frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_GOOGLE_CLIENT_ID`, `VITE_POSTHOG_KEY`/`VITE_POSTHOG_HOST` (opcionales) (ver `.env.example`). Nunca la service role key en el cliente.
 
 ## Comandos
 

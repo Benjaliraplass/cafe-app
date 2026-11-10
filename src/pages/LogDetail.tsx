@@ -8,6 +8,7 @@ import { BREW_METHODS, equipmentToText, type CoffeeLog, type Recipe, type Recipe
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { absoluteUrl, shareLink } from '@/lib/share'
+import { refParam, track } from '@/lib/analytics'
 import { Card } from '@/components/ui/card'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
@@ -62,16 +63,27 @@ export function LogDetail() {
       recipes={recipes}
       defaultEquipment={equipmentText}
       error={error}
-      onGenerate={async (method, equipment) =>
-        suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, dose_g: method === 'Espresso' ? 18 : 15, servings: 1, equipment: equipment || undefined })
-      }
+      onGenerate={async (method, equipment) => {
+        const startedAt = Date.now()
+        track('recipe_requested', { dripper: method, from: 'detail' })
+        try {
+          const r = await suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, dose_g: method === 'Espresso' ? 18 : 15, servings: 1, equipment: equipment || undefined })
+          track('recipe_generated', { dripper: method, from: 'detail', duration_ms: Date.now() - startedAt })
+          return r
+        } catch (e) {
+          track('recipe_failed', { dripper: method, from: 'detail', reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' })
+          throw e
+        }
+      }}
       onSaveRecipe={async (recipe) => {
         if (!user) return
         await saveRecipe({ userId: user.id, coffeeId: log.coffee_id, logId: log.id, recipe })
+        track('recipe_saved', { from: 'detail' })
         setRecipes(await listRecipesForLog(log.id))
       }}
       onDelete={async () => {
         await deleteLog(log.id)
+        track('log_deleted')
         navigate('/logs', { replace: true })
       }}
       onToggleFavorite={async () => {
@@ -88,6 +100,7 @@ export function LogDetail() {
         setLog({ ...log, is_public: value })
         try {
           await setLogPublic(log.id, value)
+          track('log_made_public', { value })
         } catch (e) {
           setLog({ ...log, is_public: !value })
           setError(e instanceof Error ? e.message : 'No se pudo actualizar')
@@ -164,8 +177,9 @@ export function LogDetailView({
     const res = await shareLink({
       title: `${c.name} · ${c.roaster?.name ?? 'Dripo'}`,
       text: [c.roaster?.name, c.name, c.origin_country, c.process].filter(Boolean).join(' · '),
-      url: absoluteUrl(`/c/${c.id}`),
+      url: absoluteUrl(`/c/${c.id}${refParam(log.user_id)}`),
     })
+    if (res !== 'failed') track('share_clicked', { type: 'log', result: res })
     if (res === 'copied') {
       setShared('copied')
       setTimeout(() => setShared('idle'), 1800)

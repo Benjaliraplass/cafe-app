@@ -4,6 +4,8 @@ import { ChevronLeft, Share2, Star } from 'lucide-react'
 import { getPublicCoffee, listPublishedCoffees } from '@/lib/api'
 import { avatarUrl, photoUrl } from '@/lib/supabase'
 import { absoluteUrl, shareLink } from '@/lib/share'
+import { refParam, track, trackPublicView } from '@/lib/analytics'
+import { useAuth } from '@/hooks/useAuth'
 import type { Coffee, CoffeePublicStats, PublicLog } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -15,12 +17,17 @@ import { CoffeeCard } from '@/components/cards'
 export function PublicCoffeePage() {
   const { id } = useParams<{ id: string }>()
   const [data, setData] = useState<Awaited<ReturnType<typeof getPublicCoffee>> | undefined>(undefined)
+  const { user, loading } = useAuth()
   useEffect(() => {
     if (!id) return
     getPublicCoffee(id)
       .then(setData)
       .catch(() => setData(null))
   }, [id])
+  useEffect(() => {
+    if (!id || loading) return
+    trackPublicView('public_coffee_viewed', 'coffee', { coffee_id: id }, !!user)
+  }, [id, loading, user])
 
   if (data === undefined) {
     return (
@@ -44,14 +51,16 @@ export function PublicCoffeePage() {
 
 export function PublicCoffeeView({ coffee: c, stats, logs }: { coffee: Coffee; stats: CoffeePublicStats | null; logs: PublicLog[] }) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [copied, setCopied] = useState(false)
 
   async function share() {
     const res = await shareLink({
       title: `${c.name} · ${c.roaster?.name ?? 'Dripo'}`,
       text: [c.roaster?.name, c.name, c.origin_country, c.process].filter(Boolean).join(' · '),
-      url: absoluteUrl(`/c/${c.id}`),
+      url: absoluteUrl(`/c/${c.id}${refParam(user?.id)}`),
     })
+    if (res !== 'failed') track('share_clicked', { type: 'coffee', result: res })
     if (res === 'copied') {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
@@ -152,6 +161,7 @@ export function PublicCoffeeView({ coffee: c, stats, logs }: { coffee: Coffee; s
 export function Catalog() {
   const [items, setItems] = useState<Coffee[] | null>(null)
   useEffect(() => {
+    track('catalog_viewed')
     listPublishedCoffees(100).then(setItems).catch(() => setItems([]))
   }, [])
   return (

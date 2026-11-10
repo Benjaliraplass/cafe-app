@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { track } from '@/lib/analytics'
 import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
 import { tasteSummary, tasteToPreferences, type TasteProfile } from '@/lib/taste'
 import { photoUrl } from '@/lib/supabase'
@@ -66,10 +67,23 @@ export function Recipes() {
       taste={taste}
       initial={initial}
       error={error}
-      onGenerate={(input) => suggestRecipe(input)}
+      onGenerate={async (input) => {
+        const startedAt = Date.now()
+        const from = initial.logId ? 'inicio' : 'recipes'
+        track('recipe_requested', { dripper: input.dripper, family: input.method_family ?? null, from, servings: input.servings ?? null })
+        try {
+          const r = await suggestRecipe(input)
+          track('recipe_generated', { dripper: input.dripper, from, duration_ms: Date.now() - startedAt })
+          return r
+        } catch (e) {
+          track('recipe_failed', { dripper: input.dripper, from, reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' })
+          throw e
+        }
+      }}
       onSave={async (recipe, log) => {
         if (!user) return
         await saveRecipe({ userId: user.id, coffeeId: log?.coffee_id ?? null, logId: log?.id ?? null, recipe })
+        track('recipe_saved', { from: 'recipes' })
         setSaved(await listMyRecipes(user.id))
       }}
     />

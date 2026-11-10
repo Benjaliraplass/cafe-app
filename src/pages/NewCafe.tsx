@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Camera, ChevronLeft, MapPin, Search } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { track } from '@/lib/analytics'
 import { submitCafe, type NewCafeInput } from '@/lib/api'
 import { imageToJpegBase64 } from '@/lib/image'
 import { PHOTOS_BUCKET, photoUrl, supabase } from '@/lib/supabase'
@@ -114,6 +115,7 @@ export function NewCafe() {
         photo_path: photoPath,
       }
       await submitCafe(user.id, input)
+      track('cafe_proposed', { kind: input.kind, has_maps_url: !!input.google_maps_url })
       navigate('/explore', { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo enviar')

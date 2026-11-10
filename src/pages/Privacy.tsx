@@ -54,8 +54,10 @@ export function Privacy() {
               cafeterías por distancia o centrar el mapa. No se guarda en nuestros servidores.
             </li>
             <li>
-              <strong>Datos técnicos:</strong> los necesarios para mantener tu sesión iniciada (tokens almacenados en
-              tu dispositivo) y registros básicos de funcionamiento del servicio.
+              <strong>Datos técnicos y de uso:</strong> los necesarios para mantener tu sesión iniciada (tokens
+              almacenados en tu dispositivo), registros básicos de funcionamiento del servicio y eventos de uso de la
+              aplicación (qué pantallas abres, cuándo escaneas, pides una receta o compartes), asociados a un
+              identificador interno y nunca a tu correo. Si llegas por un enlace compartido, guardamos de quién vino.
             </li>
           </ul>
           <P>Dripo no accede a tus contactos ni a otras fotos de tu dispositivo fuera de las que tú eliges subir.</P>
@@ -67,7 +69,8 @@ export function Privacy() {
             <li>Para leer automáticamente la etiqueta del café a partir de la foto que subes y prellenar la ficha.</li>
             <li>Para generar recetas de preparación personalizadas según el café, el método, el equipo y el perfil de gusto que indiques.</li>
             <li>Para recomendarte cafés del catálogo afines a lo que has puntuado bien.</li>
-            <li>Para mejorar la aplicación durante la beta y responder a tu feedback.</li>
+            <li>Para entender cómo se usa Dripo (qué funciona y qué no) y mejorarla durante la beta.</li>
+            <li>Para responder a tu feedback.</li>
           </ul>
           <P>No vendemos tus datos ni los usamos para publicidad de terceros.</P>
         </Section>
@@ -89,6 +92,10 @@ export function Privacy() {
             <li>
               <strong>OpenFreeMap y OpenStreetMap</strong>: entregan el mapa y la búsqueda de direcciones; reciben la zona
               del mapa que consultas, sin tu identidad.
+            </li>
+            <li>
+              <strong>PostHog</strong>: analítica de producto; recibe los eventos de uso con un identificador interno,
+              sin tu correo ni tu nombre.
             </li>
             <li>
               <strong>Google</strong> como proveedor de inicio de sesión, solo si eliges entrar con Google.

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Camera, ChevronLeft, Images, PenLine } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { track } from '@/lib/analytics'
 import { imageToJpegBase64 } from '@/lib/image'
 import { saveLog, scanLabel } from '@/lib/api'
 import type { ScanResult } from '@/lib/types'
@@ -28,15 +29,22 @@ export function Scan() {
     if (!file) return
     setError(null)
     setStep('scanning')
+    const startedAt = Date.now()
+    track('scan_started', { from: 'photo' })
     try {
       const { base64, blob } = await imageToJpegBase64(file)
       setBlob(blob)
       setPreview(URL.createObjectURL(blob))
       const result = await scanLabel(base64, 'image/jpeg')
+      track('scan_completed', {
+        duration_ms: Date.now() - startedAt,
+        fields_filled: Object.values(result).filter((v) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0)).length,
+      })
       setScan(result)
       setForm(formFromScan(result))
       setStep('review')
     } catch (err) {
+      track('scan_failed', { reason: err instanceof Error ? err.message.slice(0, 80) : 'unknown', duration_ms: Date.now() - startedAt })
       setError(err instanceof Error ? err.message : 'No se pudo leer la etiqueta')
       setScan(null)
       setForm(emptyCoffeeLogForm)
@@ -45,6 +53,7 @@ export function Scan() {
   }
 
   function manualEntry() {
+    track('scan_started', { from: 'manual' })
     setScan(null)
     setBlob(null)
     setPreview(null)
@@ -59,6 +68,7 @@ export function Scan() {
     try {
       const { coffee, log } = formToPayload(form)
       const id = await saveLog({ userId: user.id, photoBlob: blob, scan, coffee, log })
+      track('log_saved', { rating: log.rating ?? 0, method: log.brew_method ?? null, from_scan: scan != null, has_photo: blob != null })
       navigate(`/log/${id}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar')

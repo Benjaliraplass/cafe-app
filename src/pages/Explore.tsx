@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, LocateFixed, Plus, Search } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { track } from '@/lib/analytics'
 import { listCafes, listMyCafes } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
 import { currentPosition, distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
@@ -88,6 +89,7 @@ export function ExploreView({
 
   function select(id: string | null) {
     setSelected(id)
+    if (id) track('cafe_viewed', { cafe_id: id })
   }
 
   async function locate() {

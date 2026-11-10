@@ -6,6 +6,7 @@ import { instagramUrl } from '@/lib/geo'
 import { photoUrl } from '@/lib/supabase'
 import { Photo, Rating } from '@/components/primitives'
 import { cn } from '@/lib/utils'
+import { track } from '@/lib/analytics'
 
 export const AUTHOR_ROLE_LABEL: Record<FeaturedRecipe['author_role'], string> = {
   tostador: 'Tostador',
@@ -136,7 +137,13 @@ export function CafeRow({ c, active, onClick, distance }: { c: Cafe; active?: bo
       </button>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
         {mapsUrl && (
-          <a href={mapsUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline">
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => track('cafe_maps_clicked', { cafe_id: c.id, from: 'list' })}
+            className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline"
+          >
             <MapPin className="size-3.5" strokeWidth={1.8} /> Ver en Google Maps
           </a>
         )}

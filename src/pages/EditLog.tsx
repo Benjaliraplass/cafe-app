@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { track } from '@/lib/analytics'
 import { imageToJpegBase64 } from '@/lib/image'
 import { getLog, updateLog } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
@@ -52,6 +53,7 @@ export function EditLog({ previewLog }: { previewLog?: CoffeeLog } = {}) {
     try {
       const { coffee, log: logFields } = formToPayload(form)
       await updateLog({ userId: user.id, log, photoBlob: blob, coffee, logFields })
+      track('log_edited')
       navigate(`/log/${log.id}`, { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar')

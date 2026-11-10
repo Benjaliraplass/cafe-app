@@ -6,6 +6,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Versión de la app para analítica: commit de Netlify (COMMIT_REF) o 'dev'.
+  define: { __APP_VERSION__: JSON.stringify((process.env.COMMIT_REF ?? 'dev').slice(0, 7)) },
   plugins: [
     react(),
     tailwindcss(),

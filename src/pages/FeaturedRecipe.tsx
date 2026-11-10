@@ -4,6 +4,8 @@ import { ChevronLeft, ExternalLink, Share2 } from 'lucide-react'
 import { getFeaturedRecipe, listFeaturedRecipes } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
 import { absoluteUrl, shareLink } from '@/lib/share'
+import { refParam, track, trackPublicView } from '@/lib/analytics'
+import { useAuth } from '@/hooks/useAuth'
 import type { FeaturedRecipe as FeaturedRecipeT } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -15,12 +17,17 @@ import { AUTHOR_ROLE_LABEL, FeaturedRecipeCard } from '@/components/cards'
 export function FeaturedRecipePage() {
   const { slug } = useParams<{ slug: string }>()
   const [recipe, setRecipe] = useState<FeaturedRecipeT | null | undefined>(undefined)
+  const { user, loading } = useAuth()
   useEffect(() => {
     if (!slug) return
     getFeaturedRecipe(slug)
       .then(setRecipe)
       .catch(() => setRecipe(null))
   }, [slug])
+  useEffect(() => {
+    if (!slug || loading) return
+    trackPublicView('featured_recipe_viewed', 'recipe', { slug }, !!user)
+  }, [slug, loading, user])
 
   if (recipe === undefined) {
     return (
@@ -44,6 +51,7 @@ export function FeaturedRecipePage() {
 
 export function FeaturedRecipeView({ r }: { r: FeaturedRecipeT }) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle')
   const p = r.params
   const isEspresso = r.method_family === 'espresso'
@@ -61,8 +69,9 @@ export function FeaturedRecipeView({ r }: { r: FeaturedRecipeT }) {
     const res = await shareLink({
       title: `${r.title} · Dripo`,
       text: `${r.title}, por ${r.author}${r.event ? ` (${r.event})` : ''}.`,
-      url: absoluteUrl(`/r/${r.slug}`),
+      url: absoluteUrl(`/r/${r.slug}${refParam(user?.id)}`),
     })
+    if (res !== 'failed') track('share_clicked', { type: 'recipe', result: res })
     if (res === 'copied') {
       setShareState('copied')
       setTimeout(() => setShareState('idle'), 1800)

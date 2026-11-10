@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { getProfile, type Profile } from '../lib/api'
+import { identify, initAnalytics, resetAnalytics, trackAuth } from '../lib/analytics'
 
 interface AuthState {
   user: User | null
@@ -31,13 +32,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    initAnalytics()
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setLoading(false)
+      if (data.session?.user) identify(data.session.user)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       setLoading(false)
+      if (s?.user) {
+        identify(s.user)
+        // SIGNED_IN llega al iniciar sesión (y en algunos navegadores al volver a la pestaña);
+        // trackAuth registra signup/login una sola vez por sesión del navegador.
+        if (event === 'SIGNED_IN') trackAuth(s.user)
+      }
+      if (event === 'SIGNED_OUT') resetAnalytics()
     })
     return () => sub.subscription.unsubscribe()
   }, [])

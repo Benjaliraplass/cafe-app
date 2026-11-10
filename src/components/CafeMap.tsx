@@ -7,6 +7,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
 setWorkerUrl(maplibreWorkerUrl)
 import type { Cafe } from '@/lib/types'
+import { track } from '@/lib/analytics'
 import { DEFAULT_CENTER, type LatLng } from '@/lib/geo'
 import { cn } from '@/lib/utils'
 
@@ -198,6 +199,7 @@ export function CafeMap({
       popup.current = new Popup({ closeButton: false, closeOnClick: false, focusAfterOpen: false, offset: [0, -(PIN_H + 2)], maxWidth: '260px', className: 'dripo-popup-wrap' }).addTo(m)
     }
     popup.current.setLngLat([c.lng, c.lat]).setHTML(popupHtml(c))
+    popup.current.getElement()?.querySelector('.dripo-popup-link')?.addEventListener('click', () => track('cafe_maps_clicked', { cafe_id: c.id, from: 'map' }), { once: true })
 
     const pt = m.project([c.lng, c.lat])
     const { clientWidth: w, clientHeight: h } = m.getContainer()

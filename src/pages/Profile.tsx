@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Camera, Mail, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { track } from '@/lib/analytics'
 import { getProfile, getTasteProfile, listMyLogs, updateEquipment, updateProfile, uploadAvatar, upsertTasteProfile, type Profile as ProfileData } from '@/lib/api'
 import { inferTaste, type InferredTaste, type TasteProfile } from '@/lib/taste'
 import { TasteProfileCard } from '@/components/TasteProfileCard'
@@ -56,6 +57,7 @@ export function Profile() {
       }}
       onSaveIdentity={async (fields) => {
         await updateProfile(user.id, fields)
+        track('profile_updated')
         refreshProfile()
       }}
       onSaveEquipment={(eq) => updateEquipment(user.id, eq)}
@@ -63,6 +65,7 @@ export function Profile() {
       inferred={inferred}
       onSaveTaste={async (t) => {
         await upsertTasteProfile(user.id, t)
+        track('taste_profile_saved', { processes: t.processes.length, flavors: t.flavors.length, drinks: t.drinks.length })
         setTaste(t)
       }}
       onSignOut={signOut}
@@ -310,7 +313,7 @@ export function ProfileView({
             </p>
           </div>
           <Button asChild variant="outline" size="sm" className="w-full">
-            <a href={FEEDBACK_MAILTO}>
+            <a href={FEEDBACK_MAILTO} onClick={() => track('feedback_clicked')}>
               <Mail width={16} height={16} strokeWidth={1.8} />
               Enviar feedback
             </a>
