@@ -77,7 +77,7 @@ export function InicioView({
   const logsCount = logs?.length ?? 0
   const recent = (logs ?? []).slice(0, 8)
   const savedRecipes = (recipes ?? []).slice(0, 6)
-  const countries = new Set((logs ?? []).map((l) => l.coffee?.origin_country).filter(Boolean)).size
+  const recipesCount = recipes?.length ?? 0
   const streak = weeklyStreak((logs ?? []).map((l) => l.consumed_at))
   // Con ubicación: las más cercanas. Sin ubicación: las últimas aprobadas (no un orden alfabético que parece arbitrario).
   const nearby = (cafes ?? [])
@@ -105,12 +105,12 @@ export function InicioView({
         </Link>
       </header>
 
-      {/* Tu diario en números (estilo Untappd): cafés, países, semanas seguidas */}
+      {/* Tu diario en números (estilo Untappd): cafés, recetas guardadas, semanas seguidas */}
       {logsCount > 0 && (
         <section className="-mt-4 px-6">
           <div className="flex items-stretch divide-x divide-border rounded-[20px] bg-card">
             <Stat value={logsCount} label={logsCount === 1 ? 'café' : 'cafés'} />
-            <Stat value={countries} label={countries === 1 ? 'país' : 'países'} />
+            <Stat value={recipesCount} label={recipesCount === 1 ? 'receta' : 'recetas'} />
             <Stat value={streak} label={streak === 1 ? 'semana seguida' : 'semanas seguidas'} />
           </div>
         </section>
