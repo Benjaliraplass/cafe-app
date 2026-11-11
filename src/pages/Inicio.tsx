@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Camera, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { getTasteProfile, listCafes, listFeaturedRecipes, listMyLogs, listPublishedCoffees, type Profile } from '@/lib/api'
+import { getTasteProfile, listCafes, listFeaturedRecipes, listMyLogs, listMyRecipes, listPublishedCoffees, type Profile, type SavedRecipe } from '@/lib/api'
 import type { TasteProfile } from '@/lib/taste'
 import { distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
 import { recommendCoffees } from '@/lib/recommend'
@@ -10,13 +10,14 @@ import { avatarUrl } from '@/lib/supabase'
 import type { Cafe, Coffee, CoffeeLog, FeaturedRecipe } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBox, Eyebrow, Title } from '@/components/primitives'
-import { CafeRow, CoffeeCard, FeaturedRecipeCard, HScroll, LogCard, SectionHeader } from '@/components/cards'
+import { CafeRow, CoffeeCard, FeaturedRecipeCard, HScroll, LogCard, SavedRecipeCard, SectionHeader } from '@/components/cards'
 
 export function Inicio() {
   const { user, profile } = useAuth()
   const [featured, setFeatured] = useState<FeaturedRecipe[] | null>(null)
   const [coffees, setCoffees] = useState<Coffee[] | null>(null)
   const [logs, setLogs] = useState<CoffeeLog[] | null>(null)
+  const [recipes, setRecipes] = useState<SavedRecipe[] | null>(null)
   const [cafes, setCafes] = useState<Cafe[] | null>(null)
   const [me, setMe] = useState<LatLng | null>(null)
   const [taste, setTaste] = useState<TasteProfile | null>(null)
@@ -25,11 +26,12 @@ export function Inicio() {
   useEffect(() => {
     if (!user) return
     getTasteProfile(user.id).then(setTaste).catch(() => {})
-    Promise.all([listFeaturedRecipes(), listPublishedCoffees(30), listMyLogs(user.id)])
-      .then(([f, c, l]) => {
+    Promise.all([listFeaturedRecipes(), listPublishedCoffees(30), listMyLogs(user.id), listMyRecipes(user.id).catch(() => [] as SavedRecipe[])])
+      .then(([f, c, l, r]) => {
         setFeatured(f)
         setCoffees(c)
         setLogs(l)
+        setRecipes(r)
       })
       .catch((e) => setError(e.message))
     listCafes().then(setCafes).catch(() => setCafes([]))
@@ -43,6 +45,7 @@ export function Inicio() {
       featured={featured}
       recommended={coffees && logs ? recommendCoffees(coffees, logs, 10, taste) : null}
       logs={logs}
+      recipes={recipes}
       cafes={cafes}
       me={me}
       error={error}
@@ -56,6 +59,7 @@ export function InicioView({
   featured,
   recommended,
   logs,
+  recipes = null,
   cafes,
   me,
   error,
@@ -65,16 +69,19 @@ export function InicioView({
   featured: FeaturedRecipe[] | null
   recommended: Coffee[] | null
   logs: CoffeeLog[] | null
+  recipes?: SavedRecipe[] | null
   cafes: Cafe[] | null
   me: LatLng | null
   error: string | null
 }) {
   const logsCount = logs?.length ?? 0
   const recent = (logs ?? []).slice(0, 8)
+  const savedRecipes = (recipes ?? []).slice(0, 6)
+  // Con ubicación: las más cercanas. Sin ubicación: las últimas aprobadas (no un orden alfabético que parece arbitrario).
   const nearby = (cafes ?? [])
     .filter((c) => c.lat != null && c.lng != null)
     .map((c) => ({ c, km: me ? distanceKm(me, { lat: c.lat!, lng: c.lng! }) : null }))
-    .sort((a, b) => (a.km ?? 0) - (b.km ?? 0))
+    .sort((a, b) => (me ? (a.km ?? 0) - (b.km ?? 0) : (b.c.created_at ?? '').localeCompare(a.c.created_at ?? '')))
     .slice(0, 4)
   const name = profile?.display_name?.trim().split(' ')[0] || email.split('@')[0]
   const src = avatarUrl(profile?.avatar_url)
@@ -134,33 +141,48 @@ export function InicioView({
         )}
       </section>
 
-      {/* Receta para hoy */}
-      {logs !== null && (
-        <section className="px-6">
-          {(() => {
-            const last = recent[0]
-            const dripper = profile?.equipment?.drippers?.[0] ?? 'V60'
-            const to = last ? `/recipes?log=${last.id}&dripper=${encodeURIComponent(dripper)}` : '/recipes'
-            return (
+      {/* Recetas: pedir una para hoy + las guardadas */}
+      {logs !== null && (() => {
+        const last = recent[0]
+        const dripper = profile?.equipment?.drippers?.[0] ?? 'V60'
+        const to = last ? `/recipes?log=${last.id}&dripper=${encodeURIComponent(dripper)}` : '/recipes'
+        const headline = last?.coffee ? `Prepara ${last.coffee.name} en ${dripper}` : 'Pide una receta a medida'
+        const body = last?.coffee ? 'Con tu equipo y tu perfil de gusto, en dos toques.' : 'Elige café, método y cantidad; la IA hace el resto.'
+        if (savedRecipes.length === 0) {
+          return (
+            <section className="px-6">
               <Link to={to} className="flex items-center gap-4 rounded-[22px] bg-foreground px-5 py-4 text-background transition-transform active:scale-[0.99]">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-background/15">
                   <BookOpen className="size-5" strokeWidth={1.7} />
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="eyebrow text-[10px] text-background/70">Receta para hoy</span>
-                  <span className="truncate text-[17px] font-medium leading-tight">
-                    {last?.coffee ? `Prepara ${last.coffee.name} en ${dripper}` : 'Pide una receta a medida'}
-                  </span>
-                  <span className="truncate text-[13px] text-background/70">
-                    {last?.coffee ? 'Con tu equipo y tu perfil de gusto, en dos toques.' : 'Elige café, método y cantidad; la IA hace el resto.'}
-                  </span>
+                  <span className="truncate text-[17px] font-medium leading-tight">{headline}</span>
+                  <span className="truncate text-[13px] text-background/70">{body}</span>
                 </span>
                 <ChevronRight className="size-5 shrink-0 text-background/70" strokeWidth={1.7} />
               </Link>
-            )
-          })()}
-        </section>
-      )}
+            </section>
+          )
+        }
+        return (
+          <section className="flex flex-col gap-4 px-6">
+            <SectionHeader title="Tus recetas" hint="La de hoy y las que guardaste." to="/recipes?view=saved" />
+            <HScroll>
+              <Link to={to} className="flex h-[132px] w-[220px] shrink-0 snap-start flex-col justify-between rounded-[20px] bg-foreground px-4 py-3.5 text-background transition-transform active:scale-[0.985]">
+                <span className="eyebrow text-[10px] text-background/70">Receta para hoy</span>
+                <span className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[-0.01em]">{headline}</span>
+                <span className="flex items-center gap-1 text-xs text-background/70">
+                  Pedir ahora <ChevronRight className="size-3.5" strokeWidth={2} />
+                </span>
+              </Link>
+              {savedRecipes.map((r) => (
+                <SavedRecipeCard key={r.id} r={r} coffeeName={r.coffee?.name} />
+              ))}
+            </HScroll>
+          </section>
+        )
+      })()}
 
       {/* Recetas destacadas */}
       <section className="flex flex-col gap-4 px-6">
@@ -209,7 +231,7 @@ export function InicioView({
       {/* Cafeterías cerca */}
       {cafes && cafes.length > 0 && (
         <section className="flex flex-col gap-3 px-6">
-          <SectionHeader title={me ? 'Cafeterías cerca' : 'Cafeterías de especialidad'} hint={me ? 'Ordenadas por distancia.' : 'Activa tu ubicación en Explorar para verlas por cercanía.'} to="/explore" />
+          <SectionHeader title={me ? 'Cafeterías cerca' : 'Cafeterías de especialidad'} hint={me ? 'Ordenadas por distancia.' : 'Las últimas agregadas. Activa tu ubicación en Explorar para verlas por cercanía.'} to="/explore" />
           <ul className="flex flex-col divide-y divide-border">
             {nearby.map(({ c, km }) => (
               <CafeRow key={c.id} c={c} distance={km != null ? formatDistance(km) : null} />

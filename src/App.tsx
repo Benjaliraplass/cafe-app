@@ -21,6 +21,7 @@ import { Catalog, PublicCoffeePage } from '@/pages/PublicCoffee'
 import { Privacy } from '@/pages/Privacy'
 import { Spinner } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
+import { UpdateBanner } from '@/components/UpdateBanner'
 
 function Loading() {
   return (
@@ -109,6 +110,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <UpdateBanner />
         <Root />
       </BrowserRouter>
     </AuthProvider>

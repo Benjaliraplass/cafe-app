@@ -111,6 +111,8 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Espresso sin máquina o molino en el perfil: tarjeta "¿Con qué haces espresso?"; lo escrito se guarda en el perfil al generar
 - [x] `suggest-recipe` v9: adapta la receta a la máquina y advierte cuando el molino no es apto para espresso
 - [x] Política de privacidad: proveedores por categoría (sin stack) y uso agregado para mejorar la app; doc editable en claude.ai
+- [x] Inicio: sección "Tus recetas" (Receta para hoy + guardadas en scroll horizontal); cafeterías sin ubicación ordenadas por las últimas agregadas
+- [x] Banda "Hay una versión nueva" (service worker en modo prompt) para que los deploys no confundan en el beta
 - [x] Cuadro de molienda: en la tarjeta va solo la primera idea ("Media"); el detalle debajo. El prompt pide `grind` de 1-3 palabras y el matiz en `grind_reference`
 
 ## Fase 2 — Recetas

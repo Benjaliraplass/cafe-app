@@ -67,7 +67,7 @@ export function Preview() {
       <main className="flex-1 pb-32">
         {v === 'home' && <HomeView logs={logs} error={null} onToggleFavorite={noop} />}
         {v === 'inicio' && (
-          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logs={logs} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
+          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {} }} featured={featured} recommended={publishedCoffees} logs={logs} recipes={[{ id: 'r1', coffee_log_id: logs[0].id, brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: new Date(Date.now() - 2 * 86400000).toISOString(), coffee: { id: 'c', name: logs[0].coffee?.name ?? 'Catiope', roaster: null } }, { id: 'r2', coffee_log_id: null, brew_method: 'Aeropress', title: 'Aeropress para Etiopía natural, 15 g', params: { ...recipe.params, dose_g: 15, ratio: '1:15', total_time: '2:30' }, steps: recipe.steps, rationale: null, created_at: new Date(Date.now() - 9 * 86400000).toISOString(), coffee: null }]} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
         )}
         {v === 'featured' && <FeaturedRecipeView r={featured[0]} />}
         {v === 'explore' && <ExploreView cafes={cafes} mine={[{ ...cafes[0], id: 'p1', name: 'Mi propuesta', status: 'pending' }]} error={null} me={{ lat: -33.4372, lng: -70.6506 }} onLocate={noop} />}

@@ -42,7 +42,8 @@ src/
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
   components/EquipmentPicker.tsx  equipo para una receta: chips del perfil (toggle por receta), campo extra, tarjeta máquina/molino en espresso que se guarda al perfil; arma la línea para el prompt
-  components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, CoffeeCard, CafeRow, SectionHeader (Inicio y listados)
+  components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, SavedRecipeCard, CoffeeCard, CafeRow, SectionHeader, timeAgo (Inicio y listados)
+  components/UpdateBanner.tsx  aviso "Hay una versión nueva" del service worker (registerType 'prompt'; el usuario decide cuándo recargar)
   components/AdminMetrics.tsx  pestaña Métricas de Admin: KPIs, viralidad, actividad, embudo, retención, top, usuarios, CSV (AdminMetricsView para preview)
   components/TasteProfileCard.tsx  tarjeta + cuestionario del perfil de gusto (Perfil)
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto

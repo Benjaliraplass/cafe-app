@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { AtSign, MapPin, Star } from 'lucide-react'
-import type { Cafe, Coffee, CoffeeLog, CoffeePublicStats, FeaturedRecipe } from '@/lib/types'
+import type { Cafe, Coffee, CoffeeLog, CoffeePublicStats, FeaturedRecipe, Recipe } from '@/lib/types'
 import { instagramUrl } from '@/lib/geo'
 import { photoUrl } from '@/lib/supabase'
 import { Photo, Rating } from '@/components/primitives'
@@ -44,6 +44,33 @@ export function FeaturedRecipeCard({ r, className }: { r: FeaturedRecipe; classN
       </div>
     </Link>
   )
+}
+
+/** Tarjeta de una receta guardada (Inicio). Abre el café al que pertenece; sin café, el recetario. */
+export function SavedRecipeCard({ r, coffeeName, className }: { r: Recipe; coffeeName?: string | null; className?: string }) {
+  const p = r.params
+  const facts = [p.dose_g ? `${p.dose_g} g` : null, p.ratio || null, p.total_time || null].filter(Boolean).join(' · ')
+  return (
+    <Link
+      to={r.coffee_log_id ? `/log/${r.coffee_log_id}` : '/recipes?view=saved'}
+      className={cn('flex h-[132px] w-[200px] shrink-0 snap-start flex-col justify-between rounded-[20px] bg-card px-4 py-3.5 transition-transform active:scale-[0.985]', className)}
+    >
+      <span className="eyebrow truncate text-[10px]">
+        {r.brew_method} · {timeAgo(r.created_at)}
+      </span>
+      <span className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[-0.01em]">{coffeeName || r.title || 'Receta a medida'}</span>
+      <span className="truncate text-xs text-muted-foreground">{facts}</span>
+    </Link>
+  )
+}
+
+/** "hoy", "ayer", "hace 3 días", "12 oct". */
+export function timeAgo(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
+  if (days <= 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  if (days < 14) return `hace ${days} días`
+  return new Date(iso).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }).replace('.', '')
 }
 
 /** Tarjeta de un registro propio (últimos escaneos en Inicio). */
