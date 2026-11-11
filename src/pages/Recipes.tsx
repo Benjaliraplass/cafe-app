@@ -3,16 +3,17 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { track } from '@/lib/analytics'
-import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
+import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, updateEquipment, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
 import { tasteSummary, tasteToPreferences, type TasteProfile } from '@/lib/taste'
 import { photoUrl } from '@/lib/supabase'
-import { METHOD_FAMILIES, TASTE_PREFERENCES, equipmentToText, type CoffeeLog, type Equipment, type MethodFamily, type RecipeData } from '@/lib/types'
+import { METHOD_FAMILIES, TASTE_PREFERENCES, type CoffeeLog, type Equipment, type MethodFamily, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ErrorBox, Eyebrow, Field, Photo, Spinner, Title } from '@/components/primitives'
+import { ErrorBox, Eyebrow, Photo, Spinner, Title } from '@/components/primitives'
+import { EMPTY_SELECTION, EquipmentPicker, equipmentSelectionToText, espressoPatch, type EquipmentSelection } from '@/components/EquipmentPicker'
 import { RecipeCard } from '@/pages/LogDetail'
 import { cn } from '@/lib/utils'
 
@@ -80,6 +81,12 @@ export function Recipes() {
           throw e
         }
       }}
+      onSaveEquipment={async (patch) => {
+        if (!user) return
+        const next = { ...(equipment ?? {}), ...patch }
+        await updateEquipment(user.id, next)
+        setEquipment(next)
+      }}
       onSave={async (recipe, log) => {
         if (!user) return
         await saveRecipe({ userId: user.id, coffeeId: log?.coffee_id ?? null, logId: log?.id ?? null, recipe })
@@ -100,6 +107,7 @@ export function RecipesView({
   error: outerError,
   onGenerate,
   onSave,
+  onSaveEquipment,
 }: {
   logs: CoffeeLog[] | null
   saved: SavedRecipe[] | null
@@ -109,6 +117,8 @@ export function RecipesView({
   error: string | null
   onGenerate: (input: SuggestRecipeInput) => Promise<RecipeData>
   onSave: (recipe: RecipeData, log: CoffeeLog | null) => Promise<void>
+  /** Guarda en el perfil la máquina/molino escritos en la tarjeta de espresso. */
+  onSaveEquipment?: (patch: Partial<Equipment>) => Promise<void>
 }) {
   const initialLog = initial?.logId ? (logs ?? []).find((l) => l.id === initial.logId) ?? null : null
   const initialFamily = initial?.dripper ? (METHOD_FAMILIES.find((f) => f.drippers.includes(initial.dripper!))?.id ?? null) : null
@@ -120,7 +130,7 @@ export function RecipesView({
   const [dripper, setDripper] = useState<string | null>(initialFamily ? (initial?.dripper ?? null) : null)
   // Cantidad: la dosis de café manda; las personas (200 ml c/u) se derivan con el ratio de la familia.
   const [dose, setDose] = useState(initialFamily === 'espresso' ? '18' : '15')
-  const [equipment, setEquipment] = useState(() => equipmentToText(profileEquipment))
+  const [equipmentSel, setEquipmentSel] = useState<EquipmentSelection>(EMPTY_SELECTION)
   const [showAllMethods, setShowAllMethods] = useState(!profileEquipment?.drippers?.length)
   const myDrippers = profileEquipment?.drippers ?? []
   const [pref, setPref] = useState<string | null>(null)
@@ -167,6 +177,11 @@ export function RecipesView({
     setSavedOk(false)
     setStep('result')
     try {
+      // Lo escrito en la tarjeta de espresso pasa al perfil; si falla, la receta sigue igual.
+      const patch = espressoPatch(equipmentSel)
+      if (Object.keys(patch).length && onSaveEquipment) {
+        onSaveEquipment(patch).catch(() => {})
+      }
       const input: SuggestRecipeInput = {
         coffee: log ? coffeeFromLog(log) : null,
         coffee_description: !log && useOther ? otherCoffee.trim() : undefined,
@@ -174,7 +189,7 @@ export function RecipesView({
         dripper,
         servings: !isEspresso && people ? people : undefined,
         dose_g: doseNum,
-        equipment: equipment.trim() || undefined,
+        equipment: equipmentSelectionToText(profileEquipment, isEspresso, equipmentSel) || undefined,
         preferences: [pref, useTaste ? tasteToPreferences(taste) : null].filter(Boolean).join('. ') || undefined,
       }
       setRecipe(await onGenerate(input))
@@ -463,9 +478,7 @@ export function RecipesView({
       {step === 4 && (
         <section className="flex flex-col gap-4 px-6 pt-4">
           <StepTitle n={4} title="Afinemos" hint="Opcional. Ayuda a ajustar molienda y perfil." />
-          <Field label="Mi equipo" hint={profileEquipment && equipmentToText(profileEquipment) ? 'Tomado de tu perfil. Puedes ajustarlo solo para esta receta.' : 'Molino, balanza, hervidor. Guárdalo en Perfil para no escribirlo cada vez.'}>
-            <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ej. Comandante C40" />
-          </Field>
+          <EquipmentPicker equipment={profileEquipment} isEspresso={isEspresso} value={equipmentSel} onChange={setEquipmentSel} />
           <div className="flex flex-col gap-2">
             <Eyebrow className="text-[10px]">¿Qué buscas en la taza?</Eyebrow>
             <div className="flex flex-wrap gap-2">

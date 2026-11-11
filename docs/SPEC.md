@@ -67,6 +67,7 @@ Migraciones en `supabase/migrations/`.
 - El prompt codifica reglas por familia (cónico, fondo plano, inmersión, espresso), escalado por cantidad y principios de tres escuelas (Hoffmann: precisión y ratios 1:16-1:17; Wendelboe: limpieza y agua caliente; Campos: dulzor y temperaturas más bajas en procesados).
 - Salida: `RecipeData`: `params` (dosis, agua, ratio, temperatura, molienda, tiempo, salida, presión), `steps` con tiempos, `rationale`, `adjustments` (3), `rest_advice`.
 - La receta se justifica por origen/proceso/tueste; considera reposo si hay fecha de tueste.
+- `equipment` llega como una línea armada en el cliente (`EquipmentPicker`): ítems del perfil que el usuario dejó activos (molino; máquina solo en espresso; otros), lo escrito para espresso y el texto extra. En espresso el prompt adapta la receta a la máquina y, si el molino no está pensado para espresso, lo dice y abre la expectativa (ratio 1:2.5-1:3, 20-35 s, ajuste si corre rápido) sin inventar clics.
 
 Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS` (cadena), `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`.
 

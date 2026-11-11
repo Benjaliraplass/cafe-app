@@ -200,19 +200,6 @@ export interface Equipment {
 
 export const ALL_DRIPPERS = METHOD_FAMILIES.flatMap((f) => f.drippers)
 
-/** Resume el equipo del perfil en una línea para el prompt de recetas. */
-export function equipmentToText(e: Equipment | null | undefined): string {
-  if (!e) return ''
-  return [
-    e.grinder ? `molino ${e.grinder}` : null,
-    e.espresso_machine ? `máquina ${e.espresso_machine}` : null,
-    e.drippers?.length ? `drippers: ${e.drippers.join(', ')}` : null,
-    e.other || null,
-  ]
-    .filter(Boolean)
-    .join('; ')
-}
-
 // ---------------- Analítica (funciones admin_*, SPEC §8) ----------------
 
 export interface UserFacts {

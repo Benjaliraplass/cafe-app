@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe, setLogPublic } from '@/lib/api'
+import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe, setLogPublic, updateEquipment } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { BREW_METHODS, equipmentToText, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
+import { BREW_METHODS, type CoffeeLog, type Equipment, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { absoluteUrl, shareLink } from '@/lib/share'
 import { refParam, track } from '@/lib/analytics'
 import { Card } from '@/components/ui/card'
 import { Chip } from '@/components/ui/chip'
-import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { ErrorBox, Eyebrow, Field, KeyValue, Photo, Rating, Spinner } from '@/components/primitives'
+import { ErrorBox, Eyebrow, KeyValue, Photo, Rating, Spinner } from '@/components/primitives'
+import { EMPTY_SELECTION, EquipmentPicker, equipmentSelectionToText, espressoPatch, type EquipmentSelection } from '@/components/EquipmentPicker'
 import { formatDate } from './Home'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +24,7 @@ export function LogDetail() {
 
   const [log, setLog] = useState<CoffeeLog | null | undefined>(undefined)
   const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [equipmentText, setEquipmentText] = useState('')
+  const [equipment, setEquipment] = useState<Equipment | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function LogDetail() {
       .then(([l, r, p]) => {
         setLog(l)
         setRecipes(r)
-        setEquipmentText(equipmentToText(p?.equipment))
+        setEquipment(p?.equipment ?? null)
       })
       .catch((e) => setError(e.message))
   }, [id, user])
@@ -58,10 +58,10 @@ export function LogDetail() {
 
   return (
     <LogDetailView
-      key={log.id + equipmentText}
+      key={log.id}
       log={log}
       recipes={recipes}
-      defaultEquipment={equipmentText}
+      equipment={equipment}
       error={error}
       onGenerate={async (method, equipment) => {
         const startedAt = Date.now()
@@ -74,6 +74,12 @@ export function LogDetail() {
           track('recipe_failed', { dripper: method, from: 'detail', reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' })
           throw e
         }
+      }}
+      onSaveEquipment={async (patch) => {
+        if (!user) return
+        const next = { ...(equipment ?? {}), ...patch }
+        await updateEquipment(user.id, next)
+        setEquipment(next)
       }}
       onSaveRecipe={async (recipe) => {
         if (!user) return
@@ -114,27 +120,30 @@ export function LogDetail() {
 export function LogDetailView({
   log,
   recipes,
-  defaultEquipment = '',
+  equipment = null,
   error: outerError,
   onGenerate,
   onSaveRecipe,
   onDelete,
   onToggleFavorite,
   onTogglePublic,
+  onSaveEquipment,
 }: {
   log: CoffeeLog
   recipes: Recipe[]
-  defaultEquipment?: string
+  equipment?: Equipment | null
   error: string | null
   onGenerate: (method: string, equipment: string) => Promise<RecipeData>
   onSaveRecipe: (recipe: RecipeData) => Promise<void>
+  onSaveEquipment?: (patch: Partial<Equipment>) => Promise<void>
   onDelete: () => Promise<void>
   onToggleFavorite?: () => Promise<void>
   onTogglePublic?: (value: boolean) => Promise<void>
 }) {
   // brew_method puede traer varios métodos separados por coma; el primero es el método por defecto de la receta
   const [method, setMethod] = useState<string>(log.brew_method?.split(',')[0]?.trim() ?? '')
-  const [equipment, setEquipment] = useState(defaultEquipment)
+  const [equipmentSel, setEquipmentSel] = useState<EquipmentSelection>(EMPTY_SELECTION)
+  const isEspresso = method === 'Espresso'
   const [generating, setGenerating] = useState(false)
   const [draft, setDraft] = useState<RecipeData | null>(null)
   const [saving, setSaving] = useState(false)
@@ -150,7 +159,9 @@ export function LogDetailView({
     setGenerating(true)
     setDraft(null)
     try {
-      setDraft(await onGenerate(method, equipment.trim()))
+      const patch = espressoPatch(equipmentSel)
+      if (Object.keys(patch).length && onSaveEquipment) onSaveEquipment(patch).catch(() => {})
+      setDraft(await onGenerate(method, equipmentSelectionToText(equipment, isEspresso, equipmentSel)))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo generar la receta')
     } finally {
@@ -295,9 +306,7 @@ export function LogDetailView({
             </Chip>
           ))}
         </div>
-        <Field label="Mi equipo (opcional)" hint={defaultEquipment ? 'Tomado de tu perfil.' : 'Molino, balanza, máquina. Guárdalo en Perfil para no escribirlo cada vez.'}>
-          <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ej. Comandante C40, V60 plástico" />
-        </Field>
+        <EquipmentPicker equipment={equipment} isEspresso={isEspresso} value={equipmentSel} onChange={setEquipmentSel} />
         <Button onClick={generate} disabled={!method || generating}>
           {generating ? 'Diseñando receta...' : 'Generar receta con IA'}
         </Button>

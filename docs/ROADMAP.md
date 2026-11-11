@@ -104,6 +104,13 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 ### 7c — Loop de feedback
 - [ ] Feedback post-preparación (acidez / amargor / cuerpo / agrado + "¿qué cambiarías?") → ajuste A01-A24, una variable por intento; eventos nuevos en la taxonomía
 
+## Lote 8 — Equipo en recetas (2026-11-11)
+
+- [x] `EquipmentPicker`: el paso 4 del wizard y el bloque de receta del detalle muestran el equipo del perfil como chips (un toque lo deja fuera solo en esa receta) y un campo "Algo más para esta receta"; desaparece el texto del prompt en pantalla
+- [x] Espresso sin máquina o molino en el perfil: tarjeta "¿Con qué haces espresso?"; lo escrito se guarda en el perfil al generar
+- [x] `suggest-recipe` v9: adapta la receta a la máquina y advierte cuando el molino no es apto para espresso
+- [x] Política de privacidad: proveedores por categoría (sin stack) y uso agregado para mejorar la app; doc editable en claude.ai
+
 ## Fase 2 — Recetas
 
 - [x] Pestaña "Recetas" con wizard de 4 pasos (café escaneado u otro → familia + dripper → tazas o gramos → equipo y preferencia) y recetario de guardadas
