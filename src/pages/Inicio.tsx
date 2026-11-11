@@ -77,6 +77,8 @@ export function InicioView({
   const logsCount = logs?.length ?? 0
   const recent = (logs ?? []).slice(0, 8)
   const savedRecipes = (recipes ?? []).slice(0, 6)
+  const countries = new Set((logs ?? []).map((l) => l.coffee?.origin_country).filter(Boolean)).size
+  const streak = weeklyStreak((logs ?? []).map((l) => l.consumed_at))
   // Con ubicación: las más cercanas. Sin ubicación: las últimas aprobadas (no un orden alfabético que parece arbitrario).
   const nearby = (cafes ?? [])
     .filter((c) => c.lat != null && c.lng != null)
@@ -103,9 +105,22 @@ export function InicioView({
         </Link>
       </header>
 
-      <div className="px-6">
-        <ErrorBox message={error} />
-      </div>
+      {/* Tu diario en números (estilo Untappd): cafés, países, semanas seguidas */}
+      {logsCount > 0 && (
+        <section className="-mt-4 px-6">
+          <div className="flex items-stretch divide-x divide-border rounded-[20px] bg-card">
+            <Stat value={logsCount} label={logsCount === 1 ? 'café' : 'cafés'} />
+            <Stat value={countries} label={countries === 1 ? 'país' : 'países'} />
+            <Stat value={streak} label={streak === 1 ? 'semana seguida' : 'semanas seguidas'} />
+          </div>
+        </section>
+      )}
+
+      {error && (
+        <div className="px-6">
+          <ErrorBox message={error} />
+        </div>
+      )}
 
       {/* Últimos escaneos */}
       <section className="flex flex-col gap-4 px-6">
@@ -247,6 +262,31 @@ export function InicioView({
       </section>
     </div>
   )
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex flex-1 flex-col items-center gap-0.5 px-2 py-3.5">
+      <span className="text-[22px] font-medium leading-none tracking-[-0.02em]">{value}</span>
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
+/** Semanas consecutivas (hasta la actual o la anterior) con al menos un café registrado. */
+export function weeklyStreak(dates: string[]): number {
+  if (dates.length === 0) return 0
+  const weekIndex = (d: Date) => Math.floor((d.getTime() - d.getTimezoneOffset() * 60_000) / (7 * 86_400_000))
+  const weeks = new Set(dates.map((iso) => weekIndex(new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')))))
+  let w = weekIndex(new Date())
+  // Si esta semana aún no hay café, la racha sigue viva desde la semana pasada.
+  if (!weeks.has(w)) w -= 1
+  let n = 0
+  while (weeks.has(w)) {
+    n += 1
+    w -= 1
+  }
+  return n
 }
 
 function QuickLink({ to, icon, title, body }: { to: string; icon: React.ReactNode; title: string; body: string }) {
