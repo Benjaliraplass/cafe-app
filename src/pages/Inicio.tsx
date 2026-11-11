@@ -108,7 +108,7 @@ export function InicioView({
       {/* Tu diario en números (estilo Untappd): cafés, recetas guardadas, semanas seguidas */}
       {logsCount > 0 && (
         <section className="-mt-6 px-6">
-          <p className="flex flex-wrap items-baseline gap-x-2 text-[14px] text-muted-foreground">
+          <p className="inline-flex items-baseline gap-x-2 rounded-full bg-card px-3.5 py-2 text-[13px] text-muted-foreground">
             <Stat value={logsCount} label={logsCount === 1 ? 'café' : 'cafés'} />
             <span aria-hidden>·</span>
             <Stat value={recipesCount} label={recipesCount === 1 ? 'receta' : 'recetas'} />
