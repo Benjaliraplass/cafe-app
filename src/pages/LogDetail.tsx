@@ -386,13 +386,16 @@ function cap(s: string) {
 export function RecipeCard({ r, compact = false }: { r: RecipeData; compact?: boolean }) {
   const p = r.params
   const isEspresso = p.yield_g != null
+  // La molienda puede venir larga ("Media, un punto más gruesa..."): en el cuadro va solo la primera idea.
+  const grindShort = p.grind.split(/[,;:(]/)[0].trim() || p.grind
+  const grindLong = isEspresso || grindShort !== p.grind.trim()
   const stats: [string, string][] = [
     ['Dosis', `${p.dose_g} g`],
     isEspresso ? ['Salida', `${p.yield_g} g`] : ['Agua', p.water_g ? `${p.water_g} g` : '—'],
     ['Ratio', p.ratio],
     ['Temp.', `${p.water_temp_c} °C`],
     ['Tiempo', p.total_time],
-    isEspresso && p.pressure_bar != null ? ['Presión', `${p.pressure_bar} bar`] : ['Molienda', p.grind],
+    isEspresso && p.pressure_bar != null ? ['Presión', `${p.pressure_bar} bar`] : ['Molienda', grindShort],
   ]
   return (
     <Card className="flex flex-col gap-4 p-[18px]">
@@ -408,7 +411,7 @@ export function RecipeCard({ r, compact = false }: { r: RecipeData; compact?: bo
           </div>
         ))}
       </div>
-      {isEspresso && <p className="text-sm text-muted-foreground">Molienda: {p.grind}</p>}
+      {grindLong && <p className="text-sm text-muted-foreground">Molienda: {p.grind}</p>}
       {p.grind_reference && <p className="text-sm text-muted-foreground">Referencia: {p.grind_reference}</p>}
       <ol className="flex flex-col gap-2.5">
         {r.steps.map((s, i) => (

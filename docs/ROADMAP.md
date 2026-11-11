@@ -81,7 +81,8 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 
 - [x] `ai.ts`: respaldo cruzado Gemini → Anthropic cuando hay `ANTHROPIC_API_KEY`; mensaje corto al usuario, detalle en logs; se retira `gemini-2.5-flash` (404 para cuentas nuevas)
 - [x] `coffees.sca_score`: la IA lo lee de la etiqueta (`scan-label` v8), campo en el formulario, visible en el detalle y la ficha pública
-- [ ] Benjamín: activar facturación en Gemini y/o agregar `ANTHROPIC_API_KEY` en Supabase (cuota 429 del plan gratuito)
+- [x] Proveedor primario Anthropic `claude-haiku-5-5` (secrets cargados 2026-11-11, USD 20 de crédito); Gemini queda de respaldo. Log `IA ok` por llamada
+- [ ] Renovar `ANTHROPIC_API_KEY` antes del 1 de marzo de 2027 (vence)
 
 ## Lote 7 — Base de conocimiento de preparación (2026-11-10)
 
@@ -110,6 +111,7 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Espresso sin máquina o molino en el perfil: tarjeta "¿Con qué haces espresso?"; lo escrito se guarda en el perfil al generar
 - [x] `suggest-recipe` v9: adapta la receta a la máquina y advierte cuando el molino no es apto para espresso
 - [x] Política de privacidad: proveedores por categoría (sin stack) y uso agregado para mejorar la app; doc editable en claude.ai
+- [x] Cuadro de molienda: en la tarjeta va solo la primera idea ("Media"); el detalle debajo. El prompt pide `grind` de 1-3 palabras y el matiz en `grind_reference`
 
 ## Fase 2 — Recetas
 

@@ -69,7 +69,7 @@ Migraciones en `supabase/migrations/`.
 - La receta se justifica por origen/proceso/tueste; considera reposo si hay fecha de tueste.
 - `equipment` llega como una línea armada en el cliente (`EquipmentPicker`): ítems del perfil que el usuario dejó activos (molino; máquina solo en espresso; otros), lo escrito para espresso y el texto extra. En espresso el prompt adapta la receta a la máquina y, si el molino no está pensado para espresso, lo dice y abre la expectativa (ratio 1:2.5-1:3, 20-35 s, ajuste si corre rápido) sin inventar clics.
 
-Secret requerido: `GEMINI_API_KEY`. Opcionales: `GEMINI_MODEL` / `GEMINI_MODELS` (cadena), `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`.
+Proveedor de IA (decidido 2026-11-11): Anthropic `claude-haiku-5-5` como primario (`AI_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`), Gemini como respaldo automático (`GEMINI_API_KEY`; opcionales `GEMINI_MODEL` / `GEMINI_MODELS`). Costo estimado con 1.000 usuarios/mes: ~USD 5. La key de Anthropic vence el 1 de marzo de 2027: renovarla antes en console.anthropic.com y reemplazar el secret. Cada llamada exitosa queda en el log de la función como `IA ok: <proveedor> (<modelo>) <ms>`; si hubo respaldo, el log incluye el fallo del primario.
 
 ## 6. Flujos de la app
 

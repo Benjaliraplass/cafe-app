@@ -94,6 +94,7 @@ Reglas de salida:
   que aplicaste (por ejemplo "temperatura más baja para un honey, buscando dulzor").
 - Si hay fecha de tueste, evalúa el reposo en rest_advice: filtro ideal 7-21 días, espresso 10-30 días; si el café
   está muy fresco o muy viejo, dilo y ajusta (molienda más fina si es viejo, temperatura algo más baja si es muy fresco).
+- grind: 1 a 3 palabras ("Media-fina", "Fina", "Media-gruesa"); se muestra en un cuadro pequeño. Toda descripción de textura o matiz va en grind_reference.
 - grind_reference: si el usuario indicó su molino, da el ajuste aproximado (clics, número) para ese molino; si no,
   describe la textura con una referencia cotidiana (sal de mesa, azúcar granulada, arena gruesa).
 - "adjustments": exactamente 3, del tipo "si sabe X, haz Y", en orden de probabilidad.
@@ -117,7 +118,7 @@ const TOOL = {
           water_g: { type: ["number", "null"] },
           ratio: { type: "string" },
           water_temp_c: { type: "number" },
-          grind: { type: "string" },
+          grind: { type: "string", description: "1 a 3 palabras, ej. Media-fina" },
           grind_reference: { type: ["string", "null"] },
           total_time: { type: "string" },
           yield_g: { type: ["number", "null"] },

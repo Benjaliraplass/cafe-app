@@ -39,6 +39,9 @@ export interface StructuredRequest {
 
 type Provider = "gemini" | "anthropic";
 
+/** Último modelo que respondió (para el log). */
+let lastModel = "";
+
 /** Mensaje apto para mostrar al usuario. El detalle técnico va a `details` y al log. */
 export class AIUnavailableError extends Error {
   details: string;
@@ -75,8 +78,11 @@ function providerChain(): Provider[] {
 export async function callStructured<T>(opts: StructuredRequest): Promise<T> {
   const errors: string[] = [];
   for (const provider of providerChain()) {
+    const started = Date.now();
     try {
-      return provider === "gemini" ? await callGemini<T>(opts) : await callAnthropic<T>(opts);
+      const result = provider === "gemini" ? await callGemini<T>(opts) : await callAnthropic<T>(opts);
+      console.log(`IA ok: ${provider} (${lastModel}) ${Date.now() - started} ms${errors.length ? ` tras fallo de ${errors.join(" || ")}` : ""}`);
+      return result;
     } catch (err) {
       const e = err as Error & { status?: number };
       errors.push(`${provider}: ${e.message.slice(0, 300)}`);
@@ -127,7 +133,9 @@ async function callGemini<T>(opts: StructuredRequest): Promise<T> {
     for (let attempt = 0; attempt < 2; attempt++) {
       if (Date.now() - started > TOTAL_BUDGET_MS) break;
       try {
-        return await callGeminiModel<T>(opts, apiKey, model);
+        const r = await callGeminiModel<T>(opts, apiKey, model);
+        lastModel = model;
+        return r;
       } catch (err) {
         const e = err as Error & { status?: number };
         errors.push(`${model}: ${e.message.slice(0, 160)}`);
@@ -272,6 +280,7 @@ async function callAnthropic<T>(opts: StructuredRequest): Promise<T> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) throw new Error("Falta el secret ANTHROPIC_API_KEY");
   const model = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-5-5";
+  lastModel = model;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
