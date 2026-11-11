@@ -93,7 +93,7 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Migración `kb_recetas`: `kb_sources`, `kb_methods`, `kb_recipes`, `kb_recipe_steps`, `kb_rules` (RLS: lectura pública, escritura admin; índices en FKs)
 - [x] `scripts/kb_seed.py` → `supabase/seed/kb_2026_11.sql` (48 fuentes, 21 métodos, 61 recetas de 33 autores, 236 pasos, 71 reglas); aplicado en producción; integridad verificada (pasos, sumas de agua, FKs)
 - [x] QA REST desde dripocoffee.com: lectura anónima OK, inserción anónima bloqueada (401)
-- [ ] Verificar las 48 URLs de `kb_sources` y registrar `url_status` / `url_checked_at` (pendiente: requiere navegación con aprobación de sitios)
+- [x] URLs de `kb_sources` verificadas (2026-11-11): 45 responden (`url_status` 200); 3 PDFs (S008 SCA two-cup, S045 SCA CHB, S048 Espresso Compass) rechazan la lectura automática (`url_status` 0, revisar a mano); S032 (video moka de Hoffmann) responde pero el título leído no coincide: confirmar el ID
 - [x] `is_featured` en las recetas de la KB que coinciden con las destacadas (V60-001 Hoffmann, V60-003 Kasuya, PO-001 Wendelboe; AeroPress Hoffmann no tiene equivalente en la KB)
 
 ### 7b — Generador con referencias
