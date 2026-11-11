@@ -107,12 +107,14 @@ export function InicioView({
 
       {/* Tu diario en números (estilo Untappd): cafés, recetas guardadas, semanas seguidas */}
       {logsCount > 0 && (
-        <section className="-mt-4 px-6">
-          <div className="flex items-stretch divide-x divide-border rounded-[20px] bg-card">
+        <section className="-mt-6 px-6">
+          <p className="flex flex-wrap items-baseline gap-x-2 text-[14px] text-muted-foreground">
             <Stat value={logsCount} label={logsCount === 1 ? 'café' : 'cafés'} />
+            <span aria-hidden>·</span>
             <Stat value={recipesCount} label={recipesCount === 1 ? 'receta' : 'recetas'} />
-            <Stat value={streak} label={streak === 1 ? 'semana seguida' : 'semanas seguidas'} />
-          </div>
+            <span aria-hidden>·</span>
+            <Stat value={streak} label={streak === 1 ? 'semana' : 'semanas'} />
+          </p>
         </section>
       )}
 
@@ -266,10 +268,9 @@ export function InicioView({
 
 function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex flex-1 flex-col items-center gap-0.5 px-2 py-3.5">
-      <span className="text-[22px] font-medium leading-none tracking-[-0.02em]">{value}</span>
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-    </div>
+    <span className="whitespace-nowrap">
+      <span className="font-medium text-foreground">{value}</span> {label}
+    </span>
   )
 }
 
