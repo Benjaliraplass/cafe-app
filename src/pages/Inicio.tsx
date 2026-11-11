@@ -7,7 +7,7 @@ import type { TasteProfile } from '@/lib/taste'
 import { distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
 import { recommendCoffees } from '@/lib/recommend'
 import { avatarUrl } from '@/lib/supabase'
-import type { Cafe, Coffee, CoffeeLog, FeaturedRecipe } from '@/lib/types'
+import { isPendingLog, type Cafe, type Coffee, type CoffeeLog, type FeaturedRecipe } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBox, Eyebrow, Title } from '@/components/primitives'
 import { CafeRow, CoffeeCard, FeaturedRecipeCard, HScroll, LogCard, SavedRecipeCard, SectionHeader } from '@/components/cards'
@@ -160,7 +160,8 @@ export function InicioView({
 
       {/* Recetas: pedir una para hoy + las guardadas */}
       {logs !== null && (() => {
-        const last = recent[0]
+        // El café por probar más reciente es el candidato natural; si no hay, el último escaneado.
+        const last = recent.find(isPendingLog) ?? recent[0]
         const dripper = profile?.equipment?.drippers?.[0] ?? 'V60'
         const to = last ? `/recipes?log=${last.id}&dripper=${encodeURIComponent(dripper)}` : '/recipes'
         const headline = last?.coffee ? `Prepara ${last.coffee.name} en ${dripper}` : 'Pide una receta a medida'

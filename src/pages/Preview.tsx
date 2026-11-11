@@ -115,7 +115,7 @@ export function Preview() {
         )}
         {v === 'detail' && (
           <LogDetailView
-            log={{ ...logs[0], notes: 'Efervescente y complejo. Mucho mango en caliente, se vuelve más cítrico al enfriar.' }}
+            log={sp.get('pending') != null ? { ...logs[0], rating: null, notes: null, brew_method: null } : { ...logs[0], notes: 'Efervescente y complejo. Mucho mango en caliente, se vuelve más cítrico al enfriar.' }}
             recipes={[{ id: 'x', coffee_log_id: '1', brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: '' }]}
             error={null}
             onGenerate={async () => recipe}

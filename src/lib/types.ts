@@ -198,6 +198,11 @@ export interface Equipment {
   other?: string
 }
 
+/** Café escaneado pero todavía no probado: sin puntaje, sin método y sin notas. */
+export function isPendingLog(log: { rating: number | null; brew_method: string | null; notes: string | null }): boolean {
+  return !log.rating && !log.brew_method && !log.notes?.trim()
+}
+
 export const ALL_DRIPPERS = METHOD_FAMILIES.flatMap((f) => f.drippers)
 
 // ---------------- Analítica (funciones admin_*, SPEC §8) ----------------

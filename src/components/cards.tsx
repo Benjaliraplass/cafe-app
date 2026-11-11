@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { AtSign, MapPin, Star } from 'lucide-react'
-import type { Cafe, Coffee, CoffeeLog, CoffeePublicStats, FeaturedRecipe, Recipe } from '@/lib/types'
+import { isPendingLog, type Cafe, type Coffee, type CoffeeLog, type CoffeePublicStats, type FeaturedRecipe, type Recipe } from '@/lib/types'
 import { instagramUrl } from '@/lib/geo'
 import { photoUrl } from '@/lib/supabase'
 import { Photo, Rating } from '@/components/primitives'
@@ -64,6 +64,11 @@ export function SavedRecipeCard({ r, coffeeName, className }: { r: Recipe; coffe
   )
 }
 
+/** Etiqueta de un café escaneado que todavía no se probó. */
+export function PendingPill({ className }: { className?: string }) {
+  return <span className={cn('rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground', className)}>Por probar</span>
+}
+
 /** "hoy", "ayer", "hace 3 días", "12 oct". */
 export function timeAgo(iso: string): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
@@ -86,7 +91,7 @@ export function LogCard({ log, className }: { log: CoffeeLog; className?: string
         <span className="eyebrow truncate text-[10px]">{c?.roaster?.name ?? 'Tostador'}</span>
         <span className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[-0.01em]">{c?.name ?? 'Café'}</span>
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          {log.rating ? <Rating value={log.rating} size="sm" /> : <span className="text-xs text-tertiary">Sin puntaje</span>}
+          {log.rating ? <Rating value={log.rating} size="sm" /> : isPendingLog(log) ? <PendingPill /> : <span className="text-xs text-tertiary">Sin puntaje</span>}
           <span className="text-[11px] text-tertiary">{shortDate(log.consumed_at)}</span>
         </div>
       </div>

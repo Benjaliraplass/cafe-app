@@ -111,6 +111,7 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Espresso sin máquina o molino en el perfil: tarjeta "¿Con qué haces espresso?"; lo escrito se guarda en el perfil al generar
 - [x] `suggest-recipe` v9: adapta la receta a la máquina y advierte cuando el molino no es apto para espresso
 - [x] Política de privacidad: proveedores por categoría (sin stack) y uso agregado para mejorar la app; doc editable en claude.ai
+- [x] Café "por probar": "Ya lo probé / Todavía no" al escanear, píldora en tarjetas y detalle, "¿Ya lo probaste?" que abre Mi experiencia, aviso tras guardar receta, Receta para hoy prioriza el pendiente (feedback de usuario)
 - [x] Inicio: píldora de números bajo el saludo (cafés · recetas · semanas) y corrección del hueco doble
 - [x] Inicio: sección "Tus recetas" (Receta para hoy + guardadas en scroll horizontal); cafeterías sin ubicación ordenadas por las últimas agregadas
 - [x] Banda "Hay una versión nueva" (service worker en modo prompt) para que los deploys no confundan en el beta

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BREW_METHODS, type CoffeeLog, type RoastProfile, type ScanResult } from '@/lib/types'
+import { BREW_METHODS, isPendingLog, type CoffeeLog, type RoastProfile, type ScanResult } from '@/lib/types'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,6 +24,8 @@ export interface CoffeeLogFormState {
   roast_profile: RoastProfile | ''
   tasting_notes: string
   roast_date: string
+  /** false = todavía no lo probó: se guardan solo los datos de compra; puntaje, método y notas quedan pendientes. */
+  tasted: boolean
   rating: number | null
   brew_methods: string[]
   notes: string
@@ -47,6 +49,7 @@ export const emptyCoffeeLogForm: CoffeeLogFormState = {
   roast_profile: '',
   tasting_notes: '',
   roast_date: '',
+  tasted: true,
   rating: null,
   brew_methods: [],
   notes: '',
@@ -93,6 +96,7 @@ export function formFromLog(log: CoffeeLog): CoffeeLogFormState {
     roast_profile: c?.roast_profile ?? '',
     tasting_notes: (c?.tasting_notes ?? []).join(', '),
     roast_date: log.roast_date ?? '',
+    tasted: !isPendingLog(log),
     rating: log.rating,
     brew_methods: log.brew_method ? log.brew_method.split(',').map((s) => s.trim()).filter(Boolean) : [],
     notes: log.notes ?? '',
@@ -126,9 +130,9 @@ export function formToPayload(form: CoffeeLogFormState) {
         .filter(Boolean),
     },
     log: {
-      rating: form.rating,
-      notes: orNull(form.notes),
-      brew_method: form.brew_methods.length ? form.brew_methods.join(', ') : null,
+      rating: form.tasted ? form.rating : null,
+      notes: form.tasted ? orNull(form.notes) : null,
+      brew_method: form.tasted && form.brew_methods.length ? form.brew_methods.join(', ') : null,
       roast_date: orNull(form.roast_date),
       bought_at: orNull(form.bought_at),
       price_clp: form.price_clp ? parseInt(form.price_clp.replace(/\D/g, ''), 10) || null : null,
@@ -225,8 +229,21 @@ export function CoffeeLogForm({
       <Separator />
       {beforeExperience}
 
-      <section className="flex flex-col gap-3.5 px-6 pt-6">
+      <section id="experiencia" className="flex flex-col gap-3.5 px-6 pt-6 scroll-mt-4">
         <SectionTitle>Mi experiencia</SectionTitle>
+        <div className="flex gap-2">
+          <Chip active={form.tasted} onClick={() => set('tasted', true)}>
+            Ya lo probé
+          </Chip>
+          <Chip active={!form.tasted} onClick={() => set('tasted', false)}>
+            Todavía no
+          </Chip>
+        </div>
+        {!form.tasted && (
+          <p className="text-sm text-muted-foreground">Queda como "por probar". Cuando lo prepares, vuelves y nos cuentas cómo estuvo.</p>
+        )}
+        {form.tasted && (
+        <>
         <div className="flex flex-col gap-2">
           <Label>Puntaje</Label>
           <div className="flex items-center gap-4">
@@ -255,6 +272,8 @@ export function CoffeeLogForm({
         <Field label="Notas">
           <Textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Qué sentí, qué cambiaría, con qué lo tomé..." />
         </Field>
+        </>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Field label="Dónde lo compré">
             <Input value={form.bought_at} onChange={(e) => set('bought_at', e.target.value)} placeholder="Web, cafetería..." />

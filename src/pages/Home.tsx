@@ -5,7 +5,8 @@ import { listMyLogs, setFavorite } from '@/lib/api'
 import { BookOpen, ChevronRight, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { photoUrl } from '@/lib/supabase'
-import type { CoffeeLog } from '@/lib/types'
+import { isPendingLog, type CoffeeLog } from '@/lib/types'
+import { PendingPill } from '@/components/cards'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Separator } from '@/components/ui/separator'
@@ -204,7 +205,7 @@ function LogRow({ log, onToggleFavorite }: { log: CoffeeLog; onToggleFavorite?: 
         <span className="truncate text-xs text-muted-foreground">{meta || 'Sin datos de origen'}</span>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1.5">
-        <Rating value={log.rating} size="sm" />
+        {isPendingLog(log) ? <PendingPill /> : <Rating value={log.rating} size="sm" />}
         <span className="text-[11px] text-tertiary">{formatDate(log.consumed_at)}</span>
       </div>
     </Link>

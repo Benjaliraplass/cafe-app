@@ -73,6 +73,8 @@ Proveedor de IA (decidido 2026-11-11): Anthropic `claude-haiku-5-5` como primari
 
 ## 6. Flujos de la app
 
+Café "por probar" (decidido 2026-11-11): al escanear, "Mi experiencia" parte con dos opciones, "Ya lo probé" / "Todavía no". Con "Todavía no" se ocultan puntaje, método y notas (quedan solo dónde lo compré y precio) y el registro se guarda sin puntaje, método ni notas; eso es lo que define `isPendingLog()` (sin cambios de esquema). Un café por probar muestra la píldora "Por probar" en Inicio, Mis cafés y el detalle; en el detalle, bajo la receta, aparece "¿Ya lo probaste?" que abre el formulario directo en Mi experiencia (`/log/:id/edit#experiencia`, con "Ya lo probé" preseleccionado); tras guardar una receta de ese café se agrega "Cuando lo prepares, vuelve y cuéntanos cómo salió". "Receta para hoy" en Inicio prioriza el café por probar más reciente. Sin recordatorios ni notificaciones.
+
 Actualizaciones de la PWA: el service worker se registra en modo `prompt`; cuando hay un build nuevo, `UpdateBanner` muestra "Hay una versión nueva de Dripo · Actualizar" y recarga al tocar. Revisa cada hora mientras la app está abierta. Así un deploy nunca cambia la app a mitad de un flujo.
 
 0. **Barra inferior** (5 ítems): Inicio · Explorar · botón central "+" (abre una hoja con dos acciones: Escanear etiqueta / Pedir una receta) · Mis cafés · Perfil. El wizard de Recetas también se abre desde la tarjeta "Receta para hoy" de Inicio (`/recipes?log=<id>&dripper=<dripper>`, entra directo al paso de cantidad con el último café escaneado y el primer dripper del equipo), desde el detalle de un café (bloque de receta justo bajo la ficha) y desde "Recetario" en Mis cafés (`/recipes?view=saved`, solo recetas guardadas).

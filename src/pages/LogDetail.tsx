@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe, setLogPublic, updateEquipment } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { BREW_METHODS, type CoffeeLog, type Equipment, type Recipe, type RecipeData } from '@/lib/types'
+import { BREW_METHODS, isPendingLog, type CoffeeLog, type Equipment, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { absoluteUrl, shareLink } from '@/lib/share'
@@ -151,6 +151,8 @@ export function LogDetailView({
 
   const c = log.coffee
   const url = photoUrl(log.photo_path)
+  const pending = isPendingLog(log)
+  const [savedOnce, setSavedOnce] = useState(false)
   const restDays = log.roast_date ? Math.max(0, Math.round((Date.now() - new Date(log.roast_date + 'T12:00:00').getTime()) / 86_400_000)) : null
 
   async function generate() {
@@ -175,6 +177,7 @@ export function LogDetailView({
     try {
       await onSaveRecipe(draft)
       setDraft(null)
+      setSavedOnce(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar la receta')
     } finally {
@@ -243,7 +246,7 @@ export function LogDetailView({
           <Eyebrow className="text-muted-foreground">{c?.roaster?.name ?? 'Tostador desconocido'}</Eyebrow>
           <h1 className="text-[44px] font-medium leading-none tracking-tightest">{c?.name ?? 'Café'}</h1>
           <div className="flex items-center gap-2.5 text-[13px] text-muted-foreground">
-            <Rating value={log.rating} size="sm" />
+            {pending ? <span className="rounded-full bg-background/70 px-2 py-0.5 text-[11px] font-medium backdrop-blur-sm">Por probar</span> : <Rating value={log.rating} size="sm" />}
             <span className="text-tertiary">·</span>
             <span>{formatDate(log.consumed_at)}</span>
             {log.brew_method && (
@@ -326,6 +329,10 @@ export function LogDetailView({
           </div>
         )}
 
+        {pending && savedOnce && (
+          <p className="text-sm text-muted-foreground">Cuando lo prepares, vuelve y cuéntanos cómo salió.</p>
+        )}
+
         {recipes.length > 0 && (
           <div className="flex flex-col gap-3 pt-4">
             <Eyebrow className="text-[10px]">Recetas guardadas</Eyebrow>
@@ -352,6 +359,15 @@ export function LogDetailView({
 
       {/* Mi experiencia */}
       <section className="flex flex-col gap-5 px-6 pt-6 pb-10">
+        {pending && (
+          <Link to={`/log/${log.id}/edit#experiencia`} className="flex items-center gap-4 rounded-[20px] border border-dashed border-border-strong px-4 py-4 transition-colors active:bg-card">
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-[15px] font-medium">¿Ya lo probaste?</span>
+              <span className="text-sm text-muted-foreground">Puntaje, método y notas. Un minuto.</span>
+            </span>
+            <ChevronRight className="size-5 shrink-0 text-tertiary" strokeWidth={1.7} />
+          </Link>
+        )}
         {log.notes && <p className="text-[17px] italic leading-[1.35] text-muted-foreground">“{log.notes}”</p>}
 
         {c && (

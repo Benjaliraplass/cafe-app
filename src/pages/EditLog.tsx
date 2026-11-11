@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { track } from '@/lib/analytics'
@@ -19,18 +19,26 @@ export function EditLog({ previewLog }: { previewLog?: CoffeeLog } = {}) {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [log, setLog] = useState<CoffeeLog | null | undefined>(previewLog)
+  const location = useLocation()
   const [form, setForm] = useState<CoffeeLogFormState | null>(previewLog ? formFromLog(previewLog) : null)
   const [preview, setPreview] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Llegada desde "¿Ya lo probaste?": baja directo a Mi experiencia.
+  useEffect(() => {
+    if (form && location.hash === '#experiencia') {
+      setTimeout(() => document.getElementById('experiencia')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    }
+  }, [form !== null, location.hash])
+
   useEffect(() => {
     if (!id || previewLog) return
     getLog(id)
       .then((l) => {
         setLog(l)
-        if (l) setForm(formFromLog(l))
+        if (l) setForm(location.hash === '#experiencia' ? { ...formFromLog(l), tasted: true } : formFromLog(l))
       })
       .catch((e) => setError(e.message))
   }, [id, previewLog])
