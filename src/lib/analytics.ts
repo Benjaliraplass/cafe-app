@@ -12,6 +12,8 @@ declare const __APP_VERSION__: string
 export type EventName =
   | 'app_opened'
   | 'signup_completed'
+  | 'onboarding_completed'
+  | 'onboarding_skipped'
   | 'login_completed'
   | 'pwa_installed'
   | 'scan_started'

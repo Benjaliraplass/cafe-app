@@ -40,7 +40,7 @@ Una app tipo Vivino para café de especialidad, pensada primero para Chile:
 
 | Tabla | Para qué | Acceso (RLS) |
 |---|---|---|
-| `profiles` | 1:1 con `auth.users`, creado por trigger. `role` ('user' / 'admin'; función `is_admin()`, trigger impide cambiar el propio rol), `display_name`, `avatar_url` (ruta en bucket `avatars` o URL absoluta de Google), `country` (nacionalidad, nombre en español), `equipment` jsonb: `{ grinder, drippers[], espresso_machine, other }` | Lectura pública; escribe el dueño |
+| `profiles` | 1:1 con `auth.users`, creado por trigger. `onboarded_at` (null = walkthrough de bienvenida pendiente; las cuentas previas al 2026-11-11 quedaron marcadas). `role` ('user' / 'admin'; función `is_admin()`, trigger impide cambiar el propio rol), `display_name`, `avatar_url` (ruta en bucket `avatars` o URL absoluta de Google), `country` (nacionalidad, nombre en español), `equipment` jsonb: `{ grinder, drippers[], espresso_machine, other }` | Lectura pública; escribe el dueño |
 | `roasters` | Tostadurías (catálogo compartido), `slug` único, `country` (seleccionable en el formulario; la IA lo infiere de la etiqueta) | Lectura pública; crea cualquier autenticado; edita el creador |
 | `coffees` | Cafés del catálogo compartido, FK a `roasters`. `sca_score` (puntaje de taza 60-100, leído de la etiqueta o manual), `is_published`, `published_at`, `photo_path` para el catálogo público | Lectura pública; crea cualquier autenticado; edita el creador o el admin |
 | `coffee_logs` | Diario personal: foto, puntaje (0 = sin puntaje), notas, método, fecha de tueste, precio, `is_favorite`, `is_public` (compartido en la ficha del café), `raw_scan` jsonb | Solo el dueño; los públicos los ve cualquiera, incluso sin sesión. Vista `coffee_public_stats` (promedio y cantidad) |
@@ -73,6 +73,8 @@ Migraciones en `supabase/migrations/`.
 Proveedor de IA (decidido 2026-11-11): Anthropic `claude-haiku-5-5` como primario (`AI_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`), Gemini como respaldo automático (`GEMINI_API_KEY`; opcionales `GEMINI_MODEL` / `GEMINI_MODELS`). Costo estimado con 1.000 usuarios/mes: ~USD 5. La key de Anthropic vence el 1 de marzo de 2027: renovarla antes en console.anthropic.com y reemplazar el secret. Cada llamada exitosa queda en el log de la función como `IA ok: <proveedor> (<modelo>) <ms>`; si hubo respaldo, el log incluye el fallo del primario.
 
 ## 6. Flujos de la app
+
+Bienvenida (decidido 2026-11-11): tras el primer login, antes de la app, 3 pantallas con puntos de progreso y "Saltar" siempre visible. 1) "Escanea la etiqueta y listo". 2) "Recetas a medida para tu café" + chips "¿Con qué preparas?" (se guardan en `profiles.equipment.drippers`; es lo único que se pide). 3) "Cuéntanos cómo salió" que cierra con "Escanear mi primer café" (abre `/scan`) o "Mirar primero" (Inicio). Se muestra una vez por cuenta (`onboarded_at`), no por dispositivo. Eventos `onboarding_completed` / `onboarding_skipped` (step, drippers). El Gate espera el perfil (`profileLoading`) para no mostrar la app antes del walkthrough.
 
 Café "por probar" (decidido 2026-11-11): al escanear, "Mi experiencia" parte con dos opciones, "Ya lo probé" / "Todavía no". Con "Todavía no" se ocultan puntaje, método y notas (quedan solo dónde lo compré y precio) y el registro se guarda sin puntaje, método ni notas; eso es lo que define `isPendingLog()` (sin cambios de esquema). Un café por probar muestra la píldora "Por probar" en Inicio, Mis cafés y el detalle; en el detalle, bajo la receta, aparece "¿Ya lo probaste?" que abre el formulario directo en Mi experiencia (`/log/:id/edit#experiencia`, con "Ya lo probé" preseleccionado); tras guardar una receta de ese café se agrega "Cuando lo prepares, vuelve y cuéntanos cómo salió". "Receta para hoy" en Inicio prioriza el café por probar más reciente. Sin recordatorios ni notificaciones.
 
@@ -125,6 +127,7 @@ RLS: nadie lee desde el cliente (ni admin; las lecturas van por las funciones `a
 | Ciclo de vida | `app_opened` (display_mode, utm, ref), `signup_completed` (provider), `login_completed` (provider), `pwa_installed` |
 | Escaneo | `scan_started` (from), `scan_completed` (duration_ms, fields_filled), `scan_failed` (reason), `log_saved` (rating, method, is_new_coffee), `log_edited`, `log_deleted` |
 | Recetas | `recipe_requested` (family, dripper, from), `recipe_generated` (duration_ms), `recipe_saved`, `recipe_failed` (reason), `recipe_feedback_given` (signal, rule) |
+| Bienvenida | `onboarding_completed` (step, drippers), `onboarding_skipped` (step, drippers) |
 | Descubrimiento | `featured_recipe_viewed` (slug), `public_coffee_viewed` (coffee_id, logged_in), `catalog_viewed`, `cafe_viewed` (cafe_id), `cafe_maps_clicked` (cafe_id), `cafe_proposed` |
 | Social | `share_clicked` (type: log/coffee/recipe, result: shared/copied), `share_link_opened` (type, ref, logged_in), `log_made_public` (value) |
 | Perfil | `taste_profile_saved`, `profile_updated`, `feedback_clicked` |

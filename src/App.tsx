@@ -19,6 +19,7 @@ import { Profile } from '@/pages/Profile'
 import { FeaturedList, FeaturedRecipePage } from '@/pages/FeaturedRecipe'
 import { Catalog, PublicCoffeePage } from '@/pages/PublicCoffee'
 import { Privacy } from '@/pages/Privacy'
+import { Onboarding } from '@/pages/Onboarding'
 import { Spinner } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
 import { UpdateBanner } from '@/components/UpdateBanner'
@@ -33,9 +34,12 @@ function Loading() {
 
 /** Rutas privadas: exigen sesión y van dentro del Layout con barra inferior. */
 function Gate() {
-  const { user, loading } = useAuth()
+  const { user, profile, loading, profileLoading } = useAuth()
   if (loading) return <Loading />
   if (!user) return <Login />
+  if (profileLoading) return <Loading />
+  // Primera vez en la cuenta: walkthrough de 3 pantallas antes de la app (profiles.onboarded_at).
+  if (profile && !profile.onboarded_at) return <Onboarding />
   return (
     <Routes>
       <Route element={<Layout />}>

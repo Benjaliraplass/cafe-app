@@ -32,7 +32,7 @@ export function Profile() {
   useEffect(() => {
     if (!user) return
     getProfile(user.id)
-      .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, role: 'user', equipment: {} }))
+      .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, role: 'user', equipment: {}, onboarded_at: null }))
       .catch((e) => setError(e.message))
     getTasteProfile(user.id).then(setTaste).catch(() => {})
     listMyLogs(user.id)

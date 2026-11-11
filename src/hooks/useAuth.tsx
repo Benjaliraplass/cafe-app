@@ -11,6 +11,8 @@ interface AuthState {
   profile: Profile | null
   isAdmin: boolean
   loading: boolean
+  /** true mientras se carga el perfil tras iniciar sesión (evita mostrar la app antes del walkthrough). */
+  profileLoading: boolean
   signOut: () => Promise<void>
   /** Vuelve a leer el perfil (tras cambiar nombre, foto, etc.). */
   refreshProfile: () => Promise<void>
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthState>({
   profile: null,
   isAdmin: false,
   loading: true,
+  profileLoading: true,
   signOut: async () => {},
   refreshProfile: async () => {},
 })
@@ -30,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(true)
 
   useEffect(() => {
     initAnalytics()
@@ -56,12 +60,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = useCallback(async () => {
     if (!userId) {
       setProfile(null)
+      setProfileLoading(false)
       return
     }
     try {
-      setProfile(await getProfile(userId))
+      let p = await getProfile(userId)
+      if (!p) {
+        // Recién registrado: el trigger que crea el perfil puede tardar unos ms.
+        await new Promise((r) => setTimeout(r, 800))
+        p = await getProfile(userId)
+      }
+      setProfile(p)
     } catch {
       // El perfil es complementario; la app sigue funcionando sin él.
+    } finally {
+      setProfileLoading(false)
     }
   }, [userId])
 
@@ -77,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         isAdmin: profile?.role === 'admin',
         loading,
+        profileLoading,
         signOut: async () => {
           await supabase.auth.signOut()
         },

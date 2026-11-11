@@ -442,9 +442,11 @@ export interface Profile {
   country: string | null
   role: UserRole
   equipment: Equipment
+  /** Null = el walkthrough de bienvenida todavía no se mostró. */
+  onboarded_at: string | null
 }
 
-const PROFILE_SELECT = 'id, display_name, avatar_url, country, role, equipment'
+const PROFILE_SELECT = 'id, display_name, avatar_url, country, role, equipment, onboarded_at'
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase.from('profiles').select(PROFILE_SELECT).eq('id', userId).maybeSingle()
@@ -457,7 +459,14 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     country: data.country,
     role: (data.role ?? 'user') as UserRole,
     equipment: (data.equipment ?? {}) as Equipment,
+    onboarded_at: data.onboarded_at ?? null,
   }
+}
+
+/** Marca el walkthrough como visto (una vez por cuenta). */
+export async function markOnboarded(userId: string): Promise<void> {
+  const { error } = await supabase.from('profiles').update({ onboarded_at: new Date().toISOString() }).eq('id', userId)
+  if (error) throw new Error(error.message)
 }
 
 export async function updateEquipment(userId: string, equipment: Equipment): Promise<void> {

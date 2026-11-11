@@ -141,7 +141,7 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 ## Fase 4 — Marca y lanzamiento
 
 - [ ] Nombre final, dominio, íconos y splash
-- [ ] Onboarding de 3 pantallas
+- [x] Onboarding de 3 pantallas (2026-11-11): valor en cada pantalla, chips de métodos que van al perfil, cierre en "Escanear mi primer café", Saltar siempre visible, una vez por cuenta (`profiles.onboarded_at`), eventos de completado/salto
 - [ ] Política de privacidad y términos
 - [ ] Social (decidido 2026-11-11, modelo Untappd): se activa con +2.000 usuarios, no antes; un feed vacío daña la app
     - Etapa 1 (puede ir antes, como viralidad): perfil público `/u/:handle` con handle único, switch "perfil público" en Perfil, línea de números, registros marcados públicos, recetas elegidas, perfil de gusto; enlace con `?ref=`

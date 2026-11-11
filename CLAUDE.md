@@ -50,9 +50,10 @@ src/
   components/TasteProfileCard.tsx  tarjeta + cuestionario del perfil de gusto (Perfil)
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
+  pages/Onboarding.tsx walkthrough de bienvenida (3 pantallas, una vez por cuenta: `profiles.onboarded_at`); Gate lo muestra antes de la app; +OnboardingView para preview
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail|edit|profile|scan|recipes|metrics|login|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   seed/                datos curados: recetas destacadas (idempotente por slug) y `kb_2026_11.sql` (KB de preparación, upsert por id; generado, no editar a mano)
