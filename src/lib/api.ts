@@ -1,5 +1,6 @@
 import { supabase, PHOTOS_BUCKET, AVATARS_BUCKET } from './supabase'
 import type {
+  RecipeFeedback,
   Cafe,
   Coffee,
   CoffeeLog,
@@ -66,6 +67,8 @@ export interface SuggestRecipeInput {
   dose_g?: number
   equipment?: string
   preferences?: string
+  /** Resultado de la última preparación y el ajuste a aplicar (ver lib/brewFeedback.ts). */
+  previous_feedback?: string
 }
 
 export function suggestRecipe(input: SuggestRecipeInput) {
@@ -352,11 +355,29 @@ export async function deleteLog(id: string): Promise<void> {
 export async function listRecipesForLog(logId: string): Promise<Recipe[]> {
   const { data, error } = await supabase
     .from('recipes')
-    .select('id, coffee_log_id, brew_method, title, params, steps, rationale, created_at')
+    .select('id, coffee_log_id, brew_method, title, params, steps, rationale, created_at, feedback:recipe_feedback ( id, recipe_id, signal, note, rule_id, suggestion, created_at )')
     .eq('coffee_log_id', logId)
     .order('created_at', { ascending: false })
+    .order('created_at', { referencedTable: 'recipe_feedback', ascending: false })
   if (error) throw new Error(error.message)
-  return (data ?? []) as Recipe[]
+  return (data ?? []) as unknown as Recipe[]
+}
+
+export async function saveRecipeFeedback(input: {
+  userId: string
+  recipeId: string
+  signal: RecipeFeedback['signal']
+  note: string | null
+  ruleId: string | null
+  suggestion: string
+}): Promise<RecipeFeedback> {
+  const { data, error } = await supabase
+    .from('recipe_feedback')
+    .insert({ user_id: input.userId, recipe_id: input.recipeId, signal: input.signal, note: input.note, rule_id: input.ruleId, suggestion: input.suggestion })
+    .select('id, recipe_id, signal, note, rule_id, suggestion, created_at')
+    .single()
+  if (error) throw new Error(error.message)
+  return data as RecipeFeedback
 }
 
 export async function saveRecipe(input: {

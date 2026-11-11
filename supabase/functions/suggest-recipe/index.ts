@@ -12,6 +12,7 @@
 //   dose_g?: number,                 // gramos de café exactos (manda sobre servings; obligatorio en espresso)
 //   equipment?: string,              // ej. "Comandante C40, V60 02 plástico"
 //   preferences?: string,            // ej. "más dulce", "más brillante", "más cuerpo"
+//   previous_feedback?: string,      // cómo salió la última preparación y el único ajuste a aplicar (lib/brewFeedback.ts)
 //   brew_method?: string             // compatibilidad con la versión anterior (se usa como dripper)
 // }
 // Respuesta: { ok: true, data: Recipe } | { ok: false, error: string }
@@ -204,6 +205,9 @@ Deno.serve(async (req: Request) => {
             : `Cantidad: 1 persona (200 g de agua)`,
       body.equipment ? `Equipo del usuario: ${body.equipment}` : null,
       body.preferences ? `Preferencia de taza: ${body.preferences}` : null,
+      typeof body.previous_feedback === "string" && body.previous_feedback.trim()
+        ? `Feedback de la última preparación con esta misma receta: ${body.previous_feedback.trim()} Aplica exactamente ese ajuste y mantén el resto de la receta igual; dilo en la justificación en una frase ("Esta versión ajusta X porque la anterior salió Y").`
+        : null,
     ].filter((l) => l !== null);
 
     const data = await callStructured<Recipe>({

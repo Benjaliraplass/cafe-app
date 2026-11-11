@@ -24,6 +24,7 @@ export type EventName =
   | 'recipe_generated'
   | 'recipe_saved'
   | 'recipe_failed'
+  | 'recipe_feedback_given'
   | 'featured_recipe_viewed'
   | 'public_coffee_viewed'
   | 'catalog_viewed'

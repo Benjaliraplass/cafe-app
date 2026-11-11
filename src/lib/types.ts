@@ -145,6 +145,18 @@ export interface Recipe {
   steps: Array<{ time: string; action: string }>
   rationale: string | null
   created_at: string
+  /** Feedback post-preparación (más reciente primero); solo viene en listRecipesForLog. */
+  feedback?: RecipeFeedback[]
+}
+
+export interface RecipeFeedback {
+  id: string
+  recipe_id: string
+  signal: 'acido' | 'amargo' | 'debil' | 'intenso' | 'perfecto'
+  note: string | null
+  rule_id: string | null
+  suggestion: string | null
+  created_at: string
 }
 
 export interface Cafe {

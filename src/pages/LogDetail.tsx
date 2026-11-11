@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, setFavorite, suggestRecipe, setLogPublic, updateEquipment } from '@/lib/api'
+import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, saveRecipeFeedback, setFavorite, suggestRecipe, setLogPublic, updateEquipment } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
 import { BREW_METHODS, isPendingLog, type CoffeeLog, type Equipment, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,8 @@ import { Chip } from '@/components/ui/chip'
 import { Separator } from '@/components/ui/separator'
 import { ErrorBox, Eyebrow, KeyValue, Photo, Rating, Spinner } from '@/components/primitives'
 import { EMPTY_SELECTION, EquipmentPicker, equipmentSelectionToText, espressoPatch, type EquipmentSelection } from '@/components/EquipmentPicker'
+import { RecipeFeedbackBlock } from '@/components/RecipeFeedback'
+import { suggestionFor, type BrewSignal } from '@/lib/brewFeedback'
 import { formatDate } from './Home'
 import { cn } from '@/lib/utils'
 
@@ -65,9 +67,12 @@ export function LogDetail() {
       error={error}
       onGenerate={async (method, equipment) => {
         const startedAt = Date.now()
-        track('recipe_requested', { dripper: method, from: 'detail' })
+        // Último feedback de una receta guardada con este método: el generador aplica solo ese ajuste.
+        const lastFb = recipes.find((r) => r.brew_method === method && r.feedback?.length)?.feedback?.[0]
+        const previous_feedback = lastFb ? suggestionFor(lastFb.signal, method).prompt + (lastFb.note ? ` Comentario del usuario: ${lastFb.note}` : '') : undefined
+        track('recipe_requested', { dripper: method, from: 'detail', with_feedback: !!previous_feedback })
         try {
-          const r = await suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, dose_g: method === 'Espresso' ? 18 : 15, servings: 1, equipment: equipment || undefined })
+          const r = await suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, dose_g: method === 'Espresso' ? 18 : 15, servings: 1, equipment: equipment || undefined, previous_feedback })
           track('recipe_generated', { dripper: method, from: 'detail', duration_ms: Date.now() - startedAt })
           return r
         } catch (e) {
@@ -80,6 +85,12 @@ export function LogDetail() {
         const next = { ...(equipment ?? {}), ...patch }
         await updateEquipment(user.id, next)
         setEquipment(next)
+      }}
+      onSaveFeedback={async (recipeId, signal, note, ruleId, suggestion) => {
+        if (!user) return
+        const fb = await saveRecipeFeedback({ userId: user.id, recipeId, signal, note, ruleId, suggestion })
+        track('recipe_feedback_given', { signal, rule: ruleId ?? 'none' })
+        setRecipes((rs) => rs.map((r) => (r.id === recipeId ? { ...r, feedback: [fb, ...(r.feedback ?? [])] } : r)))
       }}
       onSaveRecipe={async (recipe) => {
         if (!user) return
@@ -128,6 +139,7 @@ export function LogDetailView({
   onToggleFavorite,
   onTogglePublic,
   onSaveEquipment,
+  onSaveFeedback,
 }: {
   log: CoffeeLog
   recipes: Recipe[]
@@ -136,6 +148,7 @@ export function LogDetailView({
   onGenerate: (method: string, equipment: string) => Promise<RecipeData>
   onSaveRecipe: (recipe: RecipeData) => Promise<void>
   onSaveEquipment?: (patch: Partial<Equipment>) => Promise<void>
+  onSaveFeedback?: (recipeId: string, signal: BrewSignal, note: string | null, ruleId: string | null, suggestion: string) => Promise<void>
   onDelete: () => Promise<void>
   onToggleFavorite?: () => Promise<void>
   onTogglePublic?: (value: boolean) => Promise<void>
@@ -337,19 +350,25 @@ export function LogDetailView({
           <div className="flex flex-col gap-3 pt-4">
             <Eyebrow className="text-[10px]">Recetas guardadas</Eyebrow>
             {recipes.map((r) => (
-              <RecipeCard
-                key={r.id}
-                r={{
-                  title: r.title ?? r.brew_method,
-                  brew_method: r.brew_method,
-                  params: r.params,
-                  steps: r.steps,
-                  rationale: r.rationale ?? '',
-                  adjustments: [],
-                  rest_advice: null,
-                }}
-                compact
-              />
+              <div key={r.id} className="flex flex-col gap-2">
+                <RecipeCard
+                  r={{
+                    title: r.title ?? r.brew_method,
+                    brew_method: r.brew_method,
+                    params: r.params,
+                    steps: r.steps,
+                    rationale: r.rationale ?? '',
+                    adjustments: [],
+                    rest_advice: null,
+                  }}
+                  compact
+                />
+                <RecipeFeedbackBlock
+                  method={r.brew_method}
+                  feedback={r.feedback ?? []}
+                  onSave={onSaveFeedback ? (signal, note, ruleId, suggestion) => onSaveFeedback(r.id, signal, note, ruleId, suggestion) : undefined}
+                />
+              </div>
             ))}
           </div>
         )}

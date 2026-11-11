@@ -36,11 +36,13 @@ src/
   lib/google.ts        Google Identity Services: carga del script, nonce, tipos (login con Google sin pasar por el dominio de Supabase)
   lib/geo.ts           distancia, geolocalización, geocodificación Nominatim, enlaces a mapas
   lib/taste.ts         perfil de gusto: tipos, etiquetas, inferencia desde el diario, texto para el prompt de recetas
+  lib/brewFeedback.ts  feedback post-preparación: señales (ácido/amargo/débil/intenso/perfecto) -> ajuste único para la próxima vez (reglas A01-A24 de la KB) y texto para el prompt
   hooks/useAuth.tsx    sesión de Supabase + perfil (rol admin) en contexto
   lib/utils.ts         cn() (clsx + tailwind-merge)
   components/ui/       primitivos shadcn: button, input, textarea, select, label, badge, chip, card, skeleton, separator
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
+  components/RecipeFeedback.tsx  "¿Cómo salió?" bajo cada receta guardada en el detalle: un chip + nota opcional, muestra "Próxima vez: ..."
   components/EquipmentPicker.tsx  equipo para una receta: chips del perfil (toggle por receta), campo extra, tarjeta máquina/molino en espresso que se guarda al perfil; arma la línea para el prompt
   components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, SavedRecipeCard, CoffeeCard, CafeRow, SectionHeader, timeAgo (Inicio y listados)
   components/UpdateBanner.tsx  aviso "Hay una versión nueva" del service worker (registerType 'prompt'; el usuario decide cuándo recargar)

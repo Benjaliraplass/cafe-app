@@ -116,7 +116,8 @@ export function Preview() {
         {v === 'detail' && (
           <LogDetailView
             log={sp.get('pending') != null ? { ...logs[0], rating: null, notes: null, brew_method: null } : { ...logs[0], notes: 'Efervescente y complejo. Mucho mango en caliente, se vuelve más cítrico al enfriar.' }}
-            recipes={[{ id: 'x', coffee_log_id: '1', brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: '' }]}
+            recipes={[{ id: 'x', coffee_log_id: '1', brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: '', feedback: sp.get('fb') != null ? [{ id: 'f1', recipe_id: 'x', signal: 'acido', note: null, rule_id: 'A01', suggestion: 'Muele un paso más fino. Mismo ratio y misma agua.', created_at: new Date(Date.now() - 86400000).toISOString() }] : [] }]}
+            onSaveFeedback={async () => {}}
             error={null}
             onGenerate={async () => recipe}
             onSaveRecipe={async () => {}}

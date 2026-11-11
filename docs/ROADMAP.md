@@ -102,8 +102,11 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [ ] Script de evaluación con los 22 casos de `coffee_kb_implementacion.md`
 - [ ] Recetario público con las 61 recetas de la KB
 
-### 7c — Loop de feedback
-- [ ] Feedback post-preparación (acidez / amargor / cuerpo / agrado + "¿qué cambiarías?") → ajuste A01-A24, una variable por intento; eventos nuevos en la taxonomía
+### 7c — Loop de feedback (2026-11-11)
+- [x] Tabla `recipe_feedback` (RLS dueño) y `lib/brewFeedback.ts`: señal + método → un ajuste (A01-A09, A12, A13)
+- [x] "¿Cómo salió?" bajo cada receta guardada: un chip, nota opcional, "Próxima vez: ..."; evento `recipe_feedback_given`
+- [x] `suggest-recipe` v13 acepta `previous_feedback` y aplica solo ese ajuste al regenerar desde el detalle del café
+- [ ] Llevar el feedback también al wizard de Recetas cuando se elige el mismo café y método
 
 ## Lote 8 — Equipo en recetas (2026-11-11)
 
