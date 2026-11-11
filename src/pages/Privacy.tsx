@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Eyebrow, Title } from '@/components/primitives'
 
-export const PRIVACY_UPDATED = '10 de noviembre de 2026'
+export const PRIVACY_UPDATED = '11 de noviembre de 2026'
 const CONTACT = 'benjamin@tostadoclub.com'
 
 /**
@@ -26,7 +26,7 @@ export function Privacy() {
       <div className="mt-6 flex flex-col gap-6 text-[15px] leading-relaxed text-foreground">
         <P>
           Dripo es una aplicación para registrar y recordar los cafés de especialidad que pruebas. Es operada por
-          Cafetero Club SpA (Tostado Club), Guardia Vieja 202, oficina 902, Providencia, Santiago de Chile. Esta
+          Cafetero Club SpA, Guardia Vieja 202, oficina 902, Providencia, Santiago de Chile. Esta
           política explica qué datos recopila Dripo, para qué los usa y qué derechos tienes sobre ellos.
         </P>
 
@@ -69,38 +69,44 @@ export function Privacy() {
             <li>Para leer automáticamente la etiqueta del café a partir de la foto que subes y prellenar la ficha.</li>
             <li>Para generar recetas de preparación personalizadas según el café, el método, el equipo y el perfil de gusto que indiques.</li>
             <li>Para recomendarte cafés del catálogo afines a lo que has puntuado bien.</li>
-            <li>Para entender cómo se usa Dripo (qué funciona y qué no) y mejorarla durante la beta.</li>
+            <li>
+              Para mejorar Dripo: analizamos cómo se usa la aplicación y, de forma agregada y sin identificarte, los
+              cafés registrados, puntajes y recetas, para afinar la lectura de etiquetas, las recetas y las
+              recomendaciones. No usamos tus fotos ni tus notas para entrenar modelos de terceros.
+            </li>
             <li>Para responder a tu feedback.</li>
           </ul>
           <P>No vendemos tus datos ni los usamos para publicidad de terceros.</P>
         </Section>
 
         <Section n={3} title="Proveedores que procesan datos">
+          <P>
+            Para operar Dripo usamos proveedores externos que procesan datos por cuenta nuestra, bajo contrato y solo
+            para los fines descritos en esta política:
+          </P>
           <ul className="flex list-disc flex-col gap-2 pl-5">
             <li>
-              <strong>Supabase</strong> (base de datos, autenticación y almacenamiento de fotos), con servidores en la
-              región de Sudamérica.
+              <strong>Infraestructura:</strong> base de datos, autenticación y almacenamiento de fotos, con servidores
+              en Sudamérica; y el alojamiento de la aplicación web.
             </li>
             <li>
-              <strong>Google Gemini</strong> (Google LLC): recibe la foto de la etiqueta y la descripción del café para
-              extraer la información y sugerir recetas. Google no usa estos datos para entrenar sus modelos según los
-              términos de su API.
+              <strong>Inteligencia artificial:</strong> la foto de la etiqueta y la descripción del café se envían a un
+              proveedor de modelos de IA para extraer la información y sugerir recetas. Nuestros proveedores no usan
+              estos datos para entrenar sus modelos según los términos de sus API.
             </li>
             <li>
-              <strong>Netlify</strong>: aloja la aplicación web.
+              <strong>Mapas:</strong> servicios de mapas y búsqueda de direcciones; reciben la zona del mapa que
+              consultas, sin tu identidad.
             </li>
             <li>
-              <strong>OpenFreeMap y OpenStreetMap</strong>: entregan el mapa y la búsqueda de direcciones; reciben la zona
-              del mapa que consultas, sin tu identidad.
-            </li>
-            <li>
-              <strong>PostHog</strong>: analítica de producto; recibe los eventos de uso con un identificador interno,
-              sin tu correo ni tu nombre.
+              <strong>Analítica de producto:</strong> recibe los eventos de uso con un identificador interno, sin tu
+              correo ni tu nombre.
             </li>
             <li>
               <strong>Google</strong> como proveedor de inicio de sesión, solo si eliges entrar con Google.
             </li>
           </ul>
+          <P>Puedes pedir la lista actualizada de proveedores escribiendo al contacto indicado al final.</P>
         </Section>
 
         <Section n={4} title="Visibilidad de tu información">
