@@ -140,7 +140,10 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [ ] Nombre final, dominio, íconos y splash
 - [ ] Onboarding de 3 pantallas
 - [ ] Política de privacidad y términos
-- [ ] Decidir perfil público / social
+- [ ] Social (decidido 2026-11-11, modelo Untappd): se activa con +2.000 usuarios, no antes; un feed vacío daña la app
+    - Etapa 1 (puede ir antes, como viralidad): perfil público `/u/:handle` con handle único, switch "perfil público" en Perfil, línea de números, registros marcados públicos, recetas elegidas, perfil de gusto; enlace con `?ref=`
+    - Etapa 2 (+2.000 usuarios): seguir, feed "De quienes sigues" en Inicio con registros públicos (check-in = café + puntaje + notas + receta), una reacción tipo kudos; sin comentarios ni mensajes; bloqueo y reporte mínimos; política de privacidad actualizada
+    - Señal para adelantar la etapa 2: >30 % de usuarios comparte algo (`share_clicked`) y los enlaces traen registros (`share_link_opened` → signup)
 - [ ] Evaluar Capacitor para App Store / Play Store
 
 ## Backlog / ideas
