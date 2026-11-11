@@ -124,7 +124,7 @@ RLS: nadie lee desde el cliente (ni admin; las lecturas van por las funciones `a
 |---|---|
 | Ciclo de vida | `app_opened` (display_mode, utm, ref), `signup_completed` (provider), `login_completed` (provider), `pwa_installed` |
 | Escaneo | `scan_started` (from), `scan_completed` (duration_ms, fields_filled), `scan_failed` (reason), `log_saved` (rating, method, is_new_coffee), `log_edited`, `log_deleted` |
-| Recetas | `recipe_requested` (family, dripper, from), `recipe_generated` (duration_ms), `recipe_saved`, `recipe_failed` (reason) |
+| Recetas | `recipe_requested` (family, dripper, from), `recipe_generated` (duration_ms), `recipe_saved`, `recipe_failed` (reason), `recipe_feedback_given` (signal, rule) |
 | Descubrimiento | `featured_recipe_viewed` (slug), `public_coffee_viewed` (coffee_id, logged_in), `catalog_viewed`, `cafe_viewed` (cafe_id), `cafe_maps_clicked` (cafe_id), `cafe_proposed` |
 | Social | `share_clicked` (type: log/coffee/recipe, result: shared/copied), `share_link_opened` (type, ref, logged_in), `log_made_public` (value) |
 | Perfil | `taste_profile_saved`, `profile_updated`, `feedback_clicked` |
