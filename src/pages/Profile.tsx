@@ -326,9 +326,14 @@ export function ProfileView({
             </Link>
           </Button>
         )}
-        <Button variant="outline" className="mt-4 w-full" onClick={onSignOut}>
-          Cerrar sesión
-        </Button>
+        <div className="mt-4 flex flex-col gap-2">
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/nueva-contrasena">Cambiar contraseña</Link>
+          </Button>
+          <Button variant="outline" className="w-full" onClick={onSignOut}>
+            Cerrar sesión
+          </Button>
+        </div>
       </div>
     </div>
   )

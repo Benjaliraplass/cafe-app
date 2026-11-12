@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { ErrorBox, Field } from '@/components/primitives'
 import { Logo } from '@/components/Brand'
 
-type Mode = 'login' | 'signup'
+type Mode = 'login' | 'signup' | 'reset'
 
 export function Login() {
   const [mode, setMode] = useState<Mode>('login')
@@ -88,7 +88,12 @@ export function Login() {
     setInfo(null)
     setLoading(true)
     try {
-      if (mode === 'login') {
+      if (mode === 'reset') {
+        // Enlace de recuperación: Supabase lo manda al correo y abre /nueva-contrasena con una sesión temporal.
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/nueva-contrasena` })
+        if (error) throw error
+        setInfo('Si el correo existe, te llegará un enlace en un minuto. Ábrelo desde este teléfono.')
+      } else if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
       } else {
@@ -138,26 +143,42 @@ export function Login() {
             placeholder="tu@correo.com"
           />
         </Field>
-        <Field label="Contraseña" hint={mode === 'signup' ? 'Mínimo 6 caracteres' : undefined}>
-          <Input
-            type="password"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-          />
-        </Field>
+        {mode !== 'reset' && (
+          <Field label="Contraseña" hint={mode === 'signup' ? 'Mínimo 6 caracteres' : undefined}>
+            <Input
+              type="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </Field>
+        )}
+        {mode === 'reset' && <p className="text-sm text-muted-foreground">Te mandamos un enlace para crear una contraseña nueva.</p>}
         <ErrorBox message={error} />
         {info && <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted-foreground">{info}</p>}
         <div className="flex flex-col gap-3 pt-1">
           <Button type="submit" disabled={loading}>
-            {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+            {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Crear cuenta' : 'Enviar enlace'}
           </Button>
+          {mode === 'login' && (
+            <button
+              type="button"
+              className="text-center text-[13px] text-muted-foreground"
+              onClick={() => {
+                setMode('reset')
+                setError(null)
+                setInfo(null)
+              }}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
           {/* Botón GIS (Google lo dibuja). Mientras no esté listo, o si falla, se ve el de respaldo. */}
-          <div ref={gisRef} className={gisReady && !googleLoading ? 'flex h-11 justify-center overflow-hidden' : 'hidden'} />
-          {(!gisReady || googleLoading) && (
+          <div ref={gisRef} className={gisReady && !googleLoading && mode !== 'reset' ? 'flex h-11 justify-center overflow-hidden' : 'hidden'} />
+          {mode !== 'reset' && (!gisReady || googleLoading) && (
             <Button type="button" variant="outline" onClick={signInWithGoogle} disabled={googleLoading || loading}>
               <GoogleMark />
               {googleLoading ? 'Entrando...' : 'Continuar con Google'}
@@ -177,9 +198,13 @@ export function Login() {
             <>
               ¿No tienes cuenta? <span className="text-foreground">Crear una</span>
             </>
-          ) : (
+          ) : mode === 'signup' ? (
             <>
               ¿Ya tienes cuenta? <span className="text-foreground">Entrar</span>
+            </>
+          ) : (
+            <>
+              <span className="text-foreground">Volver a entrar</span>
             </>
           )}
         </button>

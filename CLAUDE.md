@@ -53,7 +53,7 @@ src/
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/Onboarding.tsx walkthrough de bienvenida (3 pantallas, una vez por cuenta: `profiles.onboarded_at`); Gate lo muestra antes de la app; +OnboardingView para preview
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
-                       Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
+                       Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), NewPassword (/nueva-contrasena: destino del enlace de recuperación y "Cambiar contraseña" desde Perfil), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
   pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
@@ -69,7 +69,7 @@ docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx
 ## Convenciones
 
 - Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente (excepción puntual: subida de foto en Admin).
-- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
+- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`, `/nueva-contrasena`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Analítica: todo evento nuevo se declara en `EventName` (`src/lib/analytics.ts`) y en la taxonomía de `docs/SPEC.md` §8; se dispara con `track()` desde el contenedor (no desde la vista), sin PII en props.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.

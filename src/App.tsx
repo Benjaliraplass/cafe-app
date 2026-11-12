@@ -20,6 +20,7 @@ import { FeaturedList, FeaturedRecipePage } from '@/pages/FeaturedRecipe'
 import { Catalog, PublicCoffeePage } from '@/pages/PublicCoffee'
 import { Privacy } from '@/pages/Privacy'
 import { Onboarding } from '@/pages/Onboarding'
+import { NewPassword } from '@/pages/NewPassword'
 import { Spinner } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
 import { UpdateBanner } from '@/components/UpdateBanner'
@@ -100,6 +101,8 @@ function Root() {
   }
   return (
     <Routes>
+      {/* Destino del enlace de recuperación de contraseña: fuera del Gate y del Layout, con o sin sesión. */}
+      <Route path="nueva-contrasena" element={<NewPassword />} />
       <Route element={<PublicShell />}>
         <Route path="r/:slug" element={<FeaturedRecipePage />} />
         <Route path="c/:id" element={<PublicCoffeePage />} />
