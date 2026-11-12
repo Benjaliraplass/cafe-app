@@ -5,6 +5,7 @@ import { GOOGLE_CLIENT_ID, createNonce, loadGoogleIdentity } from '@/lib/google'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorBox, Field } from '@/components/primitives'
+import { Logo } from '@/components/Brand'
 
 type Mode = 'login' | 'signup'
 
@@ -120,7 +121,7 @@ export function Login() {
         />
         <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-6 pb-2">
-          <h1 className="text-[46px] font-medium leading-none tracking-tightest">Dripo</h1>
+          <h1 className="leading-none"><Logo className="h-[52px] w-auto" /></h1>
           <p className="text-[15px] text-muted-foreground">Tu diario de café de especialidad</p>
         </div>
       </div>

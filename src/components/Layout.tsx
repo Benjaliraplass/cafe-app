@@ -48,7 +48,7 @@ export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
         <div className="fixed inset-0 z-[25] flex flex-col justify-end bg-foreground/20 backdrop-blur-[2px]" onClick={() => setOpen(false)} role="dialog" aria-label="Qué quieres hacer">
           <div className="mx-auto w-full max-w-md px-4 pb-[calc(max(env(safe-area-inset-bottom),12px)+84px)]" onClick={(e) => e.stopPropagation()}>
             <div className="glass-solid flex flex-col gap-2 rounded-[28px] p-2">
-              <ActionRow to="/scan" icon={<Camera className="size-6" strokeWidth={1.7} />} title="Escanear etiqueta" body="Foto al paquete y guardamos el café en tu diario." />
+              <ActionRow to="/scan" accent icon={<Camera className="size-6" strokeWidth={1.7} />} title="Escanear etiqueta" body="Foto al paquete y guardamos el café en tu diario." />
               <ActionRow to="/recipes" icon={<BookOpen className="size-6" strokeWidth={1.7} />} title="Pedir una receta" body="A medida para tu café, tu método y tu equipo." />
             </div>
           </div>
@@ -65,8 +65,8 @@ export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
               className={cn(
-                'mx-1 flex size-[58px] shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_10px_24px_-8px_rgba(0,0,0,0.55)] transition-transform active:scale-95',
-                (open || onActionRoute || activeTo === '/scan' || activeTo === '/recipes') && 'ring-2 ring-foreground/20 ring-offset-2 ring-offset-background/60',
+                'mx-1 flex size-[58px] shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-[0_10px_24px_-8px_rgba(200,16,46,0.55)] transition-transform active:scale-95',
+                (open || onActionRoute || activeTo === '/scan' || activeTo === '/recipes') && 'ring-2 ring-brand/25 ring-offset-2 ring-offset-background/60',
               )}
             >
               <Icon width={26} height={26} strokeWidth={1.9} className={cn('transition-transform duration-200', open && 'rotate-45')} />
@@ -100,10 +100,10 @@ export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
   )
 }
 
-function ActionRow({ to, icon, title, body }: { to: string; icon: React.ReactNode; title: string; body: string }) {
+function ActionRow({ to, icon, title, body, accent }: { to: string; icon: React.ReactNode; title: string; body: string; accent?: boolean }) {
   return (
     <Link to={to} className="flex items-center gap-4 rounded-[22px] px-4 py-4 transition-colors active:bg-muted">
-      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-foreground text-background">{icon}</span>
+      <span className={cn('flex size-12 shrink-0 items-center justify-center rounded-full', accent ? 'bg-brand text-brand-foreground' : 'bg-foreground text-background')}>{icon}</span>
       <span className="flex min-w-0 flex-col">
         <span className="text-[16px] font-medium">{title}</span>
         <span className="text-sm text-muted-foreground">{body}</span>

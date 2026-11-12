@@ -23,6 +23,7 @@ Estado por fase. Marcar con [x] al cerrar. Cada fase termina con deploy en Netli
 - [x] Reimplementadas Login, Mis cafés, Confirmar café, Detalle, Explorar, Perfil según Figma V3
 - [x] Barra inferior transparente con blur; íconos lucide-react; íconos PWA y favicon "Dripo"
 - [x] Barra inferior flotante "liquid glass" (píldora con blur/saturación, ítem activo en negro) y barras de acción con la misma geometría
+- [x] Marca final (2026-11-12): isotipo d-gota + logo a mano, paleta Cereza. `src/components/Brand.tsx`, favicon e íconos PWA (192/512/maskable/apple-touch) regenerados, logo en Login, botón central Crear/Escanear en cereza (`--brand`)
 - [ ] Transiciones con framer-motion (instalado, sin usar aún)
 - [ ] Prueba en teléfono del rediseño y ajustes finos
 - [ ] Renombrar el sitio en Netlify (ej. `dripo-app`) y, cuando haya dominio, conectarlo
