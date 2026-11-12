@@ -49,6 +49,7 @@ src/
   components/AdminMetrics.tsx  pestaña Métricas de Admin: KPIs, viralidad, actividad, embudo, retención, top, usuarios, CSV (AdminMetricsView para preview)
   components/TasteProfileCard.tsx  tarjeta + cuestionario del perfil de gusto (Perfil)
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
+  components/Brand.tsx  Logo e Isotipo (SVG inline en currentColor) de la marca final; los íconos PWA y el favicon salen de la misma geometría
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/Onboarding.tsx walkthrough de bienvenida (3 pantallas, una vez por cuenta: `profiles.onboarded_at`); Gate lo muestra antes de la app; +OnboardingView para preview
   pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
@@ -73,6 +74,7 @@ docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx
 - Analítica: todo evento nuevo se declara en `EventName` (`src/lib/analytics.ts`) y en la taxonomía de `docs/SPEC.md` §8; se dispara con `track()` desde el contenedor (no desde la vista), sin PII en props.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.
 - JSON estructurado desde la IA: definir el schema como tool (`input_schema`) y llamar `callStructured` (ver `_shared/ai.ts`); Gemini usa `responseSchema`, Anthropic `tool_choice` forzado. Nunca parsear texto libre.
+- Marca: logo e isotipo d-gota (`@/components/Brand`), siempre en negro dentro de la app (`currentColor`). Cereza `#C8102E` (`--brand`, clase `bg-brand`) es el único acento: app icon y botón central Crear/Escanear. No usar el logo en cereza sobre blanco ni sumar otros colores de marca.
 - UI: diseño V3 de Figma (claro, escala de grises, DM Sans). Tokens como variables CSS en `src/index.css` (`:root` light, `.dark` dark) mapeadas a Tailwind con `@theme inline`; nombres shadcn (`background`, `card`, `muted`, `border`, `primary`...) más `tertiary` y `border-strong`. Utilidad `eyebrow` para etiquetas en mayúsculas. Fuente única: DM Sans (Google Fonts, cargada en `index.html`).
 - Componentes: usar `@/components/ui/*` y `@/components/primitives`. No crear estilos ad hoc si existe un primitivo. Nuevos componentes shadcn se agregan con `npx shadcn@latest add <nombre>` desde el computador (el registro no es accesible desde claude.ai).
 - Vistas con datos las separamos en contenedor (fetch) + vista presentacional (`HomeView`, `LogDetailView`) para poder previsualizarlas en `/preview`.
