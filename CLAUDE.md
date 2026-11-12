@@ -57,6 +57,7 @@ src/
   pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
+  templates/           plantillas HTML de correos de Auth (se pegan en Supabase → Email Templates; ver README)
   seed/                datos curados: recetas destacadas (idempotente por slug) y `kb_2026_11.sql` (KB de preparación, upsert por id; generado, no editar a mano)
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
   functions/scan-label/            foto de etiqueta -> JSON estructurado

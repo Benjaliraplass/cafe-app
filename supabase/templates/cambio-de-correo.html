@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Confirma tu nuevo correo</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f4f1;-webkit-text-size-adjust:100%;">
+<!-- Preheader (oculto): lo que se ve en la bandeja junto al asunto -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f5f4f1;">Un toque para terminar el cambio.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f4f1;">
+  <tr>
+    <td align="center" style="padding:40px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:#ffffff;border-radius:24px;">
+        <tr>
+          <td style="padding:40px 36px 8px 36px;">
+            <img src="https://dripocoffee.com/email/logo.png" width="92" height="36" alt="Dripo" style="display:block;border:0;outline:none;width:92px;height:36px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 36px 0 36px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+            <h1 style="margin:0;font-size:26px;line-height:1.15;font-weight:500;letter-spacing:-0.02em;color:#111111;">Confirma tu nuevo correo</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 36px 0 36px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#6b6763;">
+            Pediste cambiar el correo de tu cuenta de Dripo a {{ .NewEmail }}. Confírmalo para terminar.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 36px 0 36px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="background:#111111;border-radius:999px;">
+                  <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:16px 28px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:500;line-height:1;color:#ffffff;text-decoration:none;border-radius:999px;">Confirmar nuevo correo</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 36px 40px 36px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#9a958f;">
+            Si no pediste este cambio, ignora este correo y tu cuenta seguirá con el correo actual.
+          </td>
+        </tr>
+      </table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+        <tr>
+          <td style="padding:20px 36px 0 36px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a958f;">
+            Dripo, tu diario de café de especialidad · Cafetero Club SpA, Santiago de Chile<br>
+            <a href="https://dripocoffee.com/privacidad" style="color:#9a958f;text-decoration:underline;">Política de privacidad</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

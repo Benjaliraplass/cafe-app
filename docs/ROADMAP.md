@@ -113,7 +113,8 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 
 - [x] Recuperar contraseña: "¿Olvidaste tu contraseña?" en Login, pantalla `/nueva-contrasena`, "Cambiar contraseña" en Perfil
 - [ ] Benjamín: confirmar `https://dripocoffee.com/**` en Supabase → Authentication → URL Configuration → Redirect URLs
-- [ ] SMTP propio para correos de Auth (Resend u otro) antes de abrir el beta a más de ~30 personas: remitente @dripocoffee.com y sin el límite por hora de Supabase
+- [x] Plantillas de correo de Auth en `supabase/templates/` (confirmar cuenta, recuperar contraseña, cambio de correo), marca nueva, logo en `public/email/logo.png`
+- [ ] Benjamín: cuenta en Resend, dominio dripocoffee.com (SPF/DKIM/DMARC en GoDaddy), SMTP en Supabase (host smtp.resend.com, puerto 465, usuario `resend`, contraseña = API key, remitente hola@dripocoffee.com) y pegar las 3 plantillas con sus asuntos en Authentication → Email Templates
 - [x] Receta desde un café: el detalle ya no tiene mini-formulario; "Pedir receta a medida" abre el wizard del menú con el café elegido (método → cantidad → afinemos). Un solo flujo en toda la app
 - [x] Wizard paso 1: un toque en el café elige y avanza (sin Continuar al final de la lista); hasta 20 cafés, de más nuevo a más antiguo por fecha de escaneo
 - [x] Tras guardar desde el wizard: "Ver el café y sus recetas"
