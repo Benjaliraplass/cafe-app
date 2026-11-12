@@ -65,7 +65,7 @@ supabase/
   functions/scan-label/            foto de etiqueta -> JSON estructurado
   functions/suggest-recipe/        café + método -> receta estructurada
   functions/join/                  beta por invitación: correo -> cuenta (inviteUserByEmail) o lista de espera
-  functions/sync-allowlist/        Shopify (clientes con compra) -> allowlist; pg_cron diario; auth por secreto sync_key de Vault
+  functions/sync-allowlist/        recibe correos (n8n <- segmento Klaviyo YiM4pL) -> allowlist; auth por secret SYNC_KEY
 netlify/edge-functions/og.ts   meta tags Open Graph para /r/* y /c/* (lee Supabase con la clave pública)
 scripts/kb_seed.py     xlsx + JSON de `docs/kb/` -> `supabase/seed/kb_2026_11.sql` (tablas kb_sources, kb_methods, kb_recipes, kb_recipe_steps, kb_rules; ver SPEC §9)
 docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx, reglas JSON, notas)

@@ -80,7 +80,7 @@ Pública (sin JWT). Body `{ email, ref? }`. Llama `join_decision(email, ref)` (s
 
 ### `sync-allowlist`
 
-Shopify Admin GraphQL (`customers`, `orders_count:>0`, páginas de 250) → upsert en `allowlist`. Auth por header `x-sync-key` igual al secreto `sync_key` de Vault (RPC `sync_key()`, solo service role). La agenda `pg_cron` a las 06:10 UTC vía `pg_net`. Secrets: `SHOPIFY_SHOP`, `SHOPIFY_ADMIN_TOKEN` (app personalizada con `read_customers`).
+Recibe `{ emails: string[] }` (hasta 2.000) y hace upsert en `allowlist` (`source = 'klaviyo'`). Auth por header `x-sync-key` igual al secret `SYNC_KEY`. La llama a diario (03:10 Chile) el flujo de n8n "[Prod] Dripo <- Klaviyo · Lista blanca (diario)" (`enJCVboku0KPFUYS`), que lee el segmento de Klaviyo "Dripo · Lista blanca (compró al menos una vez)" (`YiM4pL`: métrica Placed Order ≥ 1, todo el tiempo; Shopify lo alimenta solo). Decisión 2026-11-12: sin app personalizada en Shopify; Klaviyo ya tiene a todos los compradores. También sirve para una carga manual (ejecutar el flujo a mano).
 
 ## 6. Flujos de la app
 

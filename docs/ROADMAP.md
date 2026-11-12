@@ -125,13 +125,13 @@ Decisión: lanzar a clientes de Tostado Club (cualquiera con una compra) y que s
 
 - [x] Esquema: `profiles.invite_code/invites_total/invites_seen/invited_by/is_founder`, `allowlist`, `waitlist`, `refresh_invites()` con triggers, RPCs `my_invites`, `mark_invites_seen`, `invite_info`, `join_decision`, `admin_invite_stats`; cuentas existentes marcadas fundadoras con su cupo
 - [x] Edge Function `join` (correo → cuenta por `inviteUserByEmail` o lista de espera)
-- [x] Edge Function `sync-allowlist` (Shopify → allowlist) + `pg_cron` diario 06:10 UTC
+- [x] Edge Function `sync-allowlist` (recibe correos → allowlist) + flujo n8n diario desde el segmento de Klaviyo `YiM4pL` (8.774 compradores al 2026-11-12). Sin app en Shopify (decisión de Benjamín)
 - [x] App: `/unete` (+JoinView para preview `?v=join`), Login sin registro, "Crea tu contraseña" en `/nueva-contrasena` para invitados, hoja de desbloqueo (`?v=unlock`), fila Invitaciones en Perfil, barra "X te invita" en fichas públicas, `?ref=` = `invite_code`, eventos, Admin → Invitaciones
 - [x] Plantilla "Invite user" (`supabase/templates/invitacion.html`)
 - [ ] Benjamín: Supabase → Authentication → Sign In / Providers → Email → apagar "Allow new users to sign up" (desde ese momento solo entra quien pasa por `/unete`)
-- [ ] Benjamín: Supabase → Vault → nuevo secreto `sync_key` (cualquier texto largo al azar)
-- [ ] Benjamín: Shopify → Configuración → Apps → Desarrollar apps → app "Dripo allowlist" con permiso `read_customers` → token de acceso; en Supabase → Edge Functions → Secrets: `SHOPIFY_SHOP` (`<tienda>.myshopify.com`) y `SHOPIFY_ADMIN_TOKEN`
-- [ ] Primera carga de la lista blanca (ejecutar `sync-allowlist` una vez con los secrets listos) y comprobar `select count(*) from allowlist`
+- [ ] Benjamín: inventar una clave larga al azar y pegarla en dos lugares: Supabase → Edge Functions → Secrets → `SYNC_KEY`, y n8n → credencial Header Auth "Dripo sync key" (Name `x-sync-key`, Value la clave) asignada al nodo "Dripo - sync-allowlist" del flujo `enJCVboku0KPFUYS`
+- [ ] Aplicar `20261112130000_sync_allowlist_via_n8n.sql` (quita el cron y `sync_key()`; pide confirmación en el MCP)
+- [ ] Primera carga: ejecutar el flujo de n8n a mano, activarlo, y comprobar `select count(*) from allowlist` (esperado ~8.700)
 - [ ] Prueba completa desde el teléfono: `/unete` con correo de cliente → correo → contraseña → bienvenida → primer café → hoja de 3 invitaciones → compartir → amigo entra por el enlace
 - [ ] Correo de lanzamiento a clientes de Tostado Club (Klaviyo) con enlace a `https://dripocoffee.com/unete?utm_source=klaviyo&utm_campaign=lanzamiento`
 - [ ] Más adelante: abrir rondas desde la lista de espera (función admin que invita a los N más antiguos), posición en la lista, invitaciones extra por hitos
