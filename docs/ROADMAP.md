@@ -129,9 +129,9 @@ Decisión: lanzar a clientes de Tostado Club (cualquiera con una compra) y que s
 - [x] App: `/unete` (+JoinView para preview `?v=join`), Login sin registro, "Crea tu contraseña" en `/nueva-contrasena` para invitados, hoja de desbloqueo (`?v=unlock`), fila Invitaciones en Perfil, barra "X te invita" en fichas públicas, `?ref=` = `invite_code`, eventos, Admin → Invitaciones
 - [x] Plantilla "Invite user" (`supabase/templates/invitacion.html`)
 - [ ] Benjamín: Supabase → Authentication → Sign In / Providers → Email → apagar "Allow new users to sign up" (desde ese momento solo entra quien pasa por `/unete`)
-- [ ] Benjamín: inventar una clave larga al azar y pegarla en dos lugares: Supabase → Edge Functions → Secrets → `SYNC_KEY`, y n8n → credencial Header Auth "Dripo sync key" (Name `x-sync-key`, Value la clave) asignada al nodo "Dripo - sync-allowlist" del flujo `enJCVboku0KPFUYS`
-- [ ] Aplicar `20261112130000_sync_allowlist_via_n8n.sql` (quita el cron y `sync_key()`; pide confirmación en el MCP)
-- [ ] Primera carga: ejecutar el flujo de n8n a mano, activarlo, y comprobar `select count(*) from allowlist` (esperado ~8.700)
+- [x] `SYNC_KEY` en Supabase y credenciales en n8n (Klaviyo lectura con permisos segments:read + profiles:read; Header Auth `x-sync-key`)
+- [x] Cron y `sync_key()` retirados (`20261112130000_sync_allowlist_via_n8n.sql`)
+- [x] Primera carga 2026-11-12: 8.774 correos en `allowlist`; `join_decision` probada (existente / lista blanca / código con cupo / sin cupo → espera / sin nada → espera)
 - [ ] Prueba completa desde el teléfono: `/unete` con correo de cliente → correo → contraseña → bienvenida → primer café → hoja de 3 invitaciones → compartir → amigo entra por el enlace
 - [ ] Correo de lanzamiento a clientes de Tostado Club (Klaviyo) con enlace a `https://dripocoffee.com/unete?utm_source=klaviyo&utm_campaign=lanzamiento`
 - [ ] Más adelante: abrir rondas desde la lista de espera (función admin que invita a los N más antiguos), posición en la lista, invitaciones extra por hitos
