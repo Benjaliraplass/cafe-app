@@ -179,6 +179,7 @@ Decisión: lanzar a clientes de Tostado Club (cualquiera con una compra) y que s
 
 ## Backlog / ideas
 
+- Receta ligada al café (decidido 2026-11-12, a backlog): tabla `coffee_recipes` (receta curada por café del catálogo, fuente "Tostado Club"), los cafés del mes publicados en el catálogo con su ficha, bloque "Receta de Tostado Club para este café" en el detalle cuando el escaneo coincide, y la IA la recibe como referencia en `suggest-recipe`. Admin para cargar las de cada mes. Material listo para la primera carga: 6 recetas (4 V60, 2 espresso) en https://tostadoclub.com/pages/seleccion-41-noviembre-2026 (Perú Yellow Bourbon · La Pastora; Brasil Natural · Intenzzo) y https://tostadoclub.com/pages/seleccion3-noviembre-2026 (El Loro · La Pastora; Catiope Honey · Asunto). Descartado cargarlas como destacadas: son recetas de un café concreto y envejecen cada mes
 - Compartir ficha del café como imagen (stories)
 - Importar historial desde Tostado Club (cafés recibidos en la suscripción)
 - Ranking de tostadores y orígenes entre usuarios
