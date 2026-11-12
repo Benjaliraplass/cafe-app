@@ -51,7 +51,7 @@ export function FeaturedRecipePage() {
 
 export function FeaturedRecipeView({ r }: { r: FeaturedRecipeT }) {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { profile } = useAuth()
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle')
   const p = r.params
   const isEspresso = r.method_family === 'espresso'
@@ -69,7 +69,7 @@ export function FeaturedRecipeView({ r }: { r: FeaturedRecipeT }) {
     const res = await shareLink({
       title: `${r.title} · Dripo`,
       text: `${r.title}, por ${r.author}${r.event ? ` (${r.event})` : ''}.`,
-      url: absoluteUrl(`/r/${r.slug}${refParam(user?.id)}`),
+      url: absoluteUrl(`/r/${r.slug}${refParam(profile?.invite_code)}`),
     })
     if (res !== 'failed') track('share_clicked', { type: 'recipe', result: res })
     if (res === 'copied') {

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { ErrorBox, Field } from '@/components/primitives'
 import { Logo } from '@/components/Brand'
 
-type Mode = 'login' | 'signup' | 'reset'
+type Mode = 'login' | 'reset'
 
 export function Login() {
   const [mode, setMode] = useState<Mode>('login')
@@ -93,15 +93,9 @@ export function Login() {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/nueva-contrasena` })
         if (error) throw error
         setInfo('Si el correo existe, te llegará un enlace en un minuto. Ábrelo desde este teléfono.')
-      } else if (mode === 'login') {
+      } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-      } else {
-        const { data, error } = await supabase.auth.signUp({ email, password })
-        if (error) throw error
-        if (!data.session) {
-          setInfo('Te enviamos un correo para confirmar la cuenta. Revisa tu bandeja y vuelve a entrar.')
-        }
       }
     } catch (err) {
       setError(translate(err instanceof Error ? err.message : 'Error'))
@@ -144,10 +138,10 @@ export function Login() {
           />
         </Field>
         {mode !== 'reset' && (
-          <Field label="Contraseña" hint={mode === 'signup' ? 'Mínimo 6 caracteres' : undefined}>
+          <Field label="Contraseña">
             <Input
               type="password"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
               required
               minLength={6}
               value={password}
@@ -157,11 +151,21 @@ export function Login() {
           </Field>
         )}
         {mode === 'reset' && <p className="text-sm text-muted-foreground">Te mandamos un enlace para crear una contraseña nueva.</p>}
-        <ErrorBox message={error} />
+        {error === NEEDS_INVITE ? (
+          <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted-foreground">
+            Ese correo todavía no tiene invitación.{' '}
+            <Link to="/unete" className="text-foreground underline underline-offset-4">
+              Pide la tuya
+            </Link>
+            .
+          </p>
+        ) : (
+          <ErrorBox message={error} />
+        )}
         {info && <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted-foreground">{info}</p>}
         <div className="flex flex-col gap-3 pt-1">
           <Button type="submit" disabled={loading}>
-            {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Crear cuenta' : 'Enviar enlace'}
+            {loading ? 'Un momento...' : mode === 'login' ? 'Entrar' : 'Enviar enlace'}
           </Button>
           {mode === 'login' && (
             <button
@@ -185,29 +189,26 @@ export function Login() {
             </Button>
           )}
         </div>
-        <button
-          type="button"
-          className="pt-2 text-center text-[13px] text-muted-foreground"
-          onClick={() => {
-            setMode(mode === 'login' ? 'signup' : 'login')
-            setError(null)
-            setInfo(null)
-          }}
-        >
-          {mode === 'login' ? (
-            <>
-              ¿No tienes cuenta? <span className="text-foreground">Crear una</span>
-            </>
-          ) : mode === 'signup' ? (
-            <>
-              ¿Ya tienes cuenta? <span className="text-foreground">Entrar</span>
-            </>
-          ) : (
-            <>
-              <span className="text-foreground">Volver a entrar</span>
-            </>
-          )}
-        </button>
+        {mode === 'login' ? (
+          <p className="pt-2 text-center text-[13px] text-muted-foreground">
+            ¿No tienes cuenta?{' '}
+            <Link to="/unete" className="text-foreground">
+              Pide tu invitación
+            </Link>
+          </p>
+        ) : (
+          <button
+            type="button"
+            className="pt-2 text-center text-[13px] text-foreground"
+            onClick={() => {
+              setMode('login')
+              setError(null)
+              setInfo(null)
+            }}
+          >
+            Volver a entrar
+          </button>
+        )}
         <p className="pt-4 text-center text-xs text-muted-foreground">
           Al continuar aceptas la{' '}
           <Link to="/privacidad" className="underline underline-offset-4">
@@ -232,8 +233,12 @@ function GoogleMark() {
   )
 }
 
+/** Marcador: el correo no tiene cuenta y el registro está cerrado (Dripo es por invitación). */
+const NEEDS_INVITE = '__needs_invite__'
+
 function translate(msg: string): string {
   const m = msg.toLowerCase()
+  if (m.includes('signups not allowed') || (m.includes('signup') && m.includes('disabled'))) return NEEDS_INVITE
   if (m.includes('provider is not enabled') || m.includes('unsupported provider')) return 'El acceso con Google aún no está habilitado.'
   if (m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
   if (m.includes('email not confirmed')) return 'Confirma tu correo antes de entrar.'

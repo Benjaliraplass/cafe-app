@@ -50,11 +50,13 @@ src/
   components/TasteProfileCard.tsx  tarjeta + cuestionario del perfil de gusto (Perfil)
   components/CafeMap.tsx  mapa MapLibre (OpenFreeMap positron) con marcadores propios; PickLocationMap para fijar un punto
   components/Brand.tsx  Logo e Isotipo (SVG inline en currentColor) de la marca final; los íconos PWA y el favicon salen de la misma geometría
+  components/Invites.tsx  invitaciones (Lote 10): InviteUnlockSheet (hoja "Desbloqueaste N"), InvitesRow (Perfil), shareInvite, InviteStrip
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/Onboarding.tsx walkthrough de bienvenida (3 pantallas, una vez por cuenta: `profiles.onboarded_at`); Gate lo muestra antes de la app; +OnboardingView para preview
-  pages/               Login (correo + Google), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
+  pages/Join.tsx       /unete: entrada a la beta por invitación (correo -> cuenta o lista de espera); +JoinView para preview
+  pages/               Login (correo + Google, sin registro), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), NewPassword (/nueva-contrasena: destino del enlace de recuperación y "Cambiar contraseña" desde Perfil), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   templates/           plantillas HTML de correos de Auth (se pegan en Supabase → Email Templates; ver README)
@@ -62,6 +64,8 @@ supabase/
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
   functions/scan-label/            foto de etiqueta -> JSON estructurado
   functions/suggest-recipe/        café + método -> receta estructurada
+  functions/join/                  beta por invitación: correo -> cuenta (inviteUserByEmail) o lista de espera
+  functions/sync-allowlist/        Shopify (clientes con compra) -> allowlist; pg_cron diario; auth por secreto sync_key de Vault
 netlify/edge-functions/og.ts   meta tags Open Graph para /r/* y /c/* (lee Supabase con la clave pública)
 scripts/kb_seed.py     xlsx + JSON de `docs/kb/` -> `supabase/seed/kb_2026_11.sql` (tablas kb_sources, kb_methods, kb_recipes, kb_recipe_steps, kb_rules; ver SPEC §9)
 docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx, reglas JSON, notas)
@@ -70,7 +74,8 @@ docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx
 ## Convenciones
 
 - Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente (excepción puntual: subida de foto en Admin).
-- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`, `/nueva-contrasena`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
+- Registro cerrado: la única puerta es `/unete` + Edge Function `join`. No reabrir `signUp` en el cliente.
+- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`, `/nueva-contrasena`, `/unete`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Analítica: todo evento nuevo se declara en `EventName` (`src/lib/analytics.ts`) y en la taxonomía de `docs/SPEC.md` §8; se dispara con `track()` desde el contenedor (no desde la vista), sin PII en props.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.

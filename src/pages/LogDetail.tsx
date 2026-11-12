@@ -16,10 +16,11 @@ import { RecipeFeedbackBlock } from '@/components/RecipeFeedback'
 import type { BrewSignal } from '@/lib/brewFeedback'
 import { formatDate } from './Home'
 import { cn } from '@/lib/utils'
+import { InviteUnlockSheet } from '@/components/Invites'
 
 export function LogDetail() {
   const { id } = useParams<{ id: string }>()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const [log, setLog] = useState<CoffeeLog | null | undefined>(undefined)
@@ -55,11 +56,15 @@ export function LogDetail() {
   }
 
   return (
+    <>
+    {/* Hoja "Desbloqueaste N invitaciones": aparece aquí porque el primer café guardado aterriza en su detalle. */}
+    <InviteUnlockSheet />
     <LogDetailView
       key={log.id}
       log={log}
       recipes={recipes}
       error={error}
+      inviteCode={profile?.invite_code}
       onSaveFeedback={async (recipeId, signal, note, ruleId, suggestion) => {
         if (!user) return
         const fb = await saveRecipeFeedback({ userId: user.id, recipeId, signal, note, ruleId, suggestion })
@@ -92,6 +97,7 @@ export function LogDetail() {
         }
       }}
     />
+    </>
   )
 }
 
@@ -104,8 +110,11 @@ export function LogDetailView({
   onToggleFavorite,
   onTogglePublic,
   onSaveFeedback,
+  inviteCode,
 }: {
   log: CoffeeLog
+  /** Código del dueño para el ?ref= del enlace compartido. */
+  inviteCode?: string
   recipes: Recipe[]
   error: string | null
   onSaveFeedback?: (recipeId: string, signal: BrewSignal, note: string | null, ruleId: string | null, suggestion: string) => Promise<void>
@@ -125,7 +134,7 @@ export function LogDetailView({
     const res = await shareLink({
       title: `${c.name} · ${c.roaster?.name ?? 'Dripo'}`,
       text: [c.roaster?.name, c.name, c.origin_country, c.process].filter(Boolean).join(' · '),
-      url: absoluteUrl(`/c/${c.id}${refParam(log.user_id)}`),
+      url: absoluteUrl(`/c/${c.id}${refParam(inviteCode)}`),
     })
     if (res !== 'failed') track('share_clicked', { type: 'log', result: res })
     if (res === 'copied') {

@@ -445,9 +445,14 @@ export interface Profile {
   equipment: Equipment
   /** Null = el walkthrough de bienvenida todavía no se mostró. */
   onboarded_at: string | null
+  /** Código de invitación: es el ?ref= de los enlaces compartidos y de /unete. */
+  invite_code: string
+  /** Quién lo invitó (null si entró como cliente de Tostado Club o es fundador). */
+  invited_by: string | null
+  is_founder: boolean
 }
 
-const PROFILE_SELECT = 'id, display_name, avatar_url, country, role, equipment, onboarded_at'
+const PROFILE_SELECT = 'id, display_name, avatar_url, country, role, equipment, onboarded_at, invite_code, invited_by, is_founder'
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase.from('profiles').select(PROFILE_SELECT).eq('id', userId).maybeSingle()
@@ -461,7 +466,52 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     role: (data.role ?? 'user') as UserRole,
     equipment: (data.equipment ?? {}) as Equipment,
     onboarded_at: data.onboarded_at ?? null,
+    invite_code: data.invite_code ?? '',
+    invited_by: data.invited_by ?? null,
+    is_founder: Boolean(data.is_founder),
   }
+}
+
+// ---------- Invitaciones (Lote 10) ----------
+
+export interface MyInvites {
+  code: string
+  total: number
+  used: number
+  seen: number
+}
+
+/** Mi cupo: total desbloqueado, usadas (amigos que crearon cuenta) y cuántas ya vi en la hoja de desbloqueo. */
+export async function getMyInvites(): Promise<MyInvites> {
+  const { data, error } = await supabase.rpc('my_invites')
+  if (error) throw new Error(error.message)
+  const row = (Array.isArray(data) ? data[0] : data) as Partial<MyInvites> | undefined
+  return { code: row?.code ?? '', total: row?.total ?? 0, used: row?.used ?? 0, seen: row?.seen ?? 0 }
+}
+
+export async function markInvitesSeen(): Promise<void> {
+  const { error } = await supabase.rpc('mark_invites_seen')
+  if (error) throw new Error(error.message)
+}
+
+/** Dueño de un código (nombre de pila) y si le queda cupo. Público; null si el código no existe. */
+export async function getInviteInfo(code: string): Promise<{ first_name: string; has_quota: boolean } | null> {
+  const { data, error } = await supabase.rpc('invite_info', { p_code: code })
+  if (error) return null
+  const row = (Array.isArray(data) ? data[0] : data) as { first_name: string; has_quota: boolean } | undefined
+  return row ?? null
+}
+
+export type JoinStatus = 'invited' | 'waitlist' | 'exists'
+
+/** Pide entrar a la beta: lista blanca, código con cupo o lista de espera. Sin sesión. */
+export function joinBeta(email: string, ref: string | null): Promise<{ status: JoinStatus }> {
+  return invoke<{ status: JoinStatus }>('join', { email, ref })
+}
+
+/** Enlace personal de invitación. */
+export function inviteUrl(code: string): string {
+  return `${window.location.origin}/unete?ref=${code}`
 }
 
 /** Marca el walkthrough como visto (una vez por cuenta). */
@@ -688,3 +738,12 @@ export const adminDailyMetrics = (days: number) => adminRpc<DailyMetric>('admin_
 export const adminFunnel = (days: number) => adminRpc<FunnelStep>('admin_funnel', { p_days: days })
 export const adminRetention = (weeks = 12) => adminRpc<RetentionCell>('admin_retention', { p_weeks: weeks })
 export const adminTop = (days: number, limit = 8) => adminRpc<TopItem>('admin_top', { p_days: days, p_limit: limit })
+export interface InviteStats {
+  founders: number
+  invited: number
+  unlocked: number
+  used: number
+  allowlist: number
+  waitlist: number
+}
+export const adminInviteStats = () => adminRpc<InviteStats>('admin_invite_stats')

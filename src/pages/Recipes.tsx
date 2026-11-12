@@ -7,6 +7,7 @@ import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, 
 import { tasteSummary, tasteToPreferences, type TasteProfile } from '@/lib/taste'
 import { photoUrl } from '@/lib/supabase'
 import { METHOD_FAMILIES, TASTE_PREFERENCES, type CoffeeLog, type Equipment, type MethodFamily, type RecipeData } from '@/lib/types'
+import { InviteUnlockSheet } from '@/components/Invites'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
@@ -538,6 +539,8 @@ export function RecipesView({
                   {savedOk ? 'Guardada' : saving ? 'Guardando...' : 'Guardar receta'}
                 </Button>
               </div>
+              {/* Primera receta guardada: +2 invitaciones (hoja una sola vez). */}
+              {savedOk && <InviteUnlockSheet />}
               {savedOk && log && (
                 <Button asChild variant="outline">
                   <Link to={`/log/${log.id}`}>Ver el café y sus recetas</Link>

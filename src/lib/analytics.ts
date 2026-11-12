@@ -39,6 +39,10 @@ export type EventName =
   | 'taste_profile_saved'
   | 'profile_updated'
   | 'feedback_clicked'
+  | 'join_submitted'
+  | 'invite_unlocked'
+  | 'invite_shared'
+  | 'invite_accepted'
 
 export type EventProps = Record<string, string | number | boolean | null | undefined>
 
@@ -283,7 +287,7 @@ export function trackPublicView(name: EventName, type: 'coffee' | 'recipe', prop
   if (ref) track('share_link_opened', { type, logged_in: loggedIn, ...props })
 }
 
-/** Sufijo ?ref= para enlaces compartidos (8 primeros caracteres del user_id). */
-export function refParam(userId: string | null | undefined): string {
-  return userId ? `?ref=${userId.slice(0, 8)}` : ''
+/** Sufijo ?ref= para enlaces compartidos: el código de invitación del perfil (profiles.invite_code). */
+export function refParam(inviteCode: string | null | undefined): string {
+  return inviteCode ? `?ref=${inviteCode}` : ''
 }

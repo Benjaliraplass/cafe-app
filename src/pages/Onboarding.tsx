@@ -27,6 +27,10 @@ export function Onboarding() {
       await refreshProfile()
     }
     track(how === 'completed' ? 'onboarding_completed' : 'onboarding_skipped', { step, drippers: drippers.length })
+    // Cuenta creada por invitación (Lote 10): se cuenta como aceptada al terminar la bienvenida.
+    if (profile?.invited_by || user?.user_metadata?.source === 'tostado') {
+      track('invite_accepted', { source: profile?.invited_by ? 'invite' : 'tostado' })
+    }
     navigate(to, { replace: true })
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Download } from 'lucide-react'
-import { adminDailyMetrics, adminFunnel, adminRetention, adminTop, adminUserFacts } from '@/lib/api'
+import { adminInviteStats, adminDailyMetrics, adminFunnel, adminRetention, adminTop, adminUserFacts, type InviteStats } from '@/lib/api'
 import type { DailyMetric, FunnelStep, RetentionCell, TopItem, UserFacts } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -14,6 +14,7 @@ export interface MetricsData {
   funnel: FunnelStep[]
   retention: RetentionCell[]
   top: TopItem[]
+  invites?: InviteStats | null
 }
 
 /** Contenedor: carga las funciones admin_* para el período elegido. */
@@ -26,9 +27,9 @@ export function AdminMetrics() {
     let cancelled = false
     setData(null)
     setError(null)
-    Promise.all([adminUserFacts(), adminDailyMetrics(period), adminFunnel(period), adminRetention(12), adminTop(period, 8)])
-      .then(([users, daily, funnel, retention, top]) => {
-        if (!cancelled) setData({ users, daily, funnel, retention, top })
+    Promise.all([adminUserFacts(), adminDailyMetrics(period), adminFunnel(period), adminRetention(12), adminTop(period, 8), adminInviteStats().catch(() => [])])
+      .then(([users, daily, funnel, retention, top, inv]) => {
+        if (!cancelled) setData({ users, daily, funnel, retention, top, invites: inv[0] ?? null })
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : 'No se pudieron cargar las métricas')
@@ -123,6 +124,23 @@ export function AdminMetricsView({
               Factor K = compartidos por usuario activado x registros por compartido. Sobre 1 la app crece sola.
             </p>
           </section>
+
+          {data.invites && (
+            <section className="flex flex-col gap-3">
+              <SectionTitle>Invitaciones</SectionTitle>
+              <div className="grid grid-cols-3 gap-2">
+                <StatTile value={String(data.invites.founders)} label="Fundadores" />
+                <StatTile value={String(data.invites.invited)} label="Entraron invitados" />
+                <StatTile value={String(data.invites.unlocked)} label="Cupo desbloqueado" />
+                <StatTile value={String(data.invites.allowlist)} label="Lista blanca" />
+                <StatTile value={String(data.invites.waitlist)} label="Lista de espera" />
+                <StatTile value={data.invites.unlocked ? `${Math.round((data.invites.used / data.invites.unlocked) * 100)} %` : '—'} label="Cupo usado" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Lista blanca = clientes de Tostado Club (Shopify, se sincroniza a diario). Lista de espera = correos sin invitación todavía.
+              </p>
+            </section>
+          )}
 
           <section className="flex flex-col gap-3">
             <SectionTitle>Actividad diaria</SectionTitle>

@@ -6,6 +6,9 @@ import { inferTaste } from '@/lib/taste'
 import { HomeView } from '@/pages/Home'
 import { LogDetailView } from '@/pages/LogDetail'
 import { Login } from '@/pages/Login'
+import { JoinView } from '@/pages/Join'
+import { InviteUnlockSheetView } from '@/components/Invites'
+import type { JoinStatus } from '@/lib/api'
 import { Scan } from '@/pages/Scan'
 import { RecipesView } from '@/pages/Recipes'
 import { EditLog } from '@/pages/EditLog'
@@ -63,13 +66,18 @@ export function Preview() {
   const [sp] = useSearchParams()
   const v = sp.get('v') ?? 'home'
   if (v === 'login') return <Login />
+  // /unete: &ref muestra "X te invitó"; &status=invited|waitlist|exists salta al resultado.
+  if (v === 'join') {
+    const status = sp.get('status') as JoinStatus | null
+    return <JoinView inviter={sp.has('ref') ? 'Gonzalo' : null} onSubmit={async () => status ?? 'invited'} />
+  }
   if (v === 'onboarding') return <OnboardingView drippers={['V60']} onDrippers={() => {}} onSkip={() => {}} onFinish={() => {}} initialStep={Number(sp.get('step') ?? 0)} />
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
       <main className="flex-1 pb-32">
         {v === 'home' && <HomeView logs={logs} error={null} onToggleFavorite={noop} />}
         {v === 'inicio' && (
-          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {}, onboarded_at: null }} featured={featured} recommended={publishedCoffees} logs={logs} recipes={[{ id: 'r1', coffee_log_id: logs[0].id, brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: new Date(Date.now() - 2 * 86400000).toISOString(), coffee: { id: 'c', name: logs[0].coffee?.name ?? 'Catiope', roaster: null } }, { id: 'r2', coffee_log_id: null, brew_method: 'Aeropress', title: 'Aeropress para Etiopía natural, 15 g', params: { ...recipe.params, dose_g: 15, ratio: '1:15', total_time: '2:30' }, steps: recipe.steps, rationale: null, created_at: new Date(Date.now() - 9 * 86400000).toISOString(), coffee: null }]} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
+          <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {}, onboarded_at: null, invite_code: 'f02b133ff1', invited_by: null, is_founder: true }} featured={featured} recommended={publishedCoffees} logs={logs} recipes={[{ id: 'r1', coffee_log_id: logs[0].id, brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: new Date(Date.now() - 2 * 86400000).toISOString(), coffee: { id: 'c', name: logs[0].coffee?.name ?? 'Catiope', roaster: null } }, { id: 'r2', coffee_log_id: null, brew_method: 'Aeropress', title: 'Aeropress para Etiopía natural, 15 g', params: { ...recipe.params, dose_g: 15, ratio: '1:15', total_time: '2:30' }, steps: recipe.steps, rationale: null, created_at: new Date(Date.now() - 9 * 86400000).toISOString(), coffee: null }]} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
         )}
         {v === 'featured' && <FeaturedRecipeView r={featured[0]} />}
         {v === 'explore' && <ExploreView cafes={cafes} mine={[{ ...cafes[0], id: 'p1', name: 'Mi propuesta', status: 'pending' }]} error={null} me={{ lat: -33.4372, lng: -70.6506 }} onLocate={noop} />}
@@ -93,7 +101,7 @@ export function Preview() {
         {v === 'profile' && (
           <ProfileView
             email="benjamin@tostadoclub.com"
-            profile={{ id: 'u', display_name: 'Benjamín', avatar_url: null, country: 'Chile', role: 'admin', equipment: { grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] }, onboarded_at: null }}
+            profile={{ id: 'u', display_name: 'Benjamín', avatar_url: null, country: 'Chile', role: 'admin', equipment: { grinder: 'Comandante C40', drippers: ['V60', 'Kalita Wave', 'Aeropress'] }, onboarded_at: null, invite_code: 'f02b133ff1', invited_by: null, is_founder: true }}
             error={null}
             onError={() => {}}
             onProfileChange={() => {}}
@@ -104,6 +112,8 @@ export function Preview() {
             inferred={inferTaste(logs)}
             onSaveTaste={noop}
             onSignOut={noop}
+            invites={{ code: 'f02b133ff1', total: 5, used: 1, seen: 5 }}
+            onShareInvite={async () => 'copied'}
           />
         )}
         {v === 'metrics' && (
@@ -114,6 +124,12 @@ export function Preview() {
             </header>
             <AdminMetricsView period={30} onPeriod={() => {}} data={metricsSample()} error={null} />
           </div>
+        )}
+        {v === 'unlock' && (
+          <>
+            <HomeView logs={logs} error={null} onToggleFavorite={noop} />
+            <InviteUnlockSheetView nuevas={Number(sp.get('n') ?? 3)} total={Number(sp.get('total') ?? 3)} onShare={async () => 'copied'} onClose={() => {}} />
+          </>
         )}
         {v === 'detail' && (
           <LogDetailView

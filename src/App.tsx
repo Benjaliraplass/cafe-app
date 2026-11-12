@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { Layout } from '@/components/Layout'
 import { Login } from '@/pages/Login'
@@ -21,6 +22,8 @@ import { Catalog, PublicCoffeePage } from '@/pages/PublicCoffee'
 import { Privacy } from '@/pages/Privacy'
 import { Onboarding } from '@/pages/Onboarding'
 import { NewPassword } from '@/pages/NewPassword'
+import { Join } from '@/pages/Join'
+import { getInviteInfo } from '@/lib/api'
 import { Spinner } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
 import { UpdateBanner } from '@/components/UpdateBanner'
@@ -68,6 +71,16 @@ function Gate() {
  */
 function PublicShell() {
   const { user, loading } = useAuth()
+  const location = useLocation()
+  // Enlace compartido con ?ref= de un usuario con cupo: la barra inferior pasa a ser la invitación.
+  const ref = new URLSearchParams(location.search).get('ref')?.slice(0, 10) || null
+  const [inviter, setInviter] = useState<string | null>(null)
+  useEffect(() => {
+    if (!ref || user) return
+    getInviteInfo(ref).then((i) => {
+      if (i?.has_quota && i.first_name) setInviter(i.first_name)
+    })
+  }, [ref, user])
   if (loading) return <Loading />
   if (user) return <Layout />
   return (
@@ -77,17 +90,25 @@ function PublicShell() {
       </main>
       <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
         <div className="glass-solid flex w-full max-w-md items-center justify-between gap-3 rounded-[24px] p-2 pl-5">
-          <div className="flex flex-col">
-            <span className="text-[15px] font-medium leading-tight">Dripo</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-[15px] font-medium leading-tight">{inviter ? `${inviter} te invita a Dripo` : 'Dripo'}</span>
             <span className="text-xs text-muted-foreground">Tu diario de café de especialidad</span>
           </div>
-          <Button asChild size="sm">
-            <Link to="/">Abrir Dripo</Link>
+          <Button asChild size="sm" className="shrink-0">
+            {inviter ? <Link to={`/unete?ref=${ref}`}>Crear cuenta</Link> : <Link to="/">Abrir Dripo</Link>}
           </Button>
         </div>
       </div>
     </div>
   )
+}
+
+/** /unete: con sesión no tiene sentido; se va al inicio. */
+function JoinRoute() {
+  const { user, loading } = useAuth()
+  if (loading) return <Loading />
+  if (user) return <Navigate to="/" replace />
+  return <Join />
 }
 
 function Root() {
@@ -103,6 +124,8 @@ function Root() {
     <Routes>
       {/* Destino del enlace de recuperación de contraseña: fuera del Gate y del Layout, con o sin sesión. */}
       <Route path="nueva-contrasena" element={<NewPassword />} />
+      {/* Entrada a la beta por invitación (correo -> cuenta o lista de espera). */}
+      <Route path="unete" element={<JoinRoute />} />
       <Route element={<PublicShell />}>
         <Route path="r/:slug" element={<FeaturedRecipePage />} />
         <Route path="c/:id" element={<PublicCoffeePage />} />

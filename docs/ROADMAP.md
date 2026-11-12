@@ -114,10 +114,27 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Recuperar contraseña: "¿Olvidaste tu contraseña?" en Login, pantalla `/nueva-contrasena`, "Cambiar contraseña" en Perfil
 - [ ] Benjamín: confirmar `https://dripocoffee.com/**` en Supabase → Authentication → URL Configuration → Redirect URLs
 - [x] Plantillas de correo de Auth en `supabase/templates/` (confirmar cuenta, recuperar contraseña, cambio de correo), marca nueva, logo en `public/email/logo.png`
-- [ ] Benjamín: cuenta en Resend, dominio dripocoffee.com (SPF/DKIM/DMARC en GoDaddy), SMTP en Supabase (host smtp.resend.com, puerto 465, usuario `resend`, contraseña = API key, remitente hola@dripocoffee.com) y pegar las 3 plantillas con sus asuntos en Authentication → Email Templates
+- [ ] Benjamín: dominio verificado en Resend (hecho 2026-11-12); falta SMTP en Supabase (host smtp.resend.com, puerto 465, usuario `resend`, contraseña = API key, remitente hola@dripocoffee.com) y pegar las 4 plantillas con sus asuntos en Authentication → Emails → Templates (incluye Invite user)
 - [x] Receta desde un café: el detalle ya no tiene mini-formulario; "Pedir receta a medida" abre el wizard del menú con el café elegido (método → cantidad → afinemos). Un solo flujo en toda la app
 - [x] Wizard paso 1: un toque en el café elige y avanza (sin Continuar al final de la lista); hasta 20 cafés, de más nuevo a más antiguo por fecha de escaneo
 - [x] Tras guardar desde el wizard: "Ver el café y sus recetas"
+
+## Lote 10 — Beta por invitación (2026-11-12)
+
+Decisión: lanzar a clientes de Tostado Club (cualquiera con una compra) y que solo ellos inviten. 3 invitaciones con el primer café, +2 con la primera receta. Lista de espera desde el día 1. Sin premios por invitar.
+
+- [x] Esquema: `profiles.invite_code/invites_total/invites_seen/invited_by/is_founder`, `allowlist`, `waitlist`, `refresh_invites()` con triggers, RPCs `my_invites`, `mark_invites_seen`, `invite_info`, `join_decision`, `admin_invite_stats`; cuentas existentes marcadas fundadoras con su cupo
+- [x] Edge Function `join` (correo → cuenta por `inviteUserByEmail` o lista de espera)
+- [x] Edge Function `sync-allowlist` (Shopify → allowlist) + `pg_cron` diario 06:10 UTC
+- [x] App: `/unete` (+JoinView para preview `?v=join`), Login sin registro, "Crea tu contraseña" en `/nueva-contrasena` para invitados, hoja de desbloqueo (`?v=unlock`), fila Invitaciones en Perfil, barra "X te invita" en fichas públicas, `?ref=` = `invite_code`, eventos, Admin → Invitaciones
+- [x] Plantilla "Invite user" (`supabase/templates/invitacion.html`)
+- [ ] Benjamín: Supabase → Authentication → Sign In / Providers → Email → apagar "Allow new users to sign up" (desde ese momento solo entra quien pasa por `/unete`)
+- [ ] Benjamín: Supabase → Vault → nuevo secreto `sync_key` (cualquier texto largo al azar)
+- [ ] Benjamín: Shopify → Configuración → Apps → Desarrollar apps → app "Dripo allowlist" con permiso `read_customers` → token de acceso; en Supabase → Edge Functions → Secrets: `SHOPIFY_SHOP` (`<tienda>.myshopify.com`) y `SHOPIFY_ADMIN_TOKEN`
+- [ ] Primera carga de la lista blanca (ejecutar `sync-allowlist` una vez con los secrets listos) y comprobar `select count(*) from allowlist`
+- [ ] Prueba completa desde el teléfono: `/unete` con correo de cliente → correo → contraseña → bienvenida → primer café → hoja de 3 invitaciones → compartir → amigo entra por el enlace
+- [ ] Correo de lanzamiento a clientes de Tostado Club (Klaviyo) con enlace a `https://dripocoffee.com/unete?utm_source=klaviyo&utm_campaign=lanzamiento`
+- [ ] Más adelante: abrir rondas desde la lista de espera (función admin que invita a los N más antiguos), posición en la lista, invitaciones extra por hitos
 
 ## Lote 8 — Equipo en recetas (2026-11-11)
 

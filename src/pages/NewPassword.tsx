@@ -19,6 +19,8 @@ export function NewPassword() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  // Enlace de invitación (type=invite en el hash). supabase-js limpia la URL al procesarla: se lee una vez.
+  const [invite] = useState(() => /type=invite/.test(window.location.hash + window.location.search))
 
   // supabase-js procesa el enlace (tokens en el hash) y emite PASSWORD_RECOVERY; damos unos ms de margen.
   useEffect(() => {
@@ -48,15 +50,16 @@ export function NewPassword() {
   const noSession = ready && !loading && !user
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-6 pt-10 pb-10 safe-top">
+    <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-6 pb-10 pt-[calc(max(env(safe-area-inset-top),16px)+24px)]">
       <header className="flex flex-col gap-1.5">
-        <Eyebrow>Cuenta</Eyebrow>
-        <Title>Nueva contraseña</Title>
+        <Eyebrow>{invite ? 'Bienvenido a Dripo' : 'Cuenta'}</Eyebrow>
+        <Title>{invite ? 'Crea tu contraseña' : 'Nueva contraseña'}</Title>
+        {invite && <p className="pt-1 text-[15px] text-muted-foreground">Con ella entras la próxima vez. También puedes usar Google con este mismo correo.</p>}
       </header>
       {noSession ? (
         <div className="flex flex-col gap-4 pt-6">
           <p className="text-[15px] text-muted-foreground">
-            El enlace venció o ya se usó. Pide uno nuevo desde "¿Olvidaste tu contraseña?" y ábrelo en este mismo teléfono.
+            El enlace venció o ya se usó. Pide uno nuevo desde "¿Olvidaste tu contraseña?" en la pantalla de entrada y ábrelo en este mismo teléfono.
           </p>
           <Button variant="outline" onClick={() => navigate('/', { replace: true })}>
             Volver

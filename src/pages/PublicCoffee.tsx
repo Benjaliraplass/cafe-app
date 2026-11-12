@@ -51,14 +51,14 @@ export function PublicCoffeePage() {
 
 export function PublicCoffeeView({ coffee: c, stats, logs }: { coffee: Coffee; stats: CoffeePublicStats | null; logs: PublicLog[] }) {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { profile } = useAuth()
   const [copied, setCopied] = useState(false)
 
   async function share() {
     const res = await shareLink({
       title: `${c.name} · ${c.roaster?.name ?? 'Dripo'}`,
       text: [c.roaster?.name, c.name, c.origin_country, c.process].filter(Boolean).join(' · '),
-      url: absoluteUrl(`/c/${c.id}${refParam(user?.id)}`),
+      url: absoluteUrl(`/c/${c.id}${refParam(profile?.invite_code)}`),
     })
     if (res !== 'failed') track('share_clicked', { type: 'coffee', result: res })
     if (res === 'copied') {

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { Camera, Mail, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { track } from '@/lib/analytics'
-import { getProfile, getTasteProfile, listMyLogs, updateEquipment, updateProfile, uploadAvatar, upsertTasteProfile, type Profile as ProfileData } from '@/lib/api'
+import { getMyInvites, getProfile, getTasteProfile, listMyLogs, updateEquipment, updateProfile, uploadAvatar, upsertTasteProfile, type MyInvites, type Profile as ProfileData } from '@/lib/api'
+import { InvitesRow, shareInvite } from '@/components/Invites'
 import { inferTaste, type InferredTaste, type TasteProfile } from '@/lib/taste'
 import { TasteProfileCard } from '@/components/TasteProfileCard'
 import { avatarUrl } from '@/lib/supabase'
@@ -27,12 +28,14 @@ export function Profile() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [taste, setTaste] = useState<TasteProfile | null>(null)
   const [inferred, setInferred] = useState<InferredTaste>(() => inferTaste([]))
+  const [invites, setInvites] = useState<MyInvites | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
+    getMyInvites().then(setInvites).catch(() => {})
     getProfile(user.id)
-      .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, role: 'user', equipment: {}, onboarded_at: null }))
+      .then((p) => setProfile(p ?? { id: user.id, display_name: null, avatar_url: null, country: null, role: 'user', equipment: {}, onboarded_at: null, invite_code: '', invited_by: null, is_founder: false }))
       .catch((e) => setError(e.message))
     getTasteProfile(user.id).then(setTaste).catch(() => {})
     listMyLogs(user.id)
@@ -69,6 +72,8 @@ export function Profile() {
         setTaste(t)
       }}
       onSignOut={signOut}
+      invites={invites}
+      onShareInvite={() => shareInvite(invites?.code ?? '', 'profile')}
     />
   )
 }
@@ -86,6 +91,8 @@ export function ProfileView({
   inferred,
   onSaveTaste,
   onSignOut,
+  invites,
+  onShareInvite,
 }: {
   email: string
   profile: ProfileData | null
@@ -99,6 +106,8 @@ export function ProfileView({
   inferred: InferredTaste
   onSaveTaste: (t: TasteProfile) => Promise<void>
   onSignOut: () => Promise<void>
+  invites?: MyInvites | null
+  onShareInvite?: () => Promise<'shared' | 'copied' | 'failed'>
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -228,6 +237,13 @@ export function ProfileView({
           </>
         )}
       </section>
+
+      {/* Invitaciones: el único lugar fijo donde se ven (Lote 10) */}
+      {invites && onShareInvite && (
+        <div className="px-6 pt-6">
+          <InvitesRow invites={invites} onShare={onShareInvite} />
+        </div>
+      )}
 
       {/* Perfil de gusto */}
       <div className="px-6 pt-10">
