@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ChevronLeft, Minus, Plus, RotateCcw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { track } from '@/lib/analytics'
 import { coffeeFromLog, getProfile, getTasteProfile, listMyLogs, listMyRecipes, saveRecipe, suggestRecipe, updateEquipment, type SavedRecipe, type SuggestRecipeInput } from '@/lib/api'
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBox, Eyebrow, Photo, Spinner, Title } from '@/components/primitives'
+import { suggestionFor } from '@/lib/brewFeedback'
 import { EMPTY_SELECTION, EquipmentPicker, equipmentSelectionToText, espressoPatch, type EquipmentSelection } from '@/components/EquipmentPicker'
 import { RecipeCard } from '@/pages/LogDetail'
 import { cn } from '@/lib/utils'
@@ -191,6 +192,7 @@ export function RecipesView({
         dose_g: doseNum,
         equipment: equipmentSelectionToText(profileEquipment, isEspresso, equipmentSel) || undefined,
         preferences: [pref, useTaste ? tasteToPreferences(taste) : null].filter(Boolean).join('. ') || undefined,
+        previous_feedback: previousFeedback(log, dripper),
       }
       setRecipe(await onGenerate(input))
     } catch (e) {
@@ -211,6 +213,14 @@ export function RecipesView({
     } finally {
       setSaving(false)
     }
+  }
+
+  /** Último "¿Cómo salió?" de una receta guardada de este café con este método: el generador aplica solo ese ajuste. */
+  function previousFeedback(l: CoffeeLog | null, d: string): string | undefined {
+    if (!l) return undefined
+    const fb = (saved ?? []).find((r) => r.coffee_log_id === l.id && r.brew_method === d && r.feedback?.length)?.feedback?.[0]
+    if (!fb) return undefined
+    return suggestionFor(fb.signal, d).prompt + (fb.note ? ` Comentario del usuario: ${fb.note}` : '')
   }
 
   function reset() {
@@ -300,15 +310,17 @@ export function RecipesView({
           )}
           {logs && logs.length > 0 && (
             <ul className="flex flex-col">
-              {logs.slice(0, 8).map((l, i) => {
+              {logs.slice(0, 20).map((l, i) => {
                 const active = log?.id === l.id
                 return (
                   <li key={l.id}>
                     <button
                       type="button"
                       onClick={() => {
-                        setLog(active ? null : l)
+                        // Un toque elige el café y avanza: sin botón que buscar al final de la lista.
+                        setLog(l)
                         setUseOther(false)
+                        setStep(2)
                       }}
                       className={cn('flex w-full items-center gap-3.5 rounded-2xl px-2 py-3 text-left transition-colors', active && 'bg-card')}
                     >
@@ -320,9 +332,9 @@ export function RecipesView({
                           {[l.coffee?.origin_country, l.coffee?.process].filter(Boolean).join(' · ')}
                         </span>
                       </div>
-                      <span className={cn('size-5 shrink-0 rounded-full border', active ? 'border-foreground bg-foreground' : 'border-border-strong')} />
+                      <ChevronRight className="size-5 shrink-0 text-tertiary" strokeWidth={1.7} />
                     </button>
-                    {i < Math.min(logs.length, 8) - 1 && <Separator className="mx-2 w-auto" />}
+                    {i < Math.min(logs.length, 20) - 1 && <Separator className="mx-2 w-auto" />}
                   </li>
                 )
               })}
@@ -526,6 +538,11 @@ export function RecipesView({
                   {savedOk ? 'Guardada' : saving ? 'Guardando...' : 'Guardar receta'}
                 </Button>
               </div>
+              {savedOk && log && (
+                <Button asChild variant="outline">
+                  <Link to={`/log/${log.id}`}>Ver el café y sus recetas</Link>
+                </Button>
+              )}
               <button type="button" onClick={reset} className="self-center pt-1 text-[13px] font-medium text-muted-foreground">
                 Empezar otra receta
               </button>
@@ -540,7 +557,7 @@ export function RecipesView({
       )}
 
       {/* Navegación del wizard */}
-      {step !== 'result' && (
+      {step !== 'result' && (step !== 1 || useOther) && (
         <div className="flex gap-3 px-6 pt-8">
           {step > 1 && (
             <Button variant="outline" size="icon" className="size-[54px] rounded-[14px]" onClick={() => setStep((step - 1) as Step)} aria-label="Atrás">

@@ -426,9 +426,10 @@ export interface SavedRecipe extends Recipe {
 export async function listMyRecipes(userId: string): Promise<SavedRecipe[]> {
   const { data, error } = await supabase
     .from('recipes')
-    .select('id, coffee_log_id, brew_method, title, params, steps, rationale, created_at, coffee:coffees ( id, name, roaster:roasters ( name ) )')
+    .select('id, coffee_log_id, brew_method, title, params, steps, rationale, created_at, coffee:coffees ( id, name, roaster:roasters ( name ) ), feedback:recipe_feedback ( id, recipe_id, signal, note, rule_id, suggestion, created_at )')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+    .order('created_at', { referencedTable: 'recipe_feedback', ascending: false })
   if (error) throw new Error(error.message)
   return (data ?? []) as unknown as SavedRecipe[]
 }

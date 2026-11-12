@@ -121,8 +121,6 @@ export function Preview() {
             recipes={[{ id: 'x', coffee_log_id: '1', brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: '', feedback: sp.get('fb') != null ? [{ id: 'f1', recipe_id: 'x', signal: 'acido', note: null, rule_id: 'A01', suggestion: 'Muele un paso más fino. Mismo ratio y misma agua.', created_at: new Date(Date.now() - 86400000).toISOString() }] : [] }]}
             onSaveFeedback={async () => {}}
             error={null}
-            onGenerate={async () => recipe}
-            onSaveRecipe={async () => {}}
             onDelete={async () => {}}
             onToggleFavorite={noop}
           />

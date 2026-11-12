@@ -106,7 +106,13 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Tabla `recipe_feedback` (RLS dueño) y `lib/brewFeedback.ts`: señal + método → un ajuste (A01-A09, A12, A13)
 - [x] "¿Cómo salió?" bajo cada receta guardada: un chip, nota opcional, "Próxima vez: ..."; evento `recipe_feedback_given`
 - [x] `suggest-recipe` v13 acepta `previous_feedback` y aplica solo ese ajuste al regenerar desde el detalle del café
-- [ ] Llevar el feedback también al wizard de Recetas cuando se elige el mismo café y método
+- [x] El feedback también llega al wizard de Recetas cuando se elige el mismo café y método (2026-11-12)
+
+## Lote 9 — Feedback de usuarios (2026-11-12)
+
+- [x] Receta desde un café: el detalle ya no tiene mini-formulario; "Pedir receta a medida" abre el wizard del menú con el café elegido (método → cantidad → afinemos). Un solo flujo en toda la app
+- [x] Wizard paso 1: un toque en el café elige y avanza (sin Continuar al final de la lista); hasta 20 cafés, de más nuevo a más antiguo por fecha de escaneo
+- [x] Tras guardar desde el wizard: "Ver el café y sus recetas"
 
 ## Lote 8 — Equipo en recetas (2026-11-11)
 

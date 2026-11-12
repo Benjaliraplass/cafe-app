@@ -1,21 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
+import { BookOpen, ChevronLeft, ChevronRight, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { coffeeFromLog, deleteLog, getLog, getProfile, listRecipesForLog, saveRecipe, saveRecipeFeedback, setFavorite, suggestRecipe, setLogPublic, updateEquipment } from '@/lib/api'
+import { deleteLog, getLog, listRecipesForLog, saveRecipeFeedback, setFavorite, setLogPublic } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { BREW_METHODS, isPendingLog, type CoffeeLog, type Equipment, type Recipe, type RecipeData } from '@/lib/types'
+import { isPendingLog, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { absoluteUrl, shareLink } from '@/lib/share'
 import { refParam, track } from '@/lib/analytics'
 import { Card } from '@/components/ui/card'
-import { Chip } from '@/components/ui/chip'
 import { Separator } from '@/components/ui/separator'
 import { ErrorBox, Eyebrow, KeyValue, Photo, Rating, Spinner } from '@/components/primitives'
-import { EMPTY_SELECTION, EquipmentPicker, equipmentSelectionToText, espressoPatch, type EquipmentSelection } from '@/components/EquipmentPicker'
 import { RecipeFeedbackBlock } from '@/components/RecipeFeedback'
-import { suggestionFor, type BrewSignal } from '@/lib/brewFeedback'
+import type { BrewSignal } from '@/lib/brewFeedback'
 import { formatDate } from './Home'
 import { cn } from '@/lib/utils'
 
@@ -26,16 +24,14 @@ export function LogDetail() {
 
   const [log, setLog] = useState<CoffeeLog | null | undefined>(undefined)
   const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [equipment, setEquipment] = useState<Equipment | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id || !user) return
-    Promise.all([getLog(id), listRecipesForLog(id), getProfile(user.id)])
-      .then(([l, r, p]) => {
+    Promise.all([getLog(id), listRecipesForLog(id)])
+      .then(([l, r]) => {
         setLog(l)
         setRecipes(r)
-        setEquipment(p?.equipment ?? null)
       })
       .catch((e) => setError(e.message))
   }, [id, user])
@@ -63,40 +59,12 @@ export function LogDetail() {
       key={log.id}
       log={log}
       recipes={recipes}
-      equipment={equipment}
       error={error}
-      onGenerate={async (method, equipment) => {
-        const startedAt = Date.now()
-        // Último feedback de una receta guardada con este método: el generador aplica solo ese ajuste.
-        const lastFb = recipes.find((r) => r.brew_method === method && r.feedback?.length)?.feedback?.[0]
-        const previous_feedback = lastFb ? suggestionFor(lastFb.signal, method).prompt + (lastFb.note ? ` Comentario del usuario: ${lastFb.note}` : '') : undefined
-        track('recipe_requested', { dripper: method, from: 'detail', with_feedback: !!previous_feedback })
-        try {
-          const r = await suggestRecipe({ coffee: coffeeFromLog(log), dripper: method, dose_g: method === 'Espresso' ? 18 : 15, servings: 1, equipment: equipment || undefined, previous_feedback })
-          track('recipe_generated', { dripper: method, from: 'detail', duration_ms: Date.now() - startedAt })
-          return r
-        } catch (e) {
-          track('recipe_failed', { dripper: method, from: 'detail', reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' })
-          throw e
-        }
-      }}
-      onSaveEquipment={async (patch) => {
-        if (!user) return
-        const next = { ...(equipment ?? {}), ...patch }
-        await updateEquipment(user.id, next)
-        setEquipment(next)
-      }}
       onSaveFeedback={async (recipeId, signal, note, ruleId, suggestion) => {
         if (!user) return
         const fb = await saveRecipeFeedback({ userId: user.id, recipeId, signal, note, ruleId, suggestion })
         track('recipe_feedback_given', { signal, rule: ruleId ?? 'none' })
         setRecipes((rs) => rs.map((r) => (r.id === recipeId ? { ...r, feedback: [fb, ...(r.feedback ?? [])] } : r)))
-      }}
-      onSaveRecipe={async (recipe) => {
-        if (!user) return
-        await saveRecipe({ userId: user.id, coffeeId: log.coffee_id, logId: log.id, recipe })
-        track('recipe_saved', { from: 'detail' })
-        setRecipes(await listRecipesForLog(log.id))
       }}
       onDelete={async () => {
         await deleteLog(log.id)
@@ -131,72 +99,25 @@ export function LogDetail() {
 export function LogDetailView({
   log,
   recipes,
-  equipment = null,
   error: outerError,
-  onGenerate,
-  onSaveRecipe,
   onDelete,
   onToggleFavorite,
   onTogglePublic,
-  onSaveEquipment,
   onSaveFeedback,
 }: {
   log: CoffeeLog
   recipes: Recipe[]
-  equipment?: Equipment | null
   error: string | null
-  onGenerate: (method: string, equipment: string) => Promise<RecipeData>
-  onSaveRecipe: (recipe: RecipeData) => Promise<void>
-  onSaveEquipment?: (patch: Partial<Equipment>) => Promise<void>
   onSaveFeedback?: (recipeId: string, signal: BrewSignal, note: string | null, ruleId: string | null, suggestion: string) => Promise<void>
   onDelete: () => Promise<void>
   onToggleFavorite?: () => Promise<void>
   onTogglePublic?: (value: boolean) => Promise<void>
 }) {
-  // brew_method puede traer varios métodos separados por coma; el primero es el método por defecto de la receta
-  const [method, setMethod] = useState<string>(log.brew_method?.split(',')[0]?.trim() ?? '')
-  const [equipmentSel, setEquipmentSel] = useState<EquipmentSelection>(EMPTY_SELECTION)
-  const isEspresso = method === 'Espresso'
-  const [generating, setGenerating] = useState(false)
-  const [draft, setDraft] = useState<RecipeData | null>(null)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   const c = log.coffee
   const url = photoUrl(log.photo_path)
   const pending = isPendingLog(log)
-  const [savedOnce, setSavedOnce] = useState(false)
   const restDays = log.roast_date ? Math.max(0, Math.round((Date.now() - new Date(log.roast_date + 'T12:00:00').getTime()) / 86_400_000)) : null
-
-  async function generate() {
-    if (!method) return
-    setError(null)
-    setGenerating(true)
-    setDraft(null)
-    try {
-      const patch = espressoPatch(equipmentSel)
-      if (Object.keys(patch).length && onSaveEquipment) onSaveEquipment(patch).catch(() => {})
-      setDraft(await onGenerate(method, equipmentSelectionToText(equipment, isEspresso, equipmentSel)))
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo generar la receta')
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  async function keepDraft() {
-    if (!draft) return
-    setSaving(true)
-    try {
-      await onSaveRecipe(draft)
-      setDraft(null)
-      setSavedOnce(true)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo guardar la receta')
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const [shared, setShared] = useState<'idle' | 'copied'>('idle')
   async function shareCoffee() {
@@ -306,43 +227,18 @@ export function LogDetailView({
         )}
       </section>
 
-      {/* Receta */}
+      {/* Recetas: el wizard de Recetas con este café ya elegido (método → cantidad → afinemos) */}
       <section className="flex flex-col gap-4 px-6 pt-6 pb-10">
-        <div className="flex items-end justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <Eyebrow className="text-[10px]">Receta para este café</Eyebrow>
-            <h2 className="text-2xl font-medium tracking-[-0.02em]">{method ? `${method}` : 'Elige un método'}</h2>
-          </div>
+        <div className="flex flex-col gap-1">
+          <Eyebrow className="text-[10px]">Recetas</Eyebrow>
+          <h2 className="text-2xl font-medium tracking-[-0.02em]">Prepara este café</h2>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {BREW_METHODS.map((m) => (
-            <Chip key={m} active={method === m} onClick={() => setMethod(m)}>
-              {m}
-            </Chip>
-          ))}
-        </div>
-        <EquipmentPicker equipment={equipment} isEspresso={isEspresso} value={equipmentSel} onChange={setEquipmentSel} />
-        <Button onClick={generate} disabled={!method || generating}>
-          {generating ? 'Diseñando receta...' : 'Generar receta con IA'}
+        <Button asChild>
+          <Link to={`/recipes?log=${log.id}`}>
+            <BookOpen strokeWidth={1.7} /> Pedir receta a medida
+          </Link>
         </Button>
-        {generating && <Spinner label="Ajustando parámetros al origen y proceso..." />}
-
-        {draft && (
-          <div className="flex flex-col gap-3">
-            <RecipeCard r={draft} />
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => setDraft(null)} disabled={saving}>
-                Descartar
-              </Button>
-              <Button className="flex-1" onClick={keepDraft} disabled={saving}>
-                {saving ? 'Guardando...' : 'Guardar receta'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {pending && savedOnce && (
+        {pending && recipes.length > 0 && (
           <p className="text-sm text-muted-foreground">Cuando lo prepares, vuelve y cuéntanos cómo salió.</p>
         )}
 
