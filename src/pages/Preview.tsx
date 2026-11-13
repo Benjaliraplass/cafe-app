@@ -22,6 +22,7 @@ import { AdminMetricsView, type MetricsData } from '@/components/AdminMetrics'
 import type { UserFacts } from '@/lib/types'
 import { Eyebrow, Title } from '@/components/primitives'
 import { ViewportProbe } from '@/components/ViewportProbe'
+import { DesktopGateView } from '@/pages/DesktopGate'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
 const noop = async () => {}
@@ -69,6 +70,7 @@ export function Preview() {
   // &vp: overlay de diagnóstico del viewport (Safari iOS) con selector de vista.
   const probe = sp.has('vp') && <ViewportProbe />
   if (v === 'login') return <>{probe}<Login /></>
+  if (v === 'desktop') return <DesktopGateView qrUrl="https://dripocoffee.com/?utm_source=desktop&utm_medium=qr" onContinue={() => {}} />
   // /unete: &ref muestra "X te invitó"; &status=invited|waitlist|exists salta al resultado.
   if (v === 'join') {
     const status = sp.get('status') as JoinStatus | null

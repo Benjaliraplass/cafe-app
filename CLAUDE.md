@@ -53,10 +53,12 @@ src/
   components/Invites.tsx  invitaciones (Lote 10): InviteUnlockSheet (hoja "Desbloqueaste N"), InvitesRow (Perfil), shareInvite, InviteStrip
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/Onboarding.tsx walkthrough de bienvenida (3 pantallas, una vez por cuenta: `profiles.onboarded_at`); Gate lo muestra antes de la app; +OnboardingView para preview
+  pages/DesktopGate.tsx  escritorio (>=1024 px con mouse): invitación a abrir Dripo en el teléfono con QR (uqr, chunk aparte); +DesktopGateView para preview
+  hooks/useIsDesktop.ts  media query de escritorio
   pages/Join.tsx       /unete: entrada a la beta por invitación (correo -> cuenta o lista de espera); +JoinView para preview
   pages/               Login (correo + Google, sin registro), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), NewPassword (/nueva-contrasena: destino del enlace de recuperación y "Cambiar contraseña" desde Perfil), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|desktop|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   templates/           plantillas HTML de correos de Auth (se pegan en Supabase → Email Templates; ver README)
