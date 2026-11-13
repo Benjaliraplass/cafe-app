@@ -8,6 +8,7 @@ import { ALL_DRIPPERS, type Equipment } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { cn } from '@/lib/utils'
+import { ErrorBox } from '@/components/primitives'
 
 /**
  * Walkthrough de bienvenida: 3 pantallas, una vez por cuenta (profiles.onboarded_at).
@@ -18,12 +19,23 @@ export function Onboarding() {
   const { user, profile, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [drippers, setDrippers] = useState<string[]>(profile?.equipment?.drippers ?? [])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function finish(how: 'completed' | 'skipped', step: number, to: string) {
+    if (busy) return
+    setBusy(true)
+    setError(null)
     if (user) {
       const tasks: Promise<unknown>[] = [markOnboarded(user.id)]
       if (drippers.length) tasks.push(updateEquipment(user.id, { ...(profile?.equipment ?? {}), drippers } as Equipment))
-      await Promise.allSettled(tasks)
+      const [marked] = await Promise.allSettled(tasks)
+      if (marked.status === 'rejected') {
+        // Sin onboarded_at el Gate volvería a mostrar la bienvenida: mejor decirlo y dejar reintentar.
+        setError('No pudimos guardar. Revisa tu conexión e intenta de nuevo.')
+        setBusy(false)
+        return
+      }
       await refreshProfile()
     }
     track(how === 'completed' ? 'onboarding_completed' : 'onboarding_skipped', { step, drippers: drippers.length })
@@ -38,6 +50,8 @@ export function Onboarding() {
     <OnboardingView
       drippers={drippers}
       onDrippers={setDrippers}
+      busy={busy}
+      error={error}
       onSkip={(step) => finish('skipped', step, '/')}
       onFinish={(to) => finish('completed', 3, to)}
     />
@@ -67,10 +81,14 @@ export function OnboardingView({
   onDrippers,
   onSkip,
   onFinish,
+  busy = false,
+  error = null,
   initialStep = 0,
 }: {
   drippers: string[]
   onDrippers: (d: string[]) => void
+  busy?: boolean
+  error?: string | null
   onSkip: (step: number) => void
   onFinish: (to: string) => void
   initialStep?: number
@@ -89,7 +107,7 @@ export function OnboardingView({
           ))}
         </div>
         {!last && (
-          <button type="button" onClick={() => onSkip(step + 1)} className="py-2 pl-4 text-[13px] font-medium text-muted-foreground">
+          <button type="button" disabled={busy} onClick={() => onSkip(step + 1)} className="py-2 pl-4 text-[13px] font-medium text-muted-foreground">
             Saltar
           </button>
         )}
@@ -125,10 +143,11 @@ export function OnboardingView({
       <div className="flex flex-col gap-3">
         {last ? (
           <>
-            <Button size="lg" className="w-full" onClick={() => onFinish('/scan')}>
+            <ErrorBox message={error} />
+            <Button size="lg" className="w-full" disabled={busy} onClick={() => onFinish('/scan')}>
               <Camera strokeWidth={1.7} /> Escanear mi primer café
             </Button>
-            <button type="button" onClick={() => onFinish('/')} className="py-2 text-[14px] font-medium text-muted-foreground">
+            <button type="button" disabled={busy} onClick={() => onFinish('/')} className="py-2 text-[14px] font-medium text-muted-foreground">
               Mirar primero
             </button>
           </>
