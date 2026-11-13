@@ -1,7 +1,8 @@
 // scan-label: recibe la foto de una bolsa de café y devuelve los datos de la etiqueta
 // como JSON estructurado usando IA con visión (Gemini o Claude, ver _shared/ai.ts).
 //
-// Body: { image_base64: string, media_type: "image/jpeg" | "image/png" | "image/webp" }
+// Body: { images: [{ image_base64, media_type }] } (hasta 3: frente, dorso, etiqueta extra)
+//       o { image_base64, media_type } (una foto, formato anterior). media_type: image/jpeg | image/png | image/webp
 // Respuesta: { ok: true, data: ScanResult } | { ok: false, error: string }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -109,30 +110,44 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const image_base64: string | undefined = body?.image_base64;
-    const media_type: string = body?.media_type ?? "image/jpeg";
-
-    if (!image_base64 || typeof image_base64 !== "string") {
-      return json({ ok: false, error: "Falta image_base64" }, 400);
+    // Varias fotos (frente y dorso de la bolsa) o una sola (formato anterior).
+    type Img = { image_base64?: unknown; media_type?: unknown };
+    const raw: Img[] = Array.isArray(body?.images) && body.images.length
+      ? body.images
+      : [{ image_base64: body?.image_base64, media_type: body?.media_type }];
+    if (raw.length > 3) {
+      return json({ ok: false, error: "Máximo 3 fotos por escaneo" }, 400);
     }
-    if (!ALLOWED_TYPES.has(media_type)) {
-      return json({ ok: false, error: `media_type no soportado: ${media_type}` }, 400);
-    }
-    // ~5 MB en base64
-    if (image_base64.length > 7_000_000) {
-      return json({ ok: false, error: "Imagen demasiado grande (máx ~5 MB)" }, 413);
+    const images: { data: string; media_type: string }[] = [];
+    for (const im of raw) {
+      const data = im?.image_base64;
+      const media_type = typeof im?.media_type === "string" ? im.media_type : "image/jpeg";
+      if (!data || typeof data !== "string") {
+        return json({ ok: false, error: "Falta image_base64" }, 400);
+      }
+      if (!ALLOWED_TYPES.has(media_type)) {
+        return json({ ok: false, error: `media_type no soportado: ${media_type}` }, 400);
+      }
+      // ~5 MB en base64
+      if (data.length > 7_000_000) {
+        return json({ ok: false, error: "Imagen demasiado grande (máx ~5 MB)" }, 413);
+      }
+      images.push({ data, media_type });
     }
 
     const data = await callStructured<ScanResult>({
       system: SYSTEM,
       content: [
-        {
-          type: "image",
-          source: { type: "base64", media_type, data: image_base64 },
-        },
+        ...images.map((im) => ({
+          type: "image" as const,
+          source: { type: "base64" as const, media_type: im.media_type, data: im.data },
+        })),
         {
           type: "text",
-          text: "Lee esta etiqueta de café y registra los datos.",
+          text:
+            images.length > 1
+              ? `Estas ${images.length} fotos son de la misma bolsa de café (distintas caras o etiquetas). Combina la información de todas y registra los datos.`
+              : "Lee esta etiqueta de café y registra los datos.",
         },
       ],
       tool: TOOL,

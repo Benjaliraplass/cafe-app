@@ -5,8 +5,8 @@ export interface LatLng {
   lng: number
 }
 
-/** Centro por defecto: Santiago de Chile. */
-export const DEFAULT_CENTER: LatLng = { lat: -33.4372, lng: -70.6506 }
+/** Centro por defecto sin ubicación: Providencia, Santiago de Chile (decidido 2026-11-13). */
+export const DEFAULT_CENTER: LatLng = { lat: -33.4314, lng: -70.6093 }
 
 /** Distancia en km (haversine). */
 export function distanceKm(a: LatLng, b: LatLng): number {

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, LocateFixed, Plus, Search } from 'lucide-react'
+import { Clock, LocateFixed, Navigation, Plus, Search } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { track } from '@/lib/analytics'
 import { listCafes, listMyCafes } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { currentPosition, distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
+import { currentPosition, DEFAULT_CENTER, distanceKm, formatDistance, silentPosition, type LatLng } from '@/lib/geo'
 import type { Cafe } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -22,16 +22,31 @@ export function Explore() {
   const [mine, setMine] = useState<Cafe[]>([])
   const [error, setError] = useState<string | null>(null)
   const [me, setMe] = useState<LatLng | null>(null)
+  // true = se pidió permiso y no se obtuvo (denegado o sin señal): la franja cambia de texto.
+  const [denied, setDenied] = useState(false)
 
   useEffect(() => {
     listCafes()
       .then(setCafes)
       .catch((e) => setError(e.message))
     if (user) listMyCafes(user.id).then(setMine).catch(() => {})
-    silentPosition().then(setMe)
+    silentPosition().then((p) => {
+      if (p) setMe(p)
+    })
   }, [user])
 
-  return <ExploreView cafes={cafes} mine={mine.filter((c) => c.status !== 'approved')} error={error} me={me} onLocate={async () => setMe(await currentPosition())} />
+  async function locate() {
+    const p = await currentPosition()
+    if (p) {
+      setMe(p)
+      setDenied(false)
+    } else {
+      setDenied(true)
+    }
+    track('explore_located', { ok: !!p })
+  }
+
+  return <ExploreView cafes={cafes} mine={mine.filter((c) => c.status !== 'approved')} error={error} me={me} denied={denied} onLocate={locate} />
 }
 
 export function ExploreView({
@@ -39,12 +54,14 @@ export function ExploreView({
   mine,
   error,
   me,
+  denied = false,
   onLocate,
 }: {
   cafes: Cafe[] | null
   mine: Cafe[]
   error: string | null
   me: LatLng | null
+  denied?: boolean
   onLocate: () => Promise<void>
 }) {
   const [q, setQ] = useState('')
@@ -55,7 +72,7 @@ export function ExploreView({
   const [fit, setFit] = useState<{ points: LatLng[]; key: number } | null>(null)
   const [locating, setLocating] = useState(false)
 
-  // Al obtener la posición por primera vez, encuadrar al usuario junto a las cafeterías más cercanas.
+  // Al obtener la posición (o al tocar "Mi ubicación"), encuadrar al usuario junto a las cafeterías más cercanas.
   const flewToUser = useRef(false)
   useEffect(() => {
     if (!me || flewToUser.current || cafes === null) return
@@ -77,12 +94,13 @@ export function ExploreView({
       return [c.name, c.comuna, c.city, c.region, c.address].some((v) => v?.toLowerCase().includes(s))
     })
     if (areaOnly && viewport) list = list.filter((c) => c.lat != null && c.lng != null && viewport.bounds.contains([c.lng, c.lat]))
-    // Orden: la seleccionada primero; el resto de más cerca a más lejos (del usuario o del centro del mapa).
-    const origin = me ?? viewport?.center ?? null
+    // Orden: la seleccionada primero; el resto de más cerca a más lejos. Sin ubicación, desde
+    // Providencia (no desde el centro del mapa, para que la lista no cambie al desplazarlo).
+    const origin = me ?? DEFAULT_CENTER
     list = [...list].sort((a, b) => {
       if (a.id === selected) return -1
       if (b.id === selected) return 1
-      return origin ? dist(a, origin) - dist(b, origin) : 0
+      return dist(a, origin) - dist(b, origin)
     })
     return list
   }, [cafes, q, kind, areaOnly, viewport, me, selected])
@@ -94,9 +112,9 @@ export function ExploreView({
 
   async function locate() {
     setLocating(true)
+    flewToUser.current = false
     await onLocate()
     setLocating(false)
-    flewToUser.current = false
   }
 
   return (
@@ -158,6 +176,26 @@ export function ExploreView({
 
         <ErrorBox message={error} />
         {!cafes && !error && <Spinner label="Cargando lugares..." />}
+
+        {/* Sin ubicación: se muestra Santiago (Providencia) e invita a activarla (una línea, no un diálogo). */}
+        {cafes && cafes.length > 0 && !me && !q && (
+          <button
+            type="button"
+            onClick={locate}
+            disabled={locating}
+            className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 text-left"
+          >
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[14px] font-medium">{denied ? 'No pudimos obtener tu ubicación' : 'Mostrando Santiago'}</span>
+              <span className="text-[13px] text-muted-foreground">
+                {denied ? 'Revisa el permiso de ubicación del navegador' : 'Activa tu ubicación para ver las más cercanas'}
+              </span>
+            </span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+              <Navigation className={cn('size-4', locating && 'animate-pulse')} strokeWidth={1.8} />
+            </span>
+          </button>
+        )}
 
         {cafes && cafes.length === 0 && mine.length === 0 && (
           <Empty

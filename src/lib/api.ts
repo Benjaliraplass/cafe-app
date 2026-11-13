@@ -4,6 +4,7 @@ import type {
   Cafe,
   Coffee,
   CoffeeLog,
+  Currency,
   CoffeePublicStats,
   DailyMetric,
   Equipment,
@@ -54,8 +55,11 @@ async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> 
 
 // ---------- IA ----------
 
-export function scanLabel(image_base64: string, media_type = 'image/jpeg') {
-  return invoke<ScanResult>('scan-label', { image_base64, media_type })
+/** Lee una o varias fotos de la misma bolsa (hasta 3: frente, dorso, etiqueta extra). */
+export function scanLabel(images: { base64: string; mediaType?: string }[]) {
+  return invoke<ScanResult>('scan-label', {
+    images: images.slice(0, 3).map((im) => ({ image_base64: im.base64, media_type: im.mediaType ?? 'image/jpeg' })),
+  })
 }
 
 export interface SuggestRecipeInput {
@@ -124,6 +128,7 @@ export interface SaveLogInput {
     roast_date: string | null
     bought_at: string | null
     price_clp: number | null
+    currency: Currency
   }
 }
 
@@ -211,6 +216,7 @@ export async function saveLog(input: SaveLogInput): Promise<string> {
       roast_date: log.roast_date,
       bought_at: log.bought_at,
       price_clp: log.price_clp,
+      currency: log.currency,
       raw_scan: scan,
     })
     .select('id')
@@ -222,7 +228,7 @@ export async function saveLog(input: SaveLogInput): Promise<string> {
 // ---------- Lecturas ----------
 
 const LOG_SELECT = `
-  id, user_id, coffee_id, photo_path, rating, notes, brew_method, roast_date, bought_at, price_clp,
+  id, user_id, coffee_id, photo_path, rating, notes, brew_method, roast_date, bought_at, price_clp, currency,
   is_public, is_favorite, consumed_at, created_at,
   coffee:coffees (
     id, roaster_id, name, origin_country, region, farm, producer, variety, process, altitude_masl, sca_score,

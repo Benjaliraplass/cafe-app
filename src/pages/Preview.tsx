@@ -25,7 +25,7 @@ import { Eyebrow, Title } from '@/components/primitives'
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
 const noop = async () => {}
 const mk = (id: string, name: string, origin: string, region: string | null, process: string, variety: string, rating: number, date: string, notes: string[] = []): CoffeeLog => ({
-  id, user_id: 'u', coffee_id: id, photo_path: null, rating, notes: null, brew_method: 'V60', roast_date: '2026-10-26', bought_at: null, price_clp: null,
+  id, user_id: 'u', coffee_id: id, photo_path: null, rating, notes: null, brew_method: 'V60', roast_date: '2026-10-26', bought_at: null, price_clp: null, currency: 'CLP',
   is_public: false, is_favorite: rating === 5, consumed_at: date, created_at: date,
   coffee: { id, roaster_id: 'r1', name, origin_country: origin, region, farm: 'Finca Milán', producer: null, variety, process, altitude_masl: null, sca_score: rating === 5 ? 87.5 : null, roast_level: null, roast_profile: 'filtro', tasting_notes: notes, roaster },
 })
@@ -80,7 +80,17 @@ export function Preview() {
           <InicioView email="benjamin@tostadoclub.com" profile={{ id: 'u', display_name: 'Benjamín Lira', avatar_url: null, country: 'Chile', role: 'admin', equipment: {}, onboarded_at: null, invite_code: 'f02b133ff1', invited_by: null, is_founder: true }} featured={featured} recommended={publishedCoffees} logs={logs} recipes={[{ id: 'r1', coffee_log_id: logs[0].id, brew_method: 'V60', title: recipe.title, params: recipe.params, steps: recipe.steps, rationale: recipe.rationale, created_at: new Date(Date.now() - 2 * 86400000).toISOString(), coffee: { id: 'c', name: logs[0].coffee?.name ?? 'Catiope', roaster: null } }, { id: 'r2', coffee_log_id: null, brew_method: 'Aeropress', title: 'Aeropress para Etiopía natural, 15 g', params: { ...recipe.params, dose_g: 15, ratio: '1:15', total_time: '2:30' }, steps: recipe.steps, rationale: null, created_at: new Date(Date.now() - 9 * 86400000).toISOString(), coffee: null }]} cafes={cafes} me={{ lat: -33.4372, lng: -70.6506 }} error={null} />
         )}
         {v === 'featured' && <FeaturedRecipeView r={featured[0]} />}
-        {v === 'explore' && <ExploreView cafes={cafes} mine={[{ ...cafes[0], id: 'p1', name: 'Mi propuesta', status: 'pending' }]} error={null} me={{ lat: -33.4372, lng: -70.6506 }} onLocate={noop} />}
+        {/* &nolocation: sin ubicación (franja "Mostrando Santiago"); &denied: permiso rechazado */}
+        {v === 'explore' && (
+          <ExploreView
+            cafes={cafes}
+            mine={[{ ...cafes[0], id: 'p1', name: 'Mi propuesta', status: 'pending' }]}
+            error={null}
+            me={sp.has('nolocation') || sp.has('denied') ? null : { lat: -33.4372, lng: -70.6506 }}
+            denied={sp.has('denied')}
+            onLocate={noop}
+          />
+        )}
         {v === 'coffee' && (
           <PublicCoffeeView
             coffee={publishedCoffees[0]}

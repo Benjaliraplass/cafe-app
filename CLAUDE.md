@@ -56,13 +56,13 @@ src/
   pages/Join.tsx       /unete: entrada a la beta por invitación (correo -> cuenta o lista de espera); +JoinView para preview
   pages/               Login (correo + Google, sin registro), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), NewPassword (/nueva-contrasena: destino del enlace de recuperación y "Cambiar contraseña" desde Perfil), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   templates/           plantillas HTML de correos de Auth (se pegan en Supabase → Email Templates; ver README)
   seed/                datos curados: recetas destacadas (idempotente por slug) y `kb_2026_11.sql` (KB de preparación, upsert por id; generado, no editar a mano)
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
-  functions/scan-label/            foto de etiqueta -> JSON estructurado
+  functions/scan-label/            1 a 3 fotos de la bolsa -> JSON estructurado (combina las caras)
   functions/suggest-recipe/        café + método -> receta estructurada
   functions/join/                  beta por invitación: correo -> cuenta (inviteUserByEmail) o lista de espera
   functions/sync-allowlist/        recibe correos (n8n <- segmento Klaviyo YiM4pL) -> allowlist; auth por secret SYNC_KEY

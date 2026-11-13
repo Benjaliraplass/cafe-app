@@ -4,7 +4,7 @@ import { BookOpen, ChevronLeft, ChevronRight, Heart, Pencil, Share2, Trash2 } fr
 import { useAuth } from '@/hooks/useAuth'
 import { deleteLog, getLog, listRecipesForLog, saveRecipeFeedback, setFavorite, setLogPublic } from '@/lib/api'
 import { photoUrl } from '@/lib/supabase'
-import { isPendingLog, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
+import { formatPrice, isPendingLog, type CoffeeLog, type Recipe, type RecipeData } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { absoluteUrl, shareLink } from '@/lib/share'
@@ -220,7 +220,7 @@ export function LogDetailView({
           <KeyValue k="Tueste" v={[c?.roast_profile && cap(c.roast_profile), log.roast_date && formatDate(log.roast_date)].filter(Boolean).join(' · ')} />
           <KeyValue k="Reposo" v={restDays != null ? `${restDays} días` : null} />
           <KeyValue k="Comprado en" v={log.bought_at} />
-          <KeyValue k="Precio" v={log.price_clp ? `$${log.price_clp.toLocaleString('es-CL')}` : null} />
+          <KeyValue k="Precio" v={formatPrice(log.price_clp, log.currency)} />
         </div>
         {c?.tasting_notes && c.tasting_notes.length > 0 && (
           <div className="flex flex-col gap-2.5">

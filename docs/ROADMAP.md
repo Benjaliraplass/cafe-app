@@ -119,6 +119,14 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Wizard paso 1: un toque en el café elige y avanza (sin Continuar al final de la lista); hasta 20 cafés, de más nuevo a más antiguo por fecha de escaneo
 - [x] Tras guardar desde el wizard: "Ver el café y sus recetas"
 
+## Lote 11 — Feedback de Benjamín 2026-11-13
+
+- [x] Explorar: con ubicación, lista por cercanía y mapa al usuario (arreglado el botón "Mi ubicación", que no volaba la segunda vez); sin ubicación, Providencia por defecto y fila "Mostrando Santiago · Activa tu ubicación"
+- [x] 19 cafeterías y tostadurías de regiones cargadas (Viña del Mar 3, Valparaíso 4, Iquique 3, Rancagua 3, Concepción 6; `supabase/seed/cafes_2026_11_regiones.sql`)
+- [x] Precio en cualquier moneda (selector CLP/USD/EUR/ARS/PEN/COP/MXN/BRL/UYU/BOB/PYG/GBP, decimales, recuerda la última)
+- [x] Escaneo con hasta 3 fotos (frente, dorso, otra etiqueta): la IA combina; la segunda lectura solo rellena vacíos; portada elegible
+- [ ] Probar en el teléfono: escaneo con 2 fotos y permiso de ubicación en Explorar
+
 ## Lote 10 — Beta por invitación (2026-11-12)
 
 Decisión: lanzar a clientes de Tostado Club (cualquiera con una compra) y que solo ellos inviten. 3 invitaciones con el primer café, +2 con la primera receta. Lista de espera desde el día 1. Sin premios por invitar.

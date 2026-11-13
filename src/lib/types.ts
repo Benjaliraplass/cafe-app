@@ -96,6 +96,20 @@ export interface FeaturedRecipe {
   created_at: string
 }
 
+/** Monedas aceptadas para el precio (CHECK en coffee_logs.currency). */
+export const CURRENCIES = ['CLP', 'USD', 'EUR', 'ARS', 'PEN', 'COP', 'MXN', 'BRL', 'UYU', 'BOB', 'PYG', 'GBP'] as const
+export type Currency = (typeof CURRENCIES)[number]
+
+/** Precio formateado en su moneda: "$12.990", "US$ 14,50", "€ 9,90". */
+export function formatPrice(amount: number | null | undefined, currency: Currency | null | undefined): string | null {
+  if (amount == null) return null
+  const cur = currency ?? 'CLP'
+  const noDecimals = ['CLP', 'COP', 'PYG'].includes(cur)
+  const n = new Intl.NumberFormat('es-CL', { minimumFractionDigits: noDecimals ? 0 : 2, maximumFractionDigits: noDecimals ? 0 : 2 }).format(amount)
+  const sym: Record<Currency, string> = { CLP: '$', USD: 'US$ ', EUR: '€ ', ARS: 'AR$ ', PEN: 'S/ ', COP: 'COP ', MXN: 'MX$ ', BRL: 'R$ ', UYU: '$U ', BOB: 'Bs ', PYG: '₲ ', GBP: '£ ' }
+  return `${sym[cur]}${n}`
+}
+
 export interface CoffeeLog {
   id: string
   user_id: string
@@ -106,7 +120,9 @@ export interface CoffeeLog {
   brew_method: string | null
   roast_date: string | null
   bought_at: string | null
+  /** Monto en `currency` (el nombre de la columna es histórico). */
   price_clp: number | null
+  currency: Currency
   is_public: boolean
   is_favorite: boolean
   consumed_at: string

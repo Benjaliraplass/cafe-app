@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BREW_METHODS, isPendingLog, type CoffeeLog, type RoastProfile, type ScanResult } from '@/lib/types'
+import { BREW_METHODS, CURRENCIES, isPendingLog, type CoffeeLog, type Currency, type RoastProfile, type ScanResult } from '@/lib/types'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -31,6 +31,7 @@ export interface CoffeeLogFormState {
   notes: string
   bought_at: string
   price_clp: string
+  currency: Currency
 }
 
 export const emptyCoffeeLogForm: CoffeeLogFormState = {
@@ -55,6 +56,7 @@ export const emptyCoffeeLogForm: CoffeeLogFormState = {
   notes: '',
   bought_at: '',
   price_clp: '',
+  currency: rememberedCurrency(),
 }
 
 export function formFromScan(r: ScanResult): CoffeeLogFormState {
@@ -76,6 +78,23 @@ export function formFromScan(r: ScanResult): CoffeeLogFormState {
     tasting_notes: r.tasting_notes.join(', '),
     roast_date: r.roast_date ?? '',
   }
+}
+
+/** Segunda lectura (otra foto de la misma bolsa): rellena solo lo que el formulario aún no tiene y suma notas. */
+export function mergeScanIntoForm(form: CoffeeLogFormState, r: ScanResult): CoffeeLogFormState {
+  const fresh = formFromScan(r)
+  const out = { ...form }
+  for (const k of Object.keys(fresh) as (keyof CoffeeLogFormState)[]) {
+    if (k === 'tasting_notes' || k === 'tasted' || k === 'brew_methods') continue
+    const cur = out[k]
+    const nxt = fresh[k]
+    if (typeof cur === 'string' && typeof nxt === 'string' && !cur.trim() && nxt.trim()) (out as Record<string, unknown>)[k] = nxt
+  }
+  const notes = new Set(
+    [...form.tasting_notes.split(','), ...r.tasting_notes].map((n) => n.trim()).filter(Boolean),
+  )
+  out.tasting_notes = [...notes].join(', ')
+  return out
 }
 
 export function formFromLog(log: CoffeeLog): CoffeeLogFormState {
@@ -102,6 +121,7 @@ export function formFromLog(log: CoffeeLog): CoffeeLogFormState {
     notes: log.notes ?? '',
     bought_at: log.bought_at ?? '',
     price_clp: log.price_clp?.toString() ?? '',
+    currency: log.currency ?? 'CLP',
   }
 }
 
@@ -135,7 +155,8 @@ export function formToPayload(form: CoffeeLogFormState) {
       brew_method: form.tasted && form.brew_methods.length ? form.brew_methods.join(', ') : null,
       roast_date: orNull(form.roast_date),
       bought_at: orNull(form.bought_at),
-      price_clp: form.price_clp ? parseInt(form.price_clp.replace(/\D/g, ''), 10) || null : null,
+      price_clp: parsePrice(form.price_clp),
+      currency: form.currency,
     },
   }
 }
@@ -278,13 +299,57 @@ export function CoffeeLogForm({
           <Field label="Dónde lo compré">
             <Input value={form.bought_at} onChange={(e) => set('bought_at', e.target.value)} placeholder="Web, cafetería..." />
           </Field>
-          <Field label="Precio (CLP)">
-            <Input inputMode="numeric" value={form.price_clp} onChange={(e) => set('price_clp', e.target.value)} placeholder="12990" />
+          <Field label="Precio">
+            <div className="flex gap-2">
+              <Input
+                inputMode="decimal"
+                value={form.price_clp}
+                onChange={(e) => set('price_clp', e.target.value)}
+                placeholder={['CLP', 'COP', 'PYG'].includes(form.currency) ? '12990' : '14,50'}
+                className="min-w-0 flex-1"
+              />
+              <select
+                value={form.currency}
+                onChange={(e) => {
+                  const c = e.target.value as Currency
+                  set('currency', c)
+                  localStorage.setItem('dripo.currency', c)
+                }}
+                aria-label="Moneda"
+                className="h-12 shrink-0 rounded-xl bg-card px-3 text-[15px]"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
           </Field>
         </div>
       </section>
     </>
   )
+}
+
+/** Última moneda usada en este dispositivo (quien paga en otra moneda no la elige cada vez). */
+function rememberedCurrency(): Currency {
+  try {
+    const c = localStorage.getItem('dripo.currency')
+    return c && (CURRENCIES as readonly string[]).includes(c) ? (c as Currency) : 'CLP'
+  } catch {
+    return 'CLP'
+  }
+}
+
+/** Precio: acepta "12.990", "12990", "14,50" o "14.50". Separador de miles solo cuando hay 3 dígitos después. */
+function parsePrice(v: string): number | null {
+  const t = v.trim().replace(/\s/g, '')
+  if (!t) return null
+  // "12.990" (miles) -> 12990 ; "14,50" o "14.50" (decimales) -> 14.5
+  const normalized = /^\d{1,3}(\.\d{3})+$/.test(t) ? t.replace(/\./g, '') : t.replace(',', '.')
+  const n = parseFloat(normalized)
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null
 }
 
 /** Puntaje SCA: acepta coma o punto; solo valores plausibles (60-100), con un decimal. */

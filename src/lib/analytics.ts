@@ -40,6 +40,7 @@ export type EventName =
   | 'profile_updated'
   | 'feedback_clicked'
   | 'join_submitted'
+  | 'explore_located'
   | 'invite_unlocked'
   | 'invite_shared'
   | 'invite_accepted'
