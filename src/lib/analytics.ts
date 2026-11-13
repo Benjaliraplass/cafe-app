@@ -44,6 +44,8 @@ export type EventName =
   | 'invite_unlocked'
   | 'invite_shared'
   | 'invite_accepted'
+  | 'desktop_gate_viewed'
+  | 'desktop_gate_continued'
 
 export type EventProps = Record<string, string | number | boolean | null | undefined>
 
