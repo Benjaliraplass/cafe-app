@@ -10,11 +10,16 @@ import { Logo } from '@/components/Brand'
 /**
  * /unete: entrada a la beta por invitación. Pública, un solo campo.
  * El usuario pone su correo y la app decide: cliente de Tostado Club o código con cupo -> correo
- * para crear la cuenta; si no -> lista de espera. Nunca se le pide elegir ni se le explica la regla.
+ * para crear la cuenta; si no -> lista de espera. Nunca se le pide elegir ni se le explica la regla,
+ * salvo a quien llega desde la campaña a clientes (`utm_campaign=tostado_club`): a ellos se les recuerda
+ * usar el correo de sus compras, porque la lista blanca se cruza por correo.
  */
+const CAMPAIGN_TOSTADO = 'tostado_club'
+
 export function Join() {
   const [params] = useSearchParams()
   const ref = params.get('ref')?.trim().slice(0, 10) || null
+  const tostado = params.get('utm_campaign') === CAMPAIGN_TOSTADO
   const [inviter, setInviter] = useState<string | null>(null)
 
   useEffect(() => {
@@ -27,6 +32,7 @@ export function Join() {
   return (
     <JoinView
       inviter={inviter}
+      tostado={tostado}
       onSubmit={async (email) => {
         const { status } = await joinBeta(email, ref)
         track('join_submitted', { status, via: inviter ? 'invite' : ref ? 'ref_sin_cupo' : 'directo' })
@@ -36,7 +42,7 @@ export function Join() {
   )
 }
 
-export function JoinView({ inviter, onSubmit }: { inviter: string | null; onSubmit: (email: string) => Promise<JoinStatus> }) {
+export function JoinView({ inviter, tostado = false, onSubmit }: { inviter: string | null; tostado?: boolean; onSubmit: (email: string) => Promise<JoinStatus> }) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -71,7 +77,7 @@ export function JoinView({ inviter, onSubmit }: { inviter: string | null; onSubm
             </p>
           </div>
           <form onSubmit={submit} className="flex flex-col gap-4 pt-8">
-            <Field label="Correo">
+            <Field label="Correo" hint={tostado ? 'Usa el correo con el que compras en Tostado Club.' : undefined}>
               <Input
                 type="email"
                 inputMode="email"
@@ -90,7 +96,15 @@ export function JoinView({ inviter, onSubmit }: { inviter: string | null; onSubm
           </form>
         </>
       ) : (
-        <Result status={status} email={email.trim()} />
+        <Result
+          status={status}
+          email={email.trim()}
+          tostado={tostado}
+          onRetry={() => {
+            setStatus(null)
+            setEmail('')
+          }}
+        />
       )}
 
       <p className="pt-8 text-center text-[13px] text-muted-foreground">
@@ -103,15 +117,17 @@ export function JoinView({ inviter, onSubmit }: { inviter: string | null; onSubm
   )
 }
 
-function Result({ status, email }: { status: JoinStatus; email: string }) {
+function Result({ status, email, tostado, onRetry }: { status: JoinStatus; email: string; tostado: boolean; onRetry: () => void }) {
   const copy = {
     invited: {
       title: 'Revisa tu correo',
-      body: `Te enviamos un enlace a ${email} para crear tu cuenta. Ábrelo desde este teléfono.`,
+      body: `Te enviamos un enlace a ${email} para crear tu cuenta. Ábrelo en el teléfono donde vas a usar Dripo. Si no aparece en unos minutos, revisa Spam o Promociones.`,
     },
     waitlist: {
       title: 'Estás en la lista de espera',
-      body: 'Dripo está abriendo por rondas. Te avisamos a tu correo cuando se abra un cupo.',
+      body: tostado
+        ? 'No encontramos ese correo entre los clientes de Tostado Club. Si compras con otro correo, pruébalo; si no, te avisamos cuando se abra un cupo.'
+        : 'Dripo está abriendo por rondas. Te avisamos a tu correo cuando se abra un cupo.',
     },
     exists: {
       title: 'Ese correo ya tiene cuenta',
@@ -125,6 +141,11 @@ function Result({ status, email }: { status: JoinStatus; email: string }) {
       {status === 'exists' && (
         <Button asChild className="mt-4 w-fit">
           <Link to="/">Entrar</Link>
+        </Button>
+      )}
+      {status === 'waitlist' && (
+        <Button variant="outline" className="mt-4 w-fit" onClick={onRetry}>
+          Probar con otro correo
         </Button>
       )}
     </div>

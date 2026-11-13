@@ -74,7 +74,7 @@ export function Preview() {
   // /unete: &ref muestra "X te invitó"; &status=invited|waitlist|exists salta al resultado.
   if (v === 'join') {
     const status = sp.get('status') as JoinStatus | null
-    return <>{probe}<JoinView inviter={sp.has('ref') ? 'Gonzalo' : null} onSubmit={async () => status ?? 'invited'} /></>
+    return <>{probe}<JoinView inviter={sp.has('ref') ? 'Gonzalo' : null} tostado={sp.has('tostado')} onSubmit={async () => status ?? 'invited'} /></>
   }
   if (v === 'onboarding') return <>{probe}<OnboardingView drippers={['V60']} onDrippers={() => {}} onSkip={() => {}} onFinish={() => {}} initialStep={Number(sp.get('step') ?? 0)} /></>
   return (
