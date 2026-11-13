@@ -33,15 +33,6 @@ import { useIsDesktop } from '@/hooks/useIsDesktop'
 
 /** Rutas que funcionan igual en escritorio: fichas compartidas, legales, cuenta y el panel de admin. */
 const DESKTOP_OK = [/^\/r\//, /^\/c\//, /^\/privacidad/, /^\/nueva-contrasena/, /^\/unete/, /^\/admin/]
-const KEY_DESKTOP = 'dripo.desktop_ok'
-
-function readDesktopOk(): boolean {
-  try {
-    return localStorage.getItem(KEY_DESKTOP) === '1'
-  } catch {
-    return false
-  }
-}
 
 function Loading() {
   return (
@@ -129,7 +120,6 @@ function JoinRoute() {
 function Root() {
   const desktop = useIsDesktop()
   const location = useLocation()
-  const [desktopOk, setDesktopOk] = useState(readDesktopOk)
   // Vista previa con datos de ejemplo, solo en desarrollo (npm run dev): /preview?v=...
   if (import.meta.env.DEV && window.location.pathname.startsWith('/preview')) {
     return (
@@ -138,21 +128,12 @@ function Root() {
       </Suspense>
     )
   }
-  // En escritorio la app se reemplaza por una invitación a abrirla en el teléfono (QR), salvo en las rutas
-  // que tienen sentido en un computador o si la persona eligió "Continuar en este navegador".
-  if (desktop && !desktopOk && !DESKTOP_OK.some((r) => r.test(location.pathname))) {
+  // En escritorio la app no se usa: se reemplaza por una invitación a abrirla en el teléfono (QR),
+  // salvo en las rutas que tienen sentido en un computador.
+  if (desktop && !DESKTOP_OK.some((r) => r.test(location.pathname))) {
     return (
       <Suspense fallback={<Loading />}>
-        <DesktopGate
-          onContinue={() => {
-            try {
-              localStorage.setItem(KEY_DESKTOP, '1')
-            } catch {
-              // sin almacenamiento: vale solo para esta visita
-            }
-            setDesktopOk(true)
-          }}
-        />
+        <DesktopGate />
       </Suspense>
     )
   }
