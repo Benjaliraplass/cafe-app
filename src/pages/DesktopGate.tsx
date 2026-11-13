@@ -15,24 +15,16 @@ export function desktopQrUrl(href: string): string {
   return url.toString()
 }
 
-/** Contenedor: registra la vista y el "continuar en este navegador". */
-export function DesktopGate({ onContinue }: { onContinue: () => void }) {
+/** Contenedor: registra la vista. La app no se usa en escritorio, así que no hay forma de saltarse esta pantalla. */
+export function DesktopGate() {
   const qrUrl = useMemo(() => desktopQrUrl(window.location.href), [])
   useEffect(() => {
     track('desktop_gate_viewed', { path: window.location.pathname })
   }, [])
-  return (
-    <DesktopGateView
-      qrUrl={qrUrl}
-      onContinue={() => {
-        track('desktop_gate_continued', { path: window.location.pathname })
-        onContinue()
-      }}
-    />
-  )
+  return <DesktopGateView qrUrl={qrUrl} />
 }
 
-export function DesktopGateView({ qrUrl, onContinue }: { qrUrl: string; onContinue: () => void }) {
+export function DesktopGateView({ qrUrl }: { qrUrl: string }) {
   return (
     <div className="flex min-h-full flex-col bg-background">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-10 pt-8">
@@ -68,13 +60,6 @@ export function DesktopGateView({ qrUrl, onContinue }: { qrUrl: string; onContin
               </Step>
             </ol>
           </div>
-
-          <p className="text-sm text-tertiary">
-            ¿Prefieres seguir aquí?{' '}
-            <button type="button" onClick={onContinue} className="font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground">
-              Continuar en este navegador
-            </button>
-          </p>
         </section>
 
         <PhoneMockup />

@@ -70,7 +70,7 @@ export function Preview() {
   // &vp: overlay de diagnóstico del viewport (Safari iOS) con selector de vista.
   const probe = sp.has('vp') && <ViewportProbe />
   if (v === 'login') return <>{probe}<Login /></>
-  if (v === 'desktop') return <DesktopGateView qrUrl="https://dripocoffee.com/?utm_source=desktop&utm_medium=qr" onContinue={() => {}} />
+  if (v === 'desktop') return <DesktopGateView qrUrl="https://dripocoffee.com/?utm_source=desktop&utm_medium=qr" />
   // /unete: &ref muestra "X te invitó"; &status=invited|waitlist|exists salta al resultado.
   if (v === 'join') {
     const status = sp.get('status') as JoinStatus | null

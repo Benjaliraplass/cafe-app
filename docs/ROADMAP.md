@@ -142,9 +142,9 @@ Desarrollo local con Claude Code y Xcode: servidor `dripo-dev` (`.claude/launch.
 ## Lote 13 — Escritorio a teléfono (2026-11-13)
 
 - [x] En escritorio, pantalla "Tu diario de café vive en tu bolsillo" con QR a la misma URL (+ `utm_source=desktop&utm_medium=qr`), pasos para agregarla al inicio y maqueta del teléfono (`/preview?v=desktop`)
-- [x] Siguen en escritorio: fichas `/r` y `/c`, `/privacidad`, `/nueva-contrasena`, `/unete`, `/admin`; "Continuar en este navegador" queda recordado en el dispositivo
-- [x] Eventos `desktop_gate_viewed` y `desktop_gate_continued`
-- [ ] Medir cuántos escanean el QR (`app_opened` con `utm_source=desktop`) frente a cuántos eligen continuar en el navegador
+- [x] Siguen en escritorio: fichas `/r` y `/c`, `/privacidad`, `/nueva-contrasena`, `/unete`, `/admin`. Sin opción de continuar en el navegador (la app no se usa en un computador)
+- [x] Evento `desktop_gate_viewed`
+- [ ] Medir cuántos escanean el QR (`app_opened` con `utm_source=desktop`) frente a las vistas de la pantalla
 
 ## Lote 10 — Beta por invitación (2026-11-12)
 
