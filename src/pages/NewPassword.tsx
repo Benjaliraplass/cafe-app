@@ -53,6 +53,8 @@ export function NewPassword() {
   nameRef.current = name
   const userIdRef = useRef<string | null>(user?.id ?? null)
   userIdRef.current = user?.id ?? null
+  const userEmailRef = useRef<string | null>(user?.email ?? null)
+  userEmailRef.current = user?.email ?? null
 
   useEffect(() => {
     if (!link.invite || !GOOGLE_CLIENT_ID) return
@@ -71,18 +73,26 @@ export function NewPassword() {
             setGoogleBusy(true)
             try {
               // 1) Aceptar la invitación: confirma el correo. Sin esto Supabase no une Google a la cuenta.
+              let invitedEmail = userEmailRef.current
               if (link.tokenHash && link.type && !userIdRef.current) {
-                const { error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
-                if (error) {
+                const { data, error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
+                if (error || !data.user) {
                   setExpired(true)
                   return
                 }
+                invitedEmail = data.user.email ?? null
               }
-              // 2) Entrar con Google: con el mismo correo (ya verificado) Supabase une la identidad a la cuenta.
+              // 2) Solo si el Google es del mismo correo: si no, Supabase entraría a OTRA cuenta de Dripo con ese
+              //    correo (si existe) y la invitación quedaría a medias. La invitación ya quedó aceptada.
+              const googleEmail = emailFromIdToken(credential)
+              if (!invitedEmail || !googleEmail || googleEmail !== invitedEmail.toLowerCase()) {
+                setError('Esa cuenta de Google es de otro correo. Crea una contraseña para este y listo.')
+                return
+              }
+              // 3) Entrar con Google: mismo correo (ya verificado), Supabase une la identidad a la cuenta.
               const { data, error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: credential, nonce })
               if (error || !data.user) {
-                // Google de otro correo: la invitación ya quedó aceptada; que cree su contraseña.
-                setError('Esa cuenta de Google es de otro correo. Crea una contraseña para este y listo.')
+                setError('No pudimos entrar con Google. Crea una contraseña para este correo.')
                 return
               }
               const meta = data.user.user_metadata ?? {}
@@ -225,4 +235,16 @@ export function NewPassword() {
       )}
     </div>
   )
+}
+
+/** Correo (en minúsculas) del id_token de Google. Solo para comparar en el cliente; Supabase valida el token. */
+function emailFromIdToken(token: string): string | null {
+  try {
+    const part = token.split('.')[1]
+    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '='))
+    const email = (JSON.parse(json) as { email?: unknown }).email
+    return typeof email === 'string' ? email.toLowerCase() : null
+  } catch {
+    return null
+  }
 }
