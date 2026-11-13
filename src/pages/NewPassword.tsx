@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { updateProfile } from '@/lib/api'
 import { translateAuthError } from '@/lib/authErrors'
+import { GOOGLE_CLIENT_ID, createNonce, loadGoogleIdentity } from '@/lib/google'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,6 +44,77 @@ export function NewPassword() {
   const [error, setError] = useState<string | null>(null)
   const [expired, setExpired] = useState(false)
   const [ready, setReady] = useState(false)
+  // Google en la invitación: botón de Google Identity Services (como en Login). El callback se crea una
+  // vez, así que lee el nombre y la sesión vigentes desde refs.
+  const gisRef = useRef<HTMLDivElement>(null)
+  const [gisReady, setGisReady] = useState(false)
+  const [googleBusy, setGoogleBusy] = useState(false)
+  const nameRef = useRef(name)
+  nameRef.current = name
+  const userIdRef = useRef<string | null>(user?.id ?? null)
+  userIdRef.current = user?.id ?? null
+
+  useEffect(() => {
+    if (!link.invite || !GOOGLE_CLIENT_ID) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [id, { nonce, hashedNonce }] = await Promise.all([loadGoogleIdentity(), createNonce()])
+        if (cancelled || !gisRef.current) return
+        id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          nonce: hashedNonce,
+          use_fedcm_for_prompt: true,
+          itp_support: true,
+          callback: async ({ credential }) => {
+            setError(null)
+            setGoogleBusy(true)
+            try {
+              // 1) Aceptar la invitación: confirma el correo. Sin esto Supabase no une Google a la cuenta.
+              if (link.tokenHash && link.type && !userIdRef.current) {
+                const { error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
+                if (error) {
+                  setExpired(true)
+                  return
+                }
+              }
+              // 2) Entrar con Google: con el mismo correo (ya verificado) Supabase une la identidad a la cuenta.
+              const { data, error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: credential, nonce })
+              if (error || !data.user) {
+                // Google de otro correo: la invitación ya quedó aceptada; que cree su contraseña.
+                setError('Esa cuenta de Google es de otro correo. Crea una contraseña para este y listo.')
+                return
+              }
+              const meta = data.user.user_metadata ?? {}
+              const display = nameRef.current.trim() || (meta.full_name as string | undefined) || (meta.name as string | undefined) || ''
+              if (display) await updateProfile(data.user.id, { display_name: display }).catch(() => undefined)
+              await refreshProfile()
+              navigate('/', { replace: true })
+            } finally {
+              setGoogleBusy(false)
+            }
+          },
+        })
+        id.renderButton(gisRef.current, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'pill',
+          logo_alignment: 'center',
+          locale: 'es',
+          width: Math.min(gisRef.current.clientWidth || 360, 400),
+        })
+        setGisReady(true)
+      } catch {
+        // Sin GIS: queda solo la contraseña.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Con el enlace clásico, supabase-js procesa el hash y emite la sesión; damos unos ms de margen.
   useEffect(() => {
@@ -93,7 +165,7 @@ export function NewPassword() {
         <Eyebrow>{link.invite ? 'Bienvenido a Dripo' : 'Cuenta'}</Eyebrow>
         <Title>{link.invite ? 'Crea tu cuenta' : 'Nueva contraseña'}</Title>
         {link.invite && !noSession && (
-          <p className="pt-1 text-[15px] text-muted-foreground">Con tu contraseña entras la próxima vez. También puedes usar Google con este mismo correo.</p>
+          <p className="pt-1 text-[15px] text-muted-foreground">Crea una contraseña o entra con tu cuenta de Google de este mismo correo.</p>
         )}
       </header>
       {noSession ? (
@@ -136,9 +208,19 @@ export function NewPassword() {
             <Input type="password" autoComplete="new-password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" />
           </Field>
           <ErrorBox message={error} />
-          <Button type="submit" disabled={saving || (!ready && !link.tokenHash)}>
+          <Button type="submit" disabled={saving || googleBusy || (!ready && !link.tokenHash)}>
             {saving ? 'Guardando...' : 'Guardar y entrar'}
           </Button>
+          {link.invite && (
+            <>
+              <div className={gisReady ? 'flex items-center gap-3 pt-1 text-[13px] text-tertiary' : 'hidden'}>
+                <span className="h-px flex-1 bg-border" />o<span className="h-px flex-1 bg-border" />
+              </div>
+              {/* Botón de Google (lo dibuja GIS). Mientras entra, un aviso en su lugar. */}
+              <div ref={gisRef} className={gisReady && !googleBusy ? 'flex h-11 justify-center overflow-hidden' : 'hidden'} />
+              {googleBusy && <p className="text-center text-sm text-muted-foreground">Entrando con Google...</p>}
+            </>
+          )}
         </form>
       )}
     </div>
