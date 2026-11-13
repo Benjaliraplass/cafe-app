@@ -47,6 +47,11 @@ function Gate() {
   const { user, profile, loading, profileLoading } = useAuth()
   if (loading) return <Loading />
   if (!user) return <Login />
+  // Invitado que abrió el enlace pero no creó contraseña (cerró la pestaña): sin ella no podría entrar
+  // desde la app instalada ni desde otro teléfono. Los que entran con Google no la necesitan.
+  const meta = user.user_metadata ?? {}
+  const providers: string[] = user.app_metadata?.providers ?? []
+  if (meta.source && !meta.password_set && !providers.includes('google')) return <Navigate to="/nueva-contrasena?type=invite" replace />
   if (profileLoading) return <Loading />
   // Primera vez en la cuenta: walkthrough de 3 pantallas antes de la app (profiles.onboarded_at).
   if (profile && !profile.onboarded_at) return <Onboarding />
