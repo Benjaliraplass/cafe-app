@@ -130,8 +130,14 @@ export function Scan() {
             variant="secondary"
             size="icon"
             onClick={() => {
+              // Volver al inicio descarta el escaneo: si no, la foto de otra bolsa entraba como foto extra
+              // del café anterior (y con 3 fotos el botón de cámara no hacía nada).
               setStep('pick')
               setError(null)
+              setPhotos([])
+              setCover(0)
+              setScan(null)
+              setForm(emptyCoffeeLogForm)
             }}
             aria-label="Volver"
           >
