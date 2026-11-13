@@ -143,7 +143,9 @@
 }
 
 /* Liquid glass: superficie translúcida con blur + saturación, borde de luz y sombra suave.
-   Se usa en la barra inferior flotante y en barras de acción fijas. */
+   Se usa en la barra inferior flotante y en barras de acción fijas.
+   La sombra se desvanece en ~12 px: en Safari 26 el área fija termina 12 px bajo la barra y Safari
+   pinta su zona de barra encima, así que una sombra más larga quedaba cortada en línea recta. */
 @utility glass {
   background: color-mix(in oklab, var(--background) 62%, transparent);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -151,8 +153,8 @@
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   box-shadow:
     inset 0 1px 0 0 color-mix(in oklab, white 70%, transparent),
-    0 12px 32px -12px rgb(0 0 0 / 0.28),
-    0 2px 8px -2px rgb(0 0 0 / 0.08);
+    0 4px 12px -4px rgb(0 0 0 / 0.2),
+    0 1px 3px rgb(0 0 0 / 0.06);
 }
 /* Variante más opaca para barras de acción que se superponen a la navegación. */
 @utility glass-solid {
@@ -162,14 +164,14 @@
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   box-shadow:
     inset 0 1px 0 0 color-mix(in oklab, white 70%, transparent),
-    0 12px 32px -12px rgb(0 0 0 / 0.28),
-    0 2px 8px -2px rgb(0 0 0 / 0.08);
+    0 4px 12px -4px rgb(0 0 0 / 0.2),
+    0 1px 3px rgb(0 0 0 / 0.06);
 }
 .dark .glass,
 .dark .glass-solid {
   box-shadow:
     inset 0 1px 0 0 color-mix(in oklab, white 12%, transparent),
-    0 12px 32px -12px rgb(0 0 0 / 0.6);
+    0 4px 12px -4px rgb(0 0 0 / 0.6);
 }
 
 /* Una barra de acción fija (Guardar café, Guardar cambios) reemplaza a la barra inferior mientras está en pantalla.

@@ -45,8 +45,10 @@ export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
   return (
     <>
       {open && (
-        <div className="fixed inset-0 z-[25] flex flex-col justify-end bg-foreground/20 backdrop-blur-[2px]" onClick={() => setOpen(false)} role="dialog" aria-label="Qué quieres hacer">
-          <div className="mx-auto w-full max-w-md px-4 pb-[calc(max(env(safe-area-inset-bottom),12px)+84px)]" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[25] flex flex-col justify-end" onClick={() => setOpen(false)} role="dialog" aria-label="Qué quieres hacer">
+          {/* Velo en un hijo absoluto: Safari 26 tiñe su barra con el fondo de los elementos fixed y se quedaba gris tras cerrar la hoja. */}
+          <div aria-hidden className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px]" />
+          <div className="relative mx-auto w-full max-w-md px-4 pb-[calc(max(env(safe-area-inset-bottom),12px)+84px)]" onClick={(e) => e.stopPropagation()}>
             <div className="glass-solid flex flex-col gap-2 rounded-[28px] p-2">
               <ActionRow to="/scan" accent icon={<Camera className="size-6" strokeWidth={1.7} />} title="Escanear etiqueta" body="Foto al paquete y guardamos el café en tu diario." />
               <ActionRow to="/recipes" icon={<BookOpen className="size-6" strokeWidth={1.7} />} title="Pedir una receta" body="A medida para tu café, tu método y tu equipo." />
@@ -65,7 +67,7 @@ export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
               className={cn(
-                'mx-1 flex size-[58px] shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-[0_10px_24px_-8px_rgba(200,16,46,0.55)] transition-transform active:scale-95',
+                'mx-1 flex size-[58px] shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-[0_4px_10px_-4px_rgba(200,16,46,0.5)] transition-transform active:scale-95',
                 (open || onActionRoute || activeTo === '/scan' || activeTo === '/recipes') && 'ring-2 ring-brand/25 ring-offset-2 ring-offset-background/60',
               )}
             >

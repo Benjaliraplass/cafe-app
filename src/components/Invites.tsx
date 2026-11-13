@@ -58,8 +58,10 @@ export function InviteUnlockSheetView({ nuevas, total, onShare, onClose }: { nue
   const [copied, setCopied] = useState(false)
   const first = nuevas === total
   return (
-    <div className="fixed inset-0 z-[30] flex flex-col justify-end bg-foreground/20 backdrop-blur-[2px]" onClick={onClose} role="dialog" aria-label="Invitaciones desbloqueadas">
-      <div className="mx-auto w-full max-w-md px-4 pb-[max(env(safe-area-inset-bottom),16px)]" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[30] flex flex-col justify-end" onClick={onClose} role="dialog" aria-label="Invitaciones desbloqueadas">
+      {/* Velo en un hijo absoluto para que Safari 26 no lo use al teñir su barra (ver Layout). */}
+      <div aria-hidden className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px]" />
+      <div className="relative mx-auto w-full max-w-md px-4 pb-[max(env(safe-area-inset-bottom),16px)]" onClick={(e) => e.stopPropagation()}>
         <div className="glass-solid flex flex-col gap-5 rounded-[28px] p-6">
           <div className="flex items-start gap-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
