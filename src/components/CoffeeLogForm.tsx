@@ -316,7 +316,7 @@ export function CoffeeLogForm({
                   localStorage.setItem('dripo.currency', c)
                 }}
                 aria-label="Moneda"
-                className="h-12 shrink-0 rounded-xl bg-card px-3 text-[15px]"
+                className="h-12 shrink-0 rounded-xl bg-card px-3 text-[16px]"
               >
                 {CURRENCIES.map((c) => (
                   <option key={c} value={c}>

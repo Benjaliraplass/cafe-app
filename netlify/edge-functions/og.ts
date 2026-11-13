@@ -1,4 +1,4 @@
-// Inyecta meta tags Open Graph en las fichas públicas (/r/:slug y /c/:id) para que WhatsApp,
+// Inyecta meta tags Open Graph en las fichas públicas (/r/:slug y /c/:id) y en /unete para que WhatsApp,
 // Instagram, iMessage y similares muestren título, descripción y foto al compartir el enlace.
 // La SPA no puede hacerlo sola porque esos bots no ejecutan JavaScript.
 //
@@ -48,7 +48,7 @@ export default async (req: Request, context: Context) => {
 
   // Quita las etiquetas por defecto que vamos a reemplazar y el <title> original.
   const cleaned = html
-    .replace(/<meta property="og:(title|description|image|type)"[^>]*>\s*/g, "")
+    .replace(/<meta property="og:(title|description|image|type|url)"[^>]*>\s*/g, "")
     .replace(/<meta name="twitter:card"[^>]*>\s*/g, `<meta name="twitter:card" content="summary_large_image" />\n    `)
     .replace(/<title>[^<]*<\/title>/, "");
   const out = cleaned.replace("</head>", `    ${tags}\n  </head>`);
@@ -59,6 +59,15 @@ export default async (req: Request, context: Context) => {
 };
 
 async function buildMeta(url: URL): Promise<Meta | null> {
+  // Entrada a la beta: es el enlace de las campañas (WhatsApp a clientes de Tostado Club).
+  if (url.pathname.replace(/\/$/, "") === "/unete") {
+    return {
+      title: "Únete a Dripo",
+      description: "Tu diario de café de especialidad: escanea la etiqueta, guarda lo que tomas y recibe recetas a medida.",
+      image: null,
+      type: "website",
+    };
+  }
   if (!SUPABASE_URL || !SUPABASE_KEY) return null;
   const parts = url.pathname.split("/").filter(Boolean);
   if (parts.length !== 2) return null;
@@ -120,6 +129,6 @@ function esc(s: string): string {
 }
 
 export const config: Config = {
-  path: ["/r/*", "/c/*"],
+  path: ["/r/*", "/c/*", "/unete"],
   onError: "bypass",
 };

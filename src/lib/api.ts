@@ -36,8 +36,10 @@ export function slugify(s: string): string {
 async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke(fn, { body })
   if (error) {
-    // supabase-js envuelve errores HTTP; intentamos rescatar el mensaje del body
-    let msg = error.message
+    // supabase-js envuelve errores HTTP; intentamos rescatar el mensaje del body. Si no hay (sin red,
+    // 401/503/546 del gateway), un mensaje en español en vez del texto en inglés de supabase-js.
+    console.warn(`invoke ${fn}`, error.message)
+    let msg = 'No pudimos conectar. Revisa tu conexión e intenta de nuevo.'
     try {
       const ctx = (error as { context?: Response }).context
       if (ctx && typeof ctx.json === 'function') {

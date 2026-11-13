@@ -6,3 +6,11 @@ verify_jwt = true
 
 [functions.suggest-recipe]
 verify_jwt = true
+
+# Públicas: /unete llama sin sesión y n8n con su propio secreto. Sin esto, `supabase functions deploy`
+# las dejaría con verify_jwt=true y /unete fallaría para todos.
+[functions.join]
+verify_jwt = false
+
+[functions.sync-allowlist]
+verify_jwt = false

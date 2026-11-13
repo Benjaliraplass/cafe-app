@@ -139,6 +139,22 @@ Desarrollo local con Claude Code y Xcode: servidor `dripo-dev` (`.claude/launch.
 - Hallazgos sin cambio (comportamiento de Safari 26+): en el navegador la barra de Dripo queda sobre la barra flotante de Safari y no puede bajar más (el viewport fijo termina ahí; con la barra contraída queda una franja con el difuminado de Safari). En la app instalada llega al borde con la zona segura de 34 pt
 - [ ] Decidir: en la app instalada la barra de estado queda fuera del viewport (estilo `default`), así que el fondo de la hoja "Crear" y las fotos de portada no la cubren. Alternativa `black-translucent` deja el contenido bajo la barra de estado pero con texto blanco, ilegible sobre fondo claro
 
+## Lote 14 — QA antes del WhatsApp a clientes de Tostado Club (2026-11-13)
+
+Enlace de la campaña: `https://dripocoffee.com/unete?utm_source=whatsapp&utm_medium=broadcast&utm_campaign=tostado_club`
+
+- [x] Campos a 16 px (iOS hacía zoom al escribir y la página quedaba ampliada)
+- [x] Vista previa en WhatsApp: imagen con URL absoluta, `og:url`, título "Únete a Dripo" en `/unete`
+- [x] `/unete`: pista "usa el correo con el que compras en Tostado Club" solo desde la campaña; aviso de Spam/Promociones; "Probar con otro correo" en lista de espera
+- [x] `join` reenvía la invitación a quien fue invitado y nunca confirmó (estado `pending`); `join` y `sync-allowlist` con `verify_jwt = false` en `config.toml`
+- [x] Crear cuenta: el enlace del correo (`token_hash`) se valida al guardar (los escáneres de Outlook ya no lo gastan); pide el nombre; marca `password_set` y el Gate devuelve a "Crea tu cuenta" a un invitado sin contraseña; errores en español; "Pedir un enlace nuevo" si venció
+- [x] Escanear: "Volver" descarta el escaneo; errores de red en español; la bienvenida ya no muestra Inicio un instante ni se puede tocar dos veces; aceptar invitación cuenta como `signup_completed`
+- [ ] Benjamín: Supabase → Authentication → Rate Limits → emails por hora (viene en 30) a 1.000 o más
+- [ ] Benjamín: Resend con plan que cubra el pico (el gratis tiene 100 al día) y click tracking apagado
+- [ ] Benjamín: Supabase → Email OTP Expiration = 86400 (el correo dice "vence en 24 horas")
+- [ ] Benjamín: después del deploy, pegar `invitacion.html` y `recuperar-contrasena.html` en Supabase → Emails → Templates
+- [ ] Benjamín: revisar tier y tope de gasto de Anthropic
+
 ## Lote 13 — Escritorio a teléfono (2026-11-13)
 
 - [x] En escritorio, pantalla "Tu diario de café vive en tu bolsillo" con QR a la misma URL (+ `utm_source=desktop&utm_medium=qr`), pasos para agregarla al inicio y maqueta del teléfono (`/preview?v=desktop`)

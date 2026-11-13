@@ -12,7 +12,7 @@ function Select({ className, children, ...props }: React.ComponentProps<'select'
       <select
         data-slot="select"
         className={cn(
-          'flex h-12 w-full min-w-0 appearance-none rounded-xl border border-input bg-card pr-10 pl-4 text-[15px] text-foreground outline-none transition-colors focus-visible:border-border-strong disabled:cursor-not-allowed disabled:opacity-50',
+          'flex h-12 w-full min-w-0 appearance-none rounded-xl border border-input bg-card pr-10 pl-4 text-[16px] text-foreground outline-none transition-colors focus-visible:border-border-strong disabled:cursor-not-allowed disabled:opacity-50',
           !props.value && 'text-tertiary',
           className,
         )}

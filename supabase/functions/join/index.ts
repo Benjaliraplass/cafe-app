@@ -5,6 +5,7 @@
 //
 // Decide con la RPC join_decision (service role):
 //   exists    -> ya tiene cuenta: la app lo manda a entrar.
+//   pending   -> fue invitado pero nunca abrió el enlace (o el envío falló): se reenvía la invitación.
 //   allowlist -> cliente de Tostado Club: se crea la cuenta y se envía el correo "Te invitaron a Dripo".
 //   invite    -> llegó con el código de un usuario con cupo: igual, y queda invited_by.
 //   waitlist  -> queda en lista de espera.
@@ -63,18 +64,22 @@ Deno.serve(async (req: Request) => {
   if (status === "exists") return json({ ok: true, data: { status: "exists" } });
   if (status === "waitlist") return json({ ok: true, data: { status: "waitlist" } });
 
-  // allowlist | invite: crear la cuenta y mandar el correo.
+  // allowlist | invite: crear la cuenta y mandar el correo. pending: reenviar la invitación (sin tocar metadata).
   const origin = req.headers.get("origin") ?? "";
   const site = ALLOWED_ORIGINS.includes(origin) ? origin : "https://dripocoffee.com";
   const { error: invErr } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${site}/nueva-contrasena`,
-    data: { invited_by: inviter, source: status === "invite" ? "invite" : "tostado" },
+    ...(status === "pending" ? {} : { data: { invited_by: inviter, source: status === "invite" ? "invite" : "tostado" } }),
   });
   if (invErr) {
-    console.error("inviteUserByEmail", invErr.message);
-    // La cuenta ya existía (carrera) -> tratar como existente.
+    console.error("inviteUserByEmail", status, invErr.message);
+    // La cuenta ya existía y está confirmada (carrera) -> tratar como existente.
     if (/already|registered|exists/i.test(invErr.message)) return json({ ok: true, data: { status: "exists" } });
-    return json({ ok: false, error: "No pudimos enviar el correo. Intenta de nuevo." }, 500);
+    // Reenvío pedido hace segundos: el correo anterior sigue en camino.
+    if (status === "pending" && /security purposes|after \d+ seconds/i.test(invErr.message)) {
+      return json({ ok: true, data: { status: "invited" } });
+    }
+    return json({ ok: false, error: "No pudimos enviar el correo. Intenta de nuevo en unos minutos." }, 500);
   }
   console.log(`join ok: ${status}${inviter ? " via " + inviter.slice(0, 8) : ""}`);
   return json({ ok: true, data: { status: "invited" } });

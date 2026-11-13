@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { getProfile, type Profile } from '../lib/api'
@@ -57,12 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const userId = session?.user?.id ?? null
+  // Usuario cuyo perfil ya se cargó: al entrar otro (login), el Gate espera el perfil en vez de mostrar
+  // Inicio un instante y saltar a la bienvenida. Los refrescos del mismo usuario no vuelven a "cargando".
+  const loadedFor = useRef<string | null>(null)
   const refreshProfile = useCallback(async () => {
     if (!userId) {
+      loadedFor.current = null
       setProfile(null)
       setProfileLoading(false)
       return
     }
+    if (loadedFor.current !== userId) setProfileLoading(true)
     try {
       let p = await getProfile(userId)
       if (!p) {
@@ -71,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         p = await getProfile(userId)
       }
       setProfile(p)
+      loadedFor.current = userId
     } catch {
       // El perfil es complementario; la app sigue funcionando sin él.
     } finally {

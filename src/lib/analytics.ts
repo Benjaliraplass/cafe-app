@@ -224,8 +224,13 @@ export function trackAuth(user: User): void {
   const ss = safeStorage('session')
   if (ss?.getItem(KEY_AUTH_TRACKED) === user.id) return
   ss?.setItem(KEY_AUTH_TRACKED, user.id)
-  const created = Date.parse(user.created_at)
-  const isNew = Number.isFinite(created) && Date.now() - created < 2 * 60 * 1000
+  // Registro = cuenta creada hace poco, o invitación aceptada recién (la cuenta se crea al enviar el
+  // correo, así que created_at puede ser de horas antes; lo que cuenta es la confirmación).
+  const recent = (iso: string | undefined) => {
+    const t = iso ? Date.parse(iso) : NaN
+    return Number.isFinite(t) && Date.now() - t < 2 * 60 * 1000
+  }
+  const isNew = recent(user.created_at) || (!!user.invited_at && recent(user.email_confirmed_at ?? user.confirmed_at))
   track(isNew ? 'signup_completed' : 'login_completed', { provider: user.app_metadata?.provider ?? 'email' })
 }
 
