@@ -21,6 +21,7 @@ import { BottomNav } from '@/components/Layout'
 import { AdminMetricsView, type MetricsData } from '@/components/AdminMetrics'
 import type { UserFacts } from '@/lib/types'
 import { Eyebrow, Title } from '@/components/primitives'
+import { ViewportProbe } from '@/components/ViewportProbe'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
 const noop = async () => {}
@@ -65,13 +66,15 @@ const publishedCoffees = logs.map((l) => ({ ...l.coffee!, is_published: true, pu
 export function Preview() {
   const [sp] = useSearchParams()
   const v = sp.get('v') ?? 'home'
-  if (v === 'login') return <Login />
+  // &vp: overlay de diagnóstico del viewport (Safari iOS) con selector de vista.
+  const probe = sp.has('vp') && <ViewportProbe />
+  if (v === 'login') return <>{probe}<Login /></>
   // /unete: &ref muestra "X te invitó"; &status=invited|waitlist|exists salta al resultado.
   if (v === 'join') {
     const status = sp.get('status') as JoinStatus | null
-    return <JoinView inviter={sp.has('ref') ? 'Gonzalo' : null} onSubmit={async () => status ?? 'invited'} />
+    return <>{probe}<JoinView inviter={sp.has('ref') ? 'Gonzalo' : null} onSubmit={async () => status ?? 'invited'} /></>
   }
-  if (v === 'onboarding') return <OnboardingView drippers={['V60']} onDrippers={() => {}} onSkip={() => {}} onFinish={() => {}} initialStep={Number(sp.get('step') ?? 0)} />
+  if (v === 'onboarding') return <>{probe}<OnboardingView drippers={['V60']} onDrippers={() => {}} onSkip={() => {}} onFinish={() => {}} initialStep={Number(sp.get('step') ?? 0)} /></>
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
       <main className="flex-1 pb-32">
@@ -152,6 +155,7 @@ export function Preview() {
           />
         )}
       </main>
+      {probe}
       <BottomNav activeTo={v === 'profile' ? '/profile' : v === 'scan' ? '/scan' : v === 'explore' ? '/explore' : v === 'inicio' || v === 'featured' || v === 'coffee' ? '/' : '/logs'} />
     </div>
   )

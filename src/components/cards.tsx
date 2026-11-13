@@ -158,32 +158,36 @@ export function CafeRow({ c, active, onClick, distance }: { c: Cafe; active?: bo
   const point = c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null
   const mapsUrl = c.google_maps_url ?? (point ? `https://www.google.com/maps/search/?api=1&query=${point.lat},${point.lng}` : null)
   return (
-    <li data-id={c.id} className={cn('-mx-3 flex flex-col gap-2 rounded-2xl px-3 py-3.5 transition-colors', active && 'bg-card')}>
-      <button type="button" onClick={onClick} className="flex flex-col items-start gap-0.5 text-left">
-        <span className="eyebrow text-[10px]">
-          {KIND_LABEL[c.kind]}
-          {distance ? ` · ${distance}` : ''}
-        </span>
-        <span className="text-[17px] font-medium leading-tight tracking-[-0.01em]">{c.name}</span>
-        <span className="text-sm text-muted-foreground">{[c.address, c.comuna ?? c.city].filter(Boolean).join(', ')}</span>
-      </button>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
-        {mapsUrl && (
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => track('cafe_maps_clicked', { cafe_id: c.id, from: 'list' })}
-            className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline"
-          >
-            <MapPin className="size-3.5" strokeWidth={1.8} /> Ver en Google Maps
-          </a>
-        )}
-        {c.instagram && (
-          <a href={instagramUrl(c.instagram)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
-            <AtSign className="size-3.5" strokeWidth={1.8} /> {c.instagram.replace(/^@/, '')}
-          </a>
-        )}
+    // El divisor (divide-y del ul) va en el li sin redondear; con rounded-2xl la línea se curvaba en las esquinas
+    // y la fila parecía una tarjeta con sombra. El resaltado redondeado vive en el contenedor interno.
+    <li data-id={c.id}>
+      <div className={cn('-mx-3 my-0.5 flex flex-col gap-2 rounded-2xl px-3 py-3 transition-colors', active && 'bg-card')}>
+        <button type="button" onClick={onClick} className="flex flex-col items-start gap-0.5 text-left">
+          <span className="eyebrow text-[10px]">
+            {KIND_LABEL[c.kind]}
+            {distance ? ` · ${distance}` : ''}
+          </span>
+          <span className="text-[17px] font-medium leading-tight tracking-[-0.01em]">{c.name}</span>
+          <span className="text-sm text-muted-foreground">{[c.address, c.comuna ?? c.city].filter(Boolean).join(', ')}</span>
+        </button>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+          {mapsUrl && (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => track('cafe_maps_clicked', { cafe_id: c.id, from: 'list' })}
+              className="flex items-center gap-1.5 font-medium underline-offset-4 hover:underline"
+            >
+              <MapPin className="size-3.5" strokeWidth={1.8} /> Ver en Google Maps
+            </a>
+          )}
+          {c.instagram && (
+            <a href={instagramUrl(c.instagram)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:underline">
+              <AtSign className="size-3.5" strokeWidth={1.8} /> {c.instagram.replace(/^@/, '')}
+            </a>
+          )}
+        </div>
       </div>
     </li>
   )

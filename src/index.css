@@ -116,6 +116,18 @@
   .dark select {
     color-scheme: dark;
   }
+  /* Safari iOS: los inputs de fecha/hora nativos imponen un ancho mínimo propio e ignoran width:100%,
+     así que se salían de su columna en la grilla. Sin appearance nativa respetan el ancho; el valor se
+     alinea a la izquierda como el resto de los campos. */
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input::-webkit-date-and-time-value {
+    text-align: left;
+  }
 }
 
 @utility safe-top {
@@ -158,6 +170,13 @@
   box-shadow:
     inset 0 1px 0 0 color-mix(in oklab, white 12%, transparent),
     0 12px 32px -12px rgb(0 0 0 / 0.6);
+}
+
+/* Una barra de acción fija (Guardar café, Guardar cambios) reemplaza a la barra inferior mientras está en pantalla.
+   Antes se apilaban: el vidrio de la barra de acción dejaba ver las sombras de la navegación y el brillo rojo del
+   botón central. display:none (no opacity) para que Safari 26 tampoco la use al teñir su barra. */
+body:has([data-action-bar]) [data-bottom-nav] {
+  display: none;
 }
 
 @keyframes pulse-soft {

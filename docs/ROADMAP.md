@@ -127,6 +127,16 @@ Decisión: la KB es contexto de referencia con fuentes citables; no cambia ni li
 - [x] Escaneo con hasta 3 fotos (frente, dorso, otra etiqueta): la IA combina; la segunda lectura solo rellena vacíos; portada elegible
 - [ ] Probar en el teléfono: escaneo con 2 fotos y permiso de ubicación en Explorar
 
+## Lote 12 — QA en Safari iOS con el simulador (2026-11-13)
+
+Desarrollo local con Claude Code y Xcode: servidor `dripo-dev` (`.claude/launch.json`), simulador iPhone 17 (iOS 27.2), probado en Safari y como app instalada en la pantalla de inicio. `/preview?v=...&vp` agrega un overlay de diagnóstico (alto del viewport fijo, `dvh`/`svh`/`lvh`, zona segura) con selector de vista, útil dentro de la app instalada que no tiene barra de direcciones.
+
+- [x] Barras de acción fijas (Guardar café en Escanear, Guardar cambios en Editar) ocultan la barra inferior mientras están en pantalla (`[data-action-bar]` + `:has()` en `index.css`); antes se apilaban y el vidrio dejaba ver las sombras de la navegación y el brillo rojo del botón central
+- [x] Filas de cafeterías (Explorar, "Cafeterías cerca" en Inicio): el divisor se curvaba por el `rounded-2xl` del `li` y parecían tarjetas con sombra; ahora el divisor es recto y el resaltado activo va en un contenedor interno
+- [x] Campo de fecha (Fecha de tueste): en Safari iOS ignoraba el ancho de la columna y tapaba "Finca"; `appearance: none` en inputs de fecha/hora
+- Hallazgos sin cambio (comportamiento de Safari 26+): en el navegador la barra de Dripo queda sobre la barra flotante de Safari y no puede bajar más (el viewport fijo termina ahí; con la barra contraída queda una franja con el difuminado de Safari). En la app instalada llega al borde con la zona segura de 34 pt
+- [ ] Decidir: en la app instalada la barra de estado queda fuera del viewport (estilo `default`), así que el fondo de la hoja "Crear" y las fotos de portada no la cubren. Alternativa `black-translucent` deja el contenido bajo la barra de estado pero con texto blanco, ilegible sobre fondo claro
+
 ## Lote 10 — Beta por invitación (2026-11-12)
 
 Decisión: lanzar a clientes de Tostado Club (cualquiera con una compra) y que solo ellos inviten. 3 invitaciones con el primer café, +2 con la primera receta. Lista de espera desde el día 1. Sin premios por invitar.
