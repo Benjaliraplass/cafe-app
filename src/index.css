@@ -160,6 +160,13 @@
     0 12px 32px -12px rgb(0 0 0 / 0.6);
 }
 
+/* Una barra de acción fija (Guardar café, Guardar cambios) reemplaza a la barra inferior mientras está en pantalla.
+   Antes se apilaban: el vidrio de la barra de acción dejaba ver las sombras de la navegación y el brillo rojo del
+   botón central. display:none (no opacity) para que Safari 26 tampoco la use al teñir su barra. */
+body:has([data-action-bar]) [data-bottom-nav] {
+  display: none;
+}
+
 @keyframes pulse-soft {
   0%,
   100% {

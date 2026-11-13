@@ -259,7 +259,7 @@ export function Scan() {
 
           <CoffeeLogForm form={form} onChange={setForm} />
 
-          <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
+          <div data-action-bar className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
             <div className="glass-solid w-full max-w-md rounded-[24px] p-2">
               <Button type="submit" className="w-full" disabled={step === 'saving'}>
                 {step === 'saving' ? 'Guardando...' : 'Guardar café'}

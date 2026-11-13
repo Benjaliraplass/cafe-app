@@ -129,7 +129,7 @@ export function EditLog({ previewLog }: { previewLog?: CoffeeLog } = {}) {
 
       <CoffeeLogForm form={form} onChange={setForm} />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
+      <div data-action-bar className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
         <div className="glass-solid flex w-full max-w-md gap-2 rounded-[24px] p-2">
           <Button asChild type="button" variant="outline" className="flex-1">
             <Link to={`/log/${log.id}`}>Cancelar</Link>
