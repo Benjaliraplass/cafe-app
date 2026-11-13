@@ -116,6 +116,18 @@
   .dark select {
     color-scheme: dark;
   }
+  /* Safari iOS: los inputs de fecha/hora nativos imponen un ancho mínimo propio e ignoran width:100%,
+     así que se salían de su columna en la grilla. Sin appearance nativa respetan el ancho; el valor se
+     alinea a la izquierda como el resto de los campos. */
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input::-webkit-date-and-time-value {
+    text-align: left;
+  }
 }
 
 @utility safe-top {
