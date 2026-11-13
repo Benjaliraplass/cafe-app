@@ -65,7 +65,7 @@ export function BottomNav({ activeTo }: { activeTo?: string } = {}) {
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
               className={cn(
-                'mx-1 flex size-[58px] shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-[0_10px_24px_-8px_rgba(200,16,46,0.55)] transition-transform active:scale-95',
+                'mx-1 flex size-[58px] shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-[0_4px_10px_-4px_rgba(200,16,46,0.5)] transition-transform active:scale-95',
                 (open || onActionRoute || activeTo === '/scan' || activeTo === '/recipes') && 'ring-2 ring-brand/25 ring-offset-2 ring-offset-background/60',
               )}
             >
