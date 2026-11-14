@@ -4,7 +4,7 @@ import type { EmailOtpType } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { updateProfile } from '@/lib/api'
 import { translateAuthError } from '@/lib/authErrors'
-import { GOOGLE_CLIENT_ID, createNonce, loadGoogleIdentity } from '@/lib/google'
+import { GOOGLE_CLIENT_ID, createNonce, emailFromIdToken, loadGoogleIdentity } from '@/lib/google'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,6 +55,28 @@ export function NewPassword() {
   userIdRef.current = user?.id ?? null
   const userEmailRef = useRef<string | null>(user?.email ?? null)
   userEmailRef.current = user?.email ?? null
+  // Cuenta del enlace ya aceptada en esta pantalla (el token es de un solo uso).
+  const acceptedRef = useRef<{ id: string; email: string | null } | null>(null)
+
+  /**
+   * Acepta el enlace del correo (token_hash) y devuelve la cuenta resultante. Se hace SIEMPRE que el enlace
+   * traiga token, aunque el navegador tenga otra sesión abierta: si no, la contraseña o Google se aplicaban a
+   * esa otra cuenta y la invitación quedaba sin aceptar. Sin token (cambio desde Perfil o reenvío del Gate),
+   * usa la sesión actual. Devuelve null si el enlace venció o ya se usó.
+   */
+  async function acceptLink(): Promise<{ id: string; email: string | null } | null> {
+    if (acceptedRef.current) return acceptedRef.current
+    if (link.tokenHash && link.type) {
+      const { data, error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
+      if (error || !data.user) return null
+      acceptedRef.current = { id: data.user.id, email: data.user.email ?? null }
+      return acceptedRef.current
+    }
+    if (userIdRef.current) return { id: userIdRef.current, email: userEmailRef.current }
+    return null
+  }
+  const acceptLinkRef = useRef(acceptLink)
+  acceptLinkRef.current = acceptLink
 
   useEffect(() => {
     if (!link.invite || !GOOGLE_CLIENT_ID) return
@@ -73,15 +95,12 @@ export function NewPassword() {
             setGoogleBusy(true)
             try {
               // 1) Aceptar la invitación: confirma el correo. Sin esto Supabase no une Google a la cuenta.
-              let invitedEmail = userEmailRef.current
-              if (link.tokenHash && link.type && !userIdRef.current) {
-                const { data, error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
-                if (error || !data.user) {
-                  setExpired(true)
-                  return
-                }
-                invitedEmail = data.user.email ?? null
+              const invited = await acceptLinkRef.current()
+              if (!invited) {
+                setExpired(true)
+                return
               }
+              const invitedEmail = invited.email
               // 2) Solo si el Google es del mismo correo: si no, Supabase entraría a OTRA cuenta de Dripo con ese
               //    correo (si existe) y la invitación quedaría a medias. La invitación ya quedó aceptada.
               const googleEmail = emailFromIdToken(credential)
@@ -141,15 +160,12 @@ export function NewPassword() {
     }
     setSaving(true)
     try {
-      let userId = user?.id ?? null
-      if (link.tokenHash && link.type && !user) {
-        const { data, error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
-        if (error || !data.user) {
-          setExpired(true)
-          return
-        }
-        userId = data.user.id
+      const account = await acceptLink()
+      if (!account) {
+        setExpired(true)
+        return
       }
+      const userId = account.id
       const { error } = await supabase.auth.updateUser({ password, data: { password_set: true } })
       if (error) throw error
       if (link.invite && userId && name.trim()) {
@@ -235,16 +251,4 @@ export function NewPassword() {
       )}
     </div>
   )
-}
-
-/** Correo (en minúsculas) del id_token de Google. Solo para comparar en el cliente; Supabase valida el token. */
-function emailFromIdToken(token: string): string | null {
-  try {
-    const part = token.split('.')[1]
-    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '='))
-    const email = (JSON.parse(json) as { email?: unknown }).email
-    return typeof email === 'string' ? email.toLowerCase() : null
-  } catch {
-    return null
-  }
 }
