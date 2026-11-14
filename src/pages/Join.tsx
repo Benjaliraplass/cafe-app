@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { track } from '@/lib/analytics'
 import { getInviteInfo, joinBeta, type JoinStatus } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,9 @@ export function Join() {
   const ref = params.get('ref')?.trim().slice(0, 10) || null
   const tostado = params.get('utm_campaign') === CAMPAIGN_TOSTADO
   const [inviter, setInviter] = useState<string | null>(null)
+  // Desde Login ("crea tu cuenta") llega el correo ya escrito, por estado de navegación (no en la URL).
+  const location = useLocation()
+  const initialEmail = (location.state as { email?: string } | null)?.email ?? ''
 
   useEffect(() => {
     if (!ref) return
@@ -33,6 +36,7 @@ export function Join() {
     <JoinView
       inviter={inviter}
       tostado={tostado}
+      initialEmail={initialEmail}
       onSubmit={async (email) => {
         const { status } = await joinBeta(email, ref)
         track('join_submitted', { status, via: inviter ? 'invite' : ref ? 'ref_sin_cupo' : 'directo' })
@@ -42,8 +46,8 @@ export function Join() {
   )
 }
 
-export function JoinView({ inviter, tostado = false, onSubmit }: { inviter: string | null; tostado?: boolean; onSubmit: (email: string) => Promise<JoinStatus> }) {
-  const [email, setEmail] = useState('')
+export function JoinView({ inviter, tostado = false, initialEmail = '', onSubmit }: { inviter: string | null; tostado?: boolean; initialEmail?: string; onSubmit: (email: string) => Promise<JoinStatus> }) {
+  const [email, setEmail] = useState(initialEmail)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<JoinStatus | null>(null)

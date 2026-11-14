@@ -73,3 +73,15 @@ export async function createNonce(): Promise<{ nonce: string; hashedNonce: strin
   const hashedNonce = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
   return { nonce, hashedNonce }
 }
+
+/** Correo (en minúsculas) del id_token de Google. Solo para decidir en el cliente; Supabase valida el token. */
+export function emailFromIdToken(token: string): string | null {
+  try {
+    const part = token.split('.')[1]
+    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '='))
+    const email = (JSON.parse(json) as { email?: unknown }).email
+    return typeof email === 'string' ? email.toLowerCase() : null
+  } catch {
+    return null
+  }
+}

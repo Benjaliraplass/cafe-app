@@ -145,7 +145,13 @@ Envío a clientes de Tostado Club el 14-11 ~10:00. A las 10:40: 74 cuentas cread
 
 - [x] Bienvenida saltada: en "Crear cuenta" se llamaba `refreshProfile` capturado antes de la sesión (userId null), que borraba el perfil y el Gate entraba directo a Inicio sin walkthrough. `refreshProfile` ahora lee la sesión actual. Los 42 afectados: a los que ya guardaron un café se les marcó `onboarded_at` (no tiene sentido darles la bienvenida después); el resto la ve al volver a abrir
 - Hallazgos de Auth en las primeras horas: 223 intentos de login con contraseña sin tener cuenta y 206 de Google sin cuenta ("Signups not allowed"); ambos muestran "Pide tu invitación" → `/unete`. Tickets típicos (ej. TC-131): el cliente va a la pantalla de entrada en vez de `/unete`
-- [ ] Decidir: en Login, si el correo con contraseña falla y está en la lista blanca sin cuenta, mandar directo a `/unete` con el correo prellenado (hoy solo el enlace genérico)
+- [x] Login como puerta (tickets TC-138/139/141/143; a las 13:30 eran 281 logins con contraseña sin cuenta, 250 de Google rechazados y 129 recuperaciones a correos sin cuenta, que no enviaban nada):
+    - Google sin cuenta: se consulta `join` con el correo de Google; si está en la lista blanca queda invitado y se entra con Google de inmediato (Supabase une Google a la cuenta invitada)
+    - "¿Olvidaste tu contraseña?": pasa primero por `join` (con cuenta: enlace de recuperación; en lista sin cuenta: correo para crearla; si no: lista de espera)
+    - "Correo o contraseña incorrectos" ofrece "crea tu cuenta" con el correo precargado en `/unete` (estado de navegación, no URL); tarjeta "¿Primera vez en Dripo?" arriba del formulario
+    - `join_submitted` con `via: login_google | login_reset`
+- [x] Crear cuenta: el enlace del correo se acepta siempre aunque el navegador tenga otra sesión abierta (antes la contraseña o Google se aplicaban a esa otra cuenta)
+- Causa de fondo: el WhatsApp enlazó a `dripocoffee.com` (sin `/unete` ni UTM): 639 personas abrieron `/` y 16 `/unete`. Para próximos envíos usar el enlace de campaña
 
 ## Lote 14 — QA antes del WhatsApp a clientes de Tostado Club (2026-11-13)
 
