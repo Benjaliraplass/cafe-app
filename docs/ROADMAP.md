@@ -151,6 +151,9 @@ Envío a clientes de Tostado Club el 14-11 ~10:00. A las 10:40: 74 cuentas cread
     - "Correo o contraseña incorrectos" ofrece "crea tu cuenta" con el correo precargado en `/unete` (estado de navegación, no URL); tarjeta "¿Primera vez en Dripo?" arriba del formulario
     - `join_submitted` con `via: login_google | login_reset`
 - [x] Crear cuenta: el enlace del correo se acepta siempre aunque el navegador tenga otra sesión abierta (antes la contraseña o Google se aplicaban a esa otra cuenta)
+- [x] Registro abierto por hoy (pedido de Benjamín): `join_open()` = true, `/unete` invita a cualquier correo nuevo. Probado: correo fuera de la lista -> invitado; cuenta existente -> entrar; invitado sin confirmar -> reenvío
+- [ ] Cerrar el registro abierto: `join_open()` -> false y, si se activó, apagar "Allow new users to sign up" en Supabase
+- [ ] 7 en lista de espera hoy antes de abrir (2 con `@gmail.con`): decidir si invitarlos
 - Causa de fondo: el WhatsApp enlazó a `dripocoffee.com` (sin `/unete` ni UTM): 639 personas abrieron `/` y 16 `/unete`. Para próximos envíos usar el enlace de campaña
 
 ## Lote 14 — QA antes del WhatsApp a clientes de Tostado Club (2026-11-13)
