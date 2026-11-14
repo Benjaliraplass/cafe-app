@@ -60,7 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Usuario cuyo perfil ya se cargó: al entrar otro (login), el Gate espera el perfil en vez de mostrar
   // Inicio un instante y saltar a la bienvenida. Los refrescos del mismo usuario no vuelven a "cargando".
   const loadedFor = useRef<string | null>(null)
+  // Una llamada a refreshProfile capturada antes de que existiera la sesión (Crear cuenta: verifyOtp y
+  // luego refresh) veía userId = null, borraba el perfil y el Gate saltaba la bienvenida. Se lee la
+  // sesión actual en vez del cierre.
   const refreshProfile = useCallback(async () => {
+    const { data } = await supabase.auth.getSession()
+    const userId = data.session?.user?.id ?? null
     if (!userId) {
       loadedFor.current = null
       setProfile(null)
@@ -82,11 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setProfileLoading(false)
     }
-  }, [userId])
+  }, [])
 
   useEffect(() => {
     refreshProfile()
-  }, [refreshProfile])
+  }, [userId, refreshProfile])
 
   return (
     <AuthContext.Provider

@@ -139,6 +139,14 @@ Desarrollo local con Claude Code y Xcode: servidor `dripo-dev` (`.claude/launch.
 - Hallazgos sin cambio (comportamiento de Safari 26+): en el navegador la barra de Dripo queda sobre la barra flotante de Safari y no puede bajar más (el viewport fijo termina ahí; con la barra contraída queda una franja con el difuminado de Safari). En la app instalada llega al borde con la zona segura de 34 pt
 - [ ] Decidir: en la app instalada la barra de estado queda fuera del viewport (estilo `default`), así que el fondo de la hoja "Crear" y las fotos de portada no la cubren. Alternativa `black-translucent` deja el contenido bajo la barra de estado pero con texto blanco, ilegible sobre fondo claro
 
+## Lote 15 — Día del lanzamiento (2026-11-14)
+
+Envío a clientes de Tostado Club el 14-11 ~10:00. A las 10:40: 74 cuentas creadas, 59 entraron, 11 con café, 4 en lista de espera, 0 errores en `join`.
+
+- [x] Bienvenida saltada: en "Crear cuenta" se llamaba `refreshProfile` capturado antes de la sesión (userId null), que borraba el perfil y el Gate entraba directo a Inicio sin walkthrough. `refreshProfile` ahora lee la sesión actual. Los 42 afectados: a los que ya guardaron un café se les marcó `onboarded_at` (no tiene sentido darles la bienvenida después); el resto la ve al volver a abrir
+- Hallazgos de Auth en las primeras horas: 223 intentos de login con contraseña sin tener cuenta y 206 de Google sin cuenta ("Signups not allowed"); ambos muestran "Pide tu invitación" → `/unete`. Tickets típicos (ej. TC-131): el cliente va a la pantalla de entrada en vez de `/unete`
+- [ ] Decidir: en Login, si el correo con contraseña falla y está en la lista blanca sin cuenta, mandar directo a `/unete` con el correo prellenado (hoy solo el enlace genérico)
+
 ## Lote 14 — QA antes del WhatsApp a clientes de Tostado Club (2026-11-13)
 
 Enlace de la campaña: `https://dripocoffee.com/unete?utm_source=whatsapp&utm_medium=broadcast&utm_campaign=tostado_club`
