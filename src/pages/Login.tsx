@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { GOOGLE_CLIENT_ID, createNonce, loadGoogleIdentity } from '@/lib/google'
+import { GOOGLE_CLIENT_ID, createNonce, emailFromIdToken, loadGoogleIdentity } from '@/lib/google'
+import { joinBeta } from '@/lib/api'
+import { track } from '@/lib/analytics'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorBox, Field } from '@/components/primitives'
@@ -10,6 +12,7 @@ import { Logo } from '@/components/Brand'
 type Mode = 'login' | 'reset'
 
 export function Login() {
+  const navigate = useNavigate()
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,7 +40,24 @@ export function Login() {
             setError(null)
             setGoogleLoading(true)
             const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: credential, nonce })
-            if (error) {
+            if (error && translate(error.message) === NEEDS_INVITE) {
+              // Cliente de Tostado Club que llegó al login y no a /unete: el registro está cerrado, así que se
+              // pide el ingreso con su correo de Google y, si queda invitado, se entra con Google de inmediato
+              // (Supabase une Google a la cuenta invitada del mismo correo).
+              const googleEmail = emailFromIdToken(credential)
+              const status = googleEmail ? await joinBeta(googleEmail, null).then((r) => r.status).catch(() => null) : null
+              track('join_submitted', { status: status ?? 'error', via: 'login_google' })
+              if (status === 'invited') {
+                const retry = await supabase.auth.signInWithIdToken({ provider: 'google', token: credential, nonce })
+                if (!retry.error) return
+                setInfo('Listo: te mandamos un correo para crear tu cuenta. Ábrelo y toca "Aceptar invitación".')
+              } else if (status === 'waitlist') {
+                setInfo('Ese correo no está entre los clientes de Tostado Club. Quedaste en la lista de espera y te avisamos cuando se abra un cupo.')
+              } else {
+                setError(NEEDS_INVITE)
+              }
+              setGoogleLoading(false)
+            } else if (error) {
               setError(translate(error.message))
               setGoogleLoading(false)
             }
@@ -89,10 +109,19 @@ export function Login() {
     setLoading(true)
     try {
       if (mode === 'reset') {
-        // Enlace de recuperación: Supabase lo manda al correo y abre /nueva-contrasena con una sesión temporal.
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/nueva-contrasena` })
-        if (error) throw error
-        setInfo('Si el correo existe, te llegará un enlace en un minuto. Ábrelo desde este teléfono.')
+        // Muchos clientes nuevos llegan aquí sin cuenta: primero se pasa por /unete. Si ya tiene cuenta, el
+        // enlace de recuperación; si estaba en la lista, el correo para crearla; si no, lista de espera.
+        const { status } = await joinBeta(email.trim(), null)
+        track('join_submitted', { status, via: 'login_reset' })
+        if (status === 'exists') {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/nueva-contrasena` })
+          if (error) throw error
+          setInfo('Te enviamos un enlace para crear una contraseña nueva. Si no aparece en unos minutos, revisa Spam o Promociones.')
+        } else if (status === 'invited') {
+          setInfo('Aún no tenías cuenta: te mandamos un correo para crearla. Ábrelo y toca "Aceptar invitación". Si no aparece, revisa Spam o Promociones.')
+        } else {
+          setInfo('Ese correo no tiene cuenta ni está entre los clientes de Tostado Club. Quedaste en la lista de espera y te avisamos cuando se abra un cupo.')
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -118,7 +147,7 @@ export function Login() {
             e.currentTarget.style.display = 'none'
           }}
         />
-        <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
+        <div className="absolute inset-x-0 -bottom-px h-[70%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-6 pb-2">
           <h1 className="leading-none"><Logo className="h-[52px] w-auto" /></h1>
           <p className="text-[15px] text-muted-foreground">Tu diario de café de especialidad</p>
@@ -126,6 +155,15 @@ export function Login() {
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-4 px-6 pt-4 pb-10">
+        {mode === 'login' && (
+          <Link to="/unete" className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3.5 transition-colors active:bg-muted">
+            <span className="flex flex-col">
+              <span className="text-[15px] font-medium">¿Primera vez en Dripo?</span>
+              <span className="text-[13px] text-muted-foreground">Crea tu cuenta con el correo de tus compras en Tostado Club.</span>
+            </span>
+            <span className="shrink-0 text-[13px] font-medium underline underline-offset-4">Crear cuenta</span>
+          </Link>
+        )}
         <Field label="Correo">
           <Input
             type="email"
@@ -159,6 +197,17 @@ export function Login() {
             </Link>
             .
           </p>
+        ) : error === WRONG_LOGIN ? (
+          <div className="flex flex-col gap-2 rounded-xl bg-card px-4 py-3 text-sm text-muted-foreground">
+            <span className="text-destructive">Correo o contraseña incorrectos.</span>
+            <span>
+              ¿Es tu primera vez? Todavía no tienes contraseña:{' '}
+              <button type="button" className="text-foreground underline underline-offset-4" onClick={() => navigate('/unete', { state: { email } })}>
+                crea tu cuenta
+              </button>
+              .
+            </span>
+          </div>
         ) : (
           <ErrorBox message={error} />
         )}
@@ -235,12 +284,14 @@ function GoogleMark() {
 
 /** Marcador: el correo no tiene cuenta y el registro está cerrado (Dripo es por invitación). */
 const NEEDS_INVITE = '__needs_invite__'
+/** Marcador: credenciales incorrectas (casi siempre alguien nuevo que aún no tiene cuenta). */
+const WRONG_LOGIN = '__wrong_login__'
 
 function translate(msg: string): string {
   const m = msg.toLowerCase()
   if (m.includes('signups not allowed') || (m.includes('signup') && m.includes('disabled'))) return NEEDS_INVITE
   if (m.includes('provider is not enabled') || m.includes('unsupported provider')) return 'El acceso con Google aún no está habilitado.'
-  if (m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
+  if (m.includes('invalid login credentials')) return WRONG_LOGIN
   if (m.includes('email not confirmed')) return 'Confirma tu correo antes de entrar.'
   if (m.includes('user already registered')) return 'Ese correo ya tiene cuenta. Prueba entrar.'
   if (m.includes('password should be')) return 'La contraseña debe tener al menos 6 caracteres.'

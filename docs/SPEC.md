@@ -149,7 +149,7 @@ RLS: nadie lee desde el cliente (ni admin; las lecturas van por las funciones `a
 | Descubrimiento | `featured_recipe_viewed` (slug), `public_coffee_viewed` (coffee_id, logged_in), `catalog_viewed`, `cafe_viewed` (cafe_id), `cafe_maps_clicked` (cafe_id), `cafe_proposed`, `explore_located` (ok) |
 | Social | `share_clicked` (type: log/coffee/recipe, result: shared/copied), `share_link_opened` (type, ref, logged_in), `log_made_public` (value) |
 | Perfil | `taste_profile_saved`, `profile_updated`, `feedback_clicked` |
-| Invitaciones | `join_submitted` (status: invited/waitlist/exists, via: invite/ref_sin_cupo/directo), `invite_unlocked` (total, nuevas), `invite_shared` (where: sheet/profile, result), `invite_accepted` (source: invite/tostado; al terminar la bienvenida) |
+| Invitaciones | `join_submitted` (status: invited/waitlist/exists, via: invite/ref_sin_cupo/directo/login_google/login_reset), `invite_unlocked` (total, nuevas), `invite_shared` (where: sheet/profile, result), `invite_accepted` (source: invite/tostado; al terminar la bienvenida) |
 
 Propiedades comunes en todos: `user_id`, `anonymous_id`, `session_id`, `path`, `display_mode`, `device`, `app_version`. UTM y `ref` se capturan en la primera carga, se guardan en localStorage y viajan en `app_opened` y `signup_completed` para atribuir el registro.
 
