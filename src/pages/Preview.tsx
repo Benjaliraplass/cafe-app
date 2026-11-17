@@ -23,9 +23,19 @@ import type { UserFacts } from '@/lib/types'
 import { Eyebrow, Title } from '@/components/primitives'
 import { ViewportProbe } from '@/components/ViewportProbe'
 import { DesktopGateView } from '@/pages/DesktopGate'
+import { OriginStoryView } from '@/components/OriginStory'
+import type { OriginNote } from '@/lib/types'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
 const noop = async () => {}
+/** Textos de origen de ejemplo (Catiope, Colombia / Pereira / Finca Milán). */
+const originNotes: OriginNote[] = [
+  { kind: 'country', key: 'country:colombia', ready: true, id: 'o1', title: 'Colombia', body: 'Uno de los pocos países que cosecha casi todo el año gracias a sus tres cordilleras: hay zonas con cosecha principal y otras con "mitaca". Su café lavado de altura es conocido por su acidez brillante y dulzor de caramelo.', fun_fact: 'El Paisaje Cultural Cafetero de Colombia es Patrimonio de la Humanidad de la UNESCO desde 2011.', sources: [], found: true, hidden: false },
+  { kind: 'region', key: 'region:colombia|pereira', ready: true, id: 'o2', title: 'Pereira, Risaralda', body: 'Pereira es la capital de Risaralda, en el corazón del Eje Cafetero. Las fincas de la zona suelen estar entre 1.300 y 1.900 msnm, con suelos volcánicos y lluvias repartidas en el año.', fun_fact: null, sources: [], found: true, hidden: false },
+  { kind: 'farm', key: 'farm:colombia|finca milan|', ready: true, id: 'o3', title: 'Finca Milán', body: 'Finca familiar en las afueras de Pereira dedicada a variedades poco comunes y procesos experimentales. Trabaja fermentaciones controladas y secado lento en camas elevadas.', fun_fact: null, sources: [{ url: 'https://example.com/finca-milan', title: 'Finca Milán' }], found: true, hidden: false },
+]
+const originLoading: OriginNote[] = originNotes.map((n) => (n.kind === 'country' ? n : { ...n, ready: false, id: null, title: null, body: null }))
+
 const mk = (id: string, name: string, origin: string, region: string | null, process: string, variety: string, rating: number, date: string, notes: string[] = []): CoffeeLog => ({
   id, user_id: 'u', coffee_id: id, photo_path: null, rating, notes: null, brew_method: 'V60', roast_date: '2026-10-26', bought_at: null, price_clp: null, currency: 'CLP',
   is_public: false, is_favorite: rating === 5, consumed_at: date, created_at: date,
@@ -104,6 +114,7 @@ export function Preview() {
               { id: 'p1', rating: 5, notes: 'Mucho mango en caliente, cítrico al enfriar.', brew_method: 'V60', consumed_at: '2026-11-08', profile: { display_name: 'Benjamín', avatar_url: null } },
               { id: 'p2', rating: 4, notes: null, brew_method: 'Aeropress', consumed_at: '2026-11-07', profile: { display_name: 'Camila', avatar_url: null } },
             ]}
+            originSlot={<OriginStoryView notes={originNotes.slice(0, 2)} />}
           />
         )}
         {v === 'empty' && <HomeView logs={[]} error={null} />}
@@ -154,6 +165,7 @@ export function Preview() {
             error={null}
             onDelete={async () => {}}
             onToggleFavorite={noop}
+            originSlot={sp.get('origin') === 'none' ? null : <OriginStoryView className="px-6 pb-8" notes={sp.get('origin') === 'loading' ? originLoading : originNotes} pending={{ place: sp.get('origin') === 'loading', farm: sp.get('origin') === 'loading' }} />}
           />
         )}
       </main>

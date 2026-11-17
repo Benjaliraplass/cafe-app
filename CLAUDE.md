@@ -43,6 +43,7 @@ src/
   components/primitives.tsx  Field, Eyebrow, Title, SectionTitle, Rating, Spinner, ErrorBox, Empty, Photo, StatTile, KeyValue, CountrySelect
   components/CoffeeLogForm.tsx  formulario compartido de café + experiencia (Scan y EditLog)
   components/RecipeFeedback.tsx  "¿Cómo salió?" bajo cada receta guardada en el detalle: un chip + nota opcional, muestra "Próxima vez: ..."
+  components/OriginStory.tsx  "De dónde viene" (país, región, finca) en el detalle y en /c/:id: lee get_origin_notes, pide a origin-story lo que falte; +OriginStoryView para preview
   components/EquipmentPicker.tsx  equipo para una receta: chips del perfil (toggle por receta), campo extra, tarjeta máquina/molino en espresso que se guarda al perfil; arma la línea para el prompt
   components/cards.tsx  HScroll, LogCard, FeaturedRecipeCard, SavedRecipeCard, CoffeeCard, CafeRow, SectionHeader, timeAgo (Inicio y listados)
   components/UpdateBanner.tsx  aviso "Hay una versión nueva" del service worker (registerType 'prompt'; el usuario decide cuándo recargar)
@@ -58,7 +59,7 @@ src/
   pages/Join.tsx       /unete: entrada a la beta por invitación (correo -> cuenta o lista de espera); +JoinView para preview
   pages/               Login (correo + Google, sin registro), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), NewPassword (/nueva-contrasena: destino del enlace de recuperación y "Cambiar contraseña" desde Perfil), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb)|edit|profile|scan|recipes|metrics|login|desktop|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb, +&origin=loading|none)|edit|profile|scan|recipes|metrics|login|desktop|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   templates/           plantillas HTML de correos de Auth (se pegan en Supabase → Email Templates; ver README)
@@ -66,6 +67,7 @@ supabase/
   functions/_shared/ai.ts          capa de IA (Gemini / Anthropic), JSON estructurado, reintentos, CORS
   functions/scan-label/            1 a 3 fotos de la bolsa -> JSON estructurado (combina las caras)
   functions/suggest-recipe/        café + método -> receta estructurada
+  functions/origin-story/          café -> textos de país/región (IA) y finca (IA + búsqueda web, solo con fuente) en origin_notes
   functions/join/                  beta por invitación: correo -> cuenta (inviteUserByEmail) o lista de espera
   functions/sync-allowlist/        recibe correos (n8n <- segmento Klaviyo YiM4pL) -> allowlist; auth por secret SYNC_KEY
 netlify/edge-functions/og.ts   meta tags Open Graph para /r/* y /c/* (lee Supabase con la clave pública)

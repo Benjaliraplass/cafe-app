@@ -55,6 +55,23 @@ export interface Coffee {
   roaster?: Roaster | null
 }
 
+/** "Sobre su origen": una fila por clave esperada del café (RPC get_origin_notes). */
+export type OriginKind = 'country' | 'region' | 'farm'
+export interface OriginNote {
+  kind: OriginKind
+  key: string
+  /** Ya se generó (o se ocultó). false = falta generarlo. */
+  ready: boolean
+  id: string | null
+  title: string | null
+  body: string | null
+  fun_fact: string | null
+  sources: Array<{ url: string; title: string | null }> | null
+  /** false = se buscó y no hay información verificable. */
+  found: boolean | null
+  hidden: boolean | null
+}
+
 export type UserRole = 'user' | 'admin'
 
 /** Puntaje promedio de los registros públicos de un café (vista coffee_public_stats). */

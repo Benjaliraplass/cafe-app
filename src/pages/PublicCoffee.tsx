@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Share2, Star } from 'lucide-react'
 import { getPublicCoffee, listPublishedCoffees } from '@/lib/api'
@@ -12,6 +12,7 @@ import { Chip } from '@/components/ui/chip'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Eyebrow, KeyValue, Photo, Rating, Spinner, Title } from '@/components/primitives'
 import { CoffeeCard } from '@/components/cards'
+import { OriginStory } from '@/components/OriginStory'
 
 /** Ficha pública de un café del catálogo: /c/:id */
 export function PublicCoffeePage() {
@@ -46,10 +47,10 @@ export function PublicCoffeePage() {
       </div>
     )
   }
-  return <PublicCoffeeView coffee={data.coffee} stats={data.stats} logs={data.logs} />
+  return <PublicCoffeeView coffee={data.coffee} stats={data.stats} logs={data.logs} originSlot={<OriginStory coffeeId={data.coffee.id} where="public" />} />
 }
 
-export function PublicCoffeeView({ coffee: c, stats, logs }: { coffee: Coffee; stats: CoffeePublicStats | null; logs: PublicLog[] }) {
+export function PublicCoffeeView({ coffee: c, stats, logs, originSlot }: { coffee: Coffee; stats: CoffeePublicStats | null; logs: PublicLog[]; originSlot?: ReactNode }) {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const [copied, setCopied] = useState(false)
@@ -120,6 +121,8 @@ export function PublicCoffeeView({ coffee: c, stats, logs }: { coffee: Coffee; s
             </div>
           </section>
         )}
+
+        {originSlot}
 
         <section className="flex flex-col gap-3">
           <Eyebrow className="text-[10px]">Lo que dice la comunidad</Eyebrow>
