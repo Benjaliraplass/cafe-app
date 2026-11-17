@@ -315,6 +315,115 @@ async function callAnthropic<T>(opts: StructuredRequest): Promise<T> {
 }
 
 // ---------------------------------------------------------------------------
+// Anthropic + búsqueda web (solo Anthropic: la herramienta de servidor web_search)
+// ---------------------------------------------------------------------------
+
+export interface WebSearchRequest {
+  system: string;
+  prompt: string;
+  /** Tool propia con la que el modelo registra el resultado al terminar de buscar. */
+  tool: ToolDef;
+  maxSearches?: number;
+  maxTokens?: number;
+}
+
+export interface WebSearchResult<T> {
+  input: T;
+  /** URLs que aparecieron en los resultados de búsqueda (para validar las fuentes que cita el modelo). */
+  seenUrls: Set<string>;
+  model: string;
+}
+
+type AnthropicBlock = {
+  type: string;
+  name?: string;
+  input?: unknown;
+  content?: unknown;
+};
+
+/**
+ * Deja que Claude busque en la web y luego registre el resultado con `tool`.
+ * tool_choice va en auto (forzar la tool impediría buscar); se maneja pause_turn y, si el modelo
+ * termina sin llamar la tool, se le pide una vez que lo haga. Lanza error si no hay resultado.
+ */
+export async function callWithWebSearch<T>(opts: WebSearchRequest): Promise<WebSearchResult<T>> {
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!apiKey) throw new Error("Falta el secret ANTHROPIC_API_KEY");
+  const model = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-5-5";
+  const started = Date.now();
+
+  const tools = [
+    { type: "web_search_20250305", name: "web_search", max_uses: opts.maxSearches ?? 3 },
+    opts.tool,
+  ];
+  const messages: Array<{ role: string; content: unknown }> = [{ role: "user", content: opts.prompt }];
+  const seenUrls = new Set<string>();
+  let askedForTool = false;
+
+  for (let turn = 0; turn < 4; turn++) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      signal: AbortSignal.timeout(90_000),
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: opts.maxTokens ?? 8000,
+        system: opts.system,
+        tools,
+        tool_choice: { type: "auto" },
+        messages,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Anthropic API ${res.status}: ${text.slice(0, 600)}`) as Error & { status?: number };
+      err.status = res.status;
+      throw err;
+    }
+    const data = await res.json();
+    const content = (data.content ?? []) as AnthropicBlock[];
+
+    for (const b of content) {
+      // Éxito: content es una lista de web_search_result; error: un objeto con error_code.
+      if (b.type === "web_search_tool_result" && Array.isArray(b.content)) {
+        for (const r of b.content as Array<{ type?: string; url?: string }>) {
+          if (r?.type === "web_search_result" && r.url) seenUrls.add(r.url);
+        }
+      }
+    }
+
+    const toolUse = content.find((b) => b.type === "tool_use" && b.name === opts.tool.name);
+    if (toolUse?.input) {
+      console.log(`IA ok: anthropic+web (${model}) ${Date.now() - started} ms, ${seenUrls.size} resultados`);
+      return { input: toolUse.input as T, seenUrls, model };
+    }
+
+    if (data.stop_reason === "pause_turn") {
+      // El servidor retoma solo al ver el server_tool_use pendiente: no se agrega mensaje del usuario.
+      messages.push({ role: "assistant", content });
+      continue;
+    }
+    if (data.stop_reason === "end_turn" && !askedForTool) {
+      askedForTool = true;
+      messages.push({ role: "assistant", content });
+      messages.push({ role: "user", content: `Registra ahora el resultado con la herramienta ${opts.tool.name}.` });
+      continue;
+    }
+    throw new Error(`Claude no registró el resultado (stop_reason=${data.stop_reason})`);
+  }
+  throw new Error("Claude no registró el resultado tras varios turnos");
+}
+
+/** Último modelo que respondió en callStructured (para guardarlo junto al resultado). */
+export function lastModelUsed(): string {
+  return lastModel;
+}
+
+// ---------------------------------------------------------------------------
 
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
