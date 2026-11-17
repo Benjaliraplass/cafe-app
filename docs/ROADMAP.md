@@ -139,6 +139,20 @@ Desarrollo local con Claude Code y Xcode: servidor `dripo-dev` (`.claude/launch.
 - Hallazgos sin cambio (comportamiento de Safari 26+): en el navegador la barra de Dripo queda sobre la barra flotante de Safari y no puede bajar más (el viewport fijo termina ahí; con la barra contraída queda una franja con el difuminado de Safari). En la app instalada llega al borde con la zona segura de 34 pt
 - [ ] Decidir: en la app instalada la barra de estado queda fuera del viewport (estilo `default`), así que el fondo de la hoja "Crear" y las fotos de portada no la cubren. Alternativa `black-translucent` deja el contenido bajo la barra de estado pero con texto blanco, ilegible sobre fondo claro
 
+## Lote 16 — Sobre su origen (2026-11-16)
+
+HU de Benjamín: tras escanear, y en el café ya escaneado, un texto corto sobre el país, la región y la finca, siempre verdadero (si no hay información de la finca, se omite). Para educar: quien sabe más valora más el buen café.
+
+- [x] Diseño en SPEC (§4 `origin_notes`, §5 `origin-story`, §8 eventos `origin_viewed` / `origin_source_clicked`)
+- [x] Migración `20261116120000_origin_notes.sql`: tabla con clave normalizada compartida entre cafés, `origin_keys_for_coffee()`, RPC `get_origin_notes()` (anon y authenticated)
+- [x] Edge Function `origin-story`: país y región con `callStructured`; finca con Claude + `web_search` y solo fuentes que aparecieron en la búsqueda (sin fuente: `found = false`, no se muestra)
+- [x] Tarjeta "De dónde viene" (`OriginStory`) en el detalle y en `/c/:id`; país y región llegan antes que la finca; admin puede ocultar un texto; `/preview?v=detail&origin=loading|none`
+- [x] QA visual en Safari del simulador (con datos de ejemplo)
+- [x] Migración aplicada y `origin-story` desplegada (v3). Probada con 4 cafés reales: país/región ~5 s, finca 12-18 s. Finca Milán (Pereira), La Valentina (Montecillos) y Montalván (Cajamarca, la etiqueta decía "Moltanvan") con fuentes; El Jardín (Honduras, sin región ni productor) queda omitida
+- [x] Primera ronda de prompts: la finca describía lotes puntuales y contradicciones entre fuentes, y El Jardín se atribuía a una finca homónima. Corregido y regenerado
+- [ ] Pendiente menor: país y región salen del conocimiento del modelo (Haiku), no de fuentes; pueden generalizar (ej. "suelos volcánicos"). Si molesta, pasar `place` también por búsqueda web
+- [ ] Pendiente menor: el dato curioso del país y el de la región pueden repetirse (Colombia y Eje Cafetero citan ambos a la UNESCO)
+
 ## Lote 15 — Día del lanzamiento (2026-11-14)
 
 Envío a clientes de Tostado Club el 14-11 ~10:00. A las 10:40: 74 cuentas creadas, 59 entraron, 11 con café, 4 en lista de espera, 0 errores en `join`.
