@@ -14,6 +14,7 @@ import type {
   UserFacts,
   FeaturedRecipe,
   MethodFamily,
+  OriginNote,
   PublicLog,
   Recipe,
   RecipeData,
@@ -607,6 +608,26 @@ export async function getPublicCoffee(id: string): Promise<{ coffee: Coffee; sta
     stats: (stats as CoffeePublicStats | null) ?? null,
     logs: (logs ?? []) as unknown as PublicLog[],
   }
+}
+
+// ---------- Sobre su origen ----------
+
+/** Textos de país, región y finca de un café (una fila por clave esperada). Funciona sin sesión. */
+export async function getOriginNotes(coffeeId: string): Promise<OriginNote[]> {
+  const { data, error } = await supabase.rpc('get_origin_notes', { p_coffee_id: coffeeId })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as OriginNote[]
+}
+
+/** Genera lo que falte: 'place' = país y región (rápido), 'farm' = finca con búsqueda web (lento). */
+export async function generateOriginNotes(coffeeId: string, part: 'place' | 'farm'): Promise<void> {
+  await invoke<{ created: string[] }>('origin-story', { coffee_id: coffeeId, part })
+}
+
+/** Admin: oculta (o vuelve a mostrar) un texto de origen. */
+export async function setOriginNoteHidden(id: string, hidden: boolean): Promise<void> {
+  const { error } = await supabase.from('origin_notes').update({ hidden, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 /** El usuario comparte (o deja de compartir) su registro en la ficha pública del café. */

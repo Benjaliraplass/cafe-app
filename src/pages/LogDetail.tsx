@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BookOpen, ChevronLeft, ChevronRight, Heart, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
@@ -17,6 +17,7 @@ import type { BrewSignal } from '@/lib/brewFeedback'
 import { formatDate } from './Home'
 import { cn } from '@/lib/utils'
 import { InviteUnlockSheet } from '@/components/Invites'
+import { OriginStory } from '@/components/OriginStory'
 
 export function LogDetail() {
   const { id } = useParams<{ id: string }>()
@@ -65,6 +66,7 @@ export function LogDetail() {
       recipes={recipes}
       error={error}
       inviteCode={profile?.invite_code}
+      originSlot={log.coffee_id ? <OriginStory coffeeId={log.coffee_id} where="detail" className="px-6 pb-8" /> : null}
       onSaveFeedback={async (recipeId, signal, note, ruleId, suggestion) => {
         if (!user) return
         const fb = await saveRecipeFeedback({ userId: user.id, recipeId, signal, note, ruleId, suggestion })
@@ -111,10 +113,13 @@ export function LogDetailView({
   onTogglePublic,
   onSaveFeedback,
   inviteCode,
+  originSlot,
 }: {
   log: CoffeeLog
   /** Código del dueño para el ?ref= del enlace compartido. */
   inviteCode?: string
+  /** "De dónde viene" (contenedor en la app, vista con datos de ejemplo en /preview). */
+  originSlot?: ReactNode
   recipes: Recipe[]
   error: string | null
   onSaveFeedback?: (recipeId: string, signal: BrewSignal, note: string | null, ruleId: string | null, suggestion: string) => Promise<void>
@@ -235,6 +240,8 @@ export function LogDetailView({
           </div>
         )}
       </section>
+
+      {originSlot}
 
       {/* Recetas: el wizard de Recetas con este café ya elegido (método → cantidad → afinemos) */}
       <section className="flex flex-col gap-4 px-6 pt-6 pb-10">

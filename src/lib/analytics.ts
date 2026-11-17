@@ -45,6 +45,8 @@ export type EventName =
   | 'invite_shared'
   | 'invite_accepted'
   | 'desktop_gate_viewed'
+  | 'origin_viewed'
+  | 'origin_source_clicked'
 
 export type EventProps = Record<string, string | number | boolean | null | undefined>
 
