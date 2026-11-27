@@ -54,12 +54,14 @@ src/
   components/Invites.tsx  invitaciones (Lote 10): InviteUnlockSheet (hoja "Desbloqueaste N"), InvitesRow (Perfil), shareInvite, InviteStrip
   components/Layout.tsx  Layout + BottomNav flotante "liquid glass" de 5 ítems con botón central "+" (hoja Escanear / Pedir receta) (utilidades `glass` / `glass-solid` en index.css)
   pages/Onboarding.tsx walkthrough de bienvenida (3 pantallas, una vez por cuenta: `profiles.onboarded_at`); Gate lo muestra antes de la app; +OnboardingView para preview
+  pages/Landing.tsx    landing pública en `/` sin sesión (one pager; CTA a /unete y /entrar; en escritorio abren un QR); +LandingView para preview
+  components/QrCode.tsx  QR con isotipo (uqr) + withQrUtm; lo usan DesktopGate y Landing (chunks lazy)
   pages/DesktopGate.tsx  escritorio (>=1024 px con mouse): invitación a abrir Dripo en el teléfono con QR (uqr, chunk aparte); +DesktopGateView para preview
   hooks/useIsDesktop.ts  media query de escritorio
   pages/Join.tsx       /unete: entrada a la beta por invitación (correo -> cuenta o lista de espera); +JoinView para preview
-  pages/               Login (correo + Google, sin registro), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
+  pages/               Login (correo + Google, sin registro; en /entrar y en rutas privadas sin sesión), Inicio (+InicioView), Home = Mis cafés en /logs (+HomeView), Scan, EditLog, LogDetail (+LogDetailView, RecipeCard),
                        Recipes (+RecipesView), FeaturedRecipe (/r/:slug, /featured), PublicCoffee (/c/:id, /catalog), Privacy (/privacidad, pública), NewPassword (/nueva-contrasena: destino del enlace de recuperación y "Cambiar contraseña" desde Perfil), Explore (+ExploreView, mapa), NewCafe (/explore/new), Profile (+ProfileView), Admin (/admin, solo rol admin; lazy)
-  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb, +&origin=loading|none)|edit|profile|scan|recipes|metrics|login|desktop|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
+  pages/Preview.tsx    solo en dev: /preview?v=inicio|explore (+&offlinemap para QA sin red, +&nolocation, +&denied)|featured|coffee|home|detail(+&pending, +&fb, +&origin=loading|none)|edit|profile|scan|recipes|metrics|login|desktop|landing(+&qr=signup|login)|join(+&ref, +&status=invited|waitlist|exists)|unlock(+&n&total)|onboarding(+&step=0..2)|empty|loading con datos de ejemplo
 supabase/
   migrations/          SQL versionado; se aplica con el MCP de Supabase o `supabase db push`
   templates/           plantillas HTML de correos de Auth (se pegan en Supabase → Email Templates; ver README)
@@ -79,7 +81,7 @@ docs/                  SPEC.md, ROADMAP.md, kb/ (investigación de recetas: xlsx
 
 - Acceso a datos solo en `src/lib/api.ts`. Las páginas no llaman a `supabase.from` directamente (excepción puntual: subida de foto en Admin).
 - Registro cerrado: la única puerta es `/unete` + Edge Function `join`. No reabrir `signUp` en el cliente.
-- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`, `/nueva-contrasena`, `/unete`) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
+- Rutas públicas (`/r/:slug`, `/c/:id`, `/privacidad`, `/nueva-contrasena`, `/unete`, `/entrar`, y `/` sin sesión = landing) viven fuera del Gate en `App.tsx` y deben funcionar sin sesión; todo lo demás exige login. Acciones de admin se protegen con RLS (`is_admin()`), no solo en la UI.
 - Cada tabla nueva: RLS activado, políticas `to authenticated`, `(select auth.uid())` en vez de `auth.uid()`, índice en cada FK.
 - Analítica: todo evento nuevo se declara en `EventName` (`src/lib/analytics.ts`) y en la taxonomía de `docs/SPEC.md` §8; se dispara con `track()` desde el contenedor (no desde la vista), sin PII en props.
 - Edge Functions devuelven siempre `{ ok: true, data }` o `{ ok: false, error }` y manejan `OPTIONS`.

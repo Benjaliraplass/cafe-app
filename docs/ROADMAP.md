@@ -139,6 +139,23 @@ Desarrollo local con Claude Code y Xcode: servidor `dripo-dev` (`.claude/launch.
 - Hallazgos sin cambio (comportamiento de Safari 26+): en el navegador la barra de Dripo queda sobre la barra flotante de Safari y no puede bajar más (el viewport fijo termina ahí; con la barra contraída queda una franja con el difuminado de Safari). En la app instalada llega al borde con la zona segura de 34 pt
 - [ ] Decidir: en la app instalada la barra de estado queda fuera del viewport (estilo `default`), así que el fondo de la hoja "Crear" y las fotos de portada no la cubren. Alternativa `black-translucent` deja el contenido bajo la barra de estado pero con texto blanco, ilegible sobre fondo claro
 
+## Lote 17 — Landing pública (2026-11-18)
+
+HU de Benjamín: quien entra a dripocoffee.com llegaba directo al login. Una landing que cuente qué es Dripo, con todos los CTA a crear cuenta o iniciar sesión; en escritorio, QR al tocar los CTA.
+
+- [x] `pages/Landing.tsx` (contenedor + `LandingView`), lazy: hero, marquesina de campos de la etiqueta, cómo funciona, recetas e IA, cómo se arma una receta, bento, preguntas, CTA final y pie. Animaciones solo sin "reducir movimiento"
+- [x] Rutas: `/` sin sesión → landing (standalone → login); `/entrar` → login; enlaces "Entrar" de `/unete` y `/nueva-contrasena` apuntan a `/entrar`
+- [x] Escritorio: la landing se muestra y los CTA abren el QR (`components/QrCode.tsx`, compartido con `DesktopGate`)
+- [x] Eventos `landing_viewed` y `landing_cta_clicked`; `/preview?v=landing`
+- [x] QA en el navegador (375 px y 1440 px): navegación a `/unete` y `/entrar`, QR en escritorio, eventos en `track_event`
+- [x] Fotos de Benjamín (8, carpeta "fotos sitio web") en `public/fotos/`: hero (vertido en vaso), fondo del escaneo (granos), galería (espresso, bloom, gota, granos), panel de recetas (Origami), sección Tostado Club (caja), CTA final (goteo) y miniaturas de las tarjetas de ejemplo
+- [x] App: login con la foto del bloom (`public/hero.jpg`), cabecera con foto en `/unete`, imagen para compartir `public/og.jpg` 1200×630 (`index.html` y `og.ts`)
+- [x] Marquesina con los últimos cafés escaneados (lectura pública de `coffees` + `roasters`, filtrada en `api.ts`; `/preview?v=landing&norecent` para el respaldo)
+- [ ] Si se cuelan cafés que no deben salir en la landing (saborizados, cadenas), sumar una columna para ocultarlos o usar solo los publicados en el catálogo
+- [ ] Benjamín: confirmar textos ("Gratis durante la beta", sección "Hecha por Tostado Club", Tostado Club como tostador de ejemplo)
+- [ ] QA en Safari del simulador antes de publicar
+- [ ] Medir conversión: `landing_viewed` → `landing_cta_clicked` → `join_submitted`
+
 ## Lote 16 — Sobre su origen (2026-11-16)
 
 HU de Benjamín: tras escanear, y en el café ya escaneado, un texto corto sobre el país, la región y la finca, siempre verdadero (si no hay información de la finca, se omite). Para educar: quien sabe más valora más el buen café.
@@ -166,7 +183,7 @@ Envío a clientes de Tostado Club el 14-11 ~10:00. A las 10:40: 74 cuentas cread
     - `join_submitted` con `via: login_google | login_reset`
 - [x] Crear cuenta: el enlace del correo se acepta siempre aunque el navegador tenga otra sesión abierta (antes la contraseña o Google se aplicaban a esa otra cuenta)
 - [x] Registro abierto por hoy (pedido de Benjamín): `join_open()` = true, `/unete` invita a cualquier correo nuevo. Probado: correo fuera de la lista -> invitado; cuenta existente -> entrar; invitado sin confirmar -> reenvío
-- [ ] Cerrar el registro abierto: `join_open()` -> false y, si se activó, apagar "Allow new users to sign up" en Supabase
+- [ ] Cerrar el registro abierto: `join_open()` -> false y, si se activó, apagar "Allow new users to sign up" en Supabase. Decidido por Benjamín 2026-11-24: sigue abierto por ahora
 - [ ] 7 en lista de espera hoy antes de abrir (2 con `@gmail.con`): decidir si invitarlos
 - Causa de fondo: el WhatsApp enlazó a `dripocoffee.com` (sin `/unete` ni UTM): 639 personas abrieron `/` y 16 `/unete`. Para próximos envíos usar el enlace de campaña
 
