@@ -301,12 +301,12 @@ function Dot() {
 /** Tarjeta "leyendo etiqueta": los campos aparecen uno tras otro, como en el escaneo real. */
 function ScanCard({ className }: { className?: string }) {
   const rows: Array<[string, string]> = [
-    ['Tostador', 'Tostado Club'],
-    ['Origen', 'Etiopía · Guji'],
+    ['Tostador', 'Pantera Coffee Roasters'],
+    ['Origen', 'Etiopía · Sidama'],
     ['Variedad', 'Heirloom'],
     ['Proceso', 'Natural'],
-    ['Altura', '2.100 msnm'],
-    ['Notas', 'Arándano, jazmín, cacao'],
+    ['Altura', '2.100–2.300 msnm'],
+    ['Notas', 'Arándano, frutilla, jazmín'],
   ]
   return (
     <div className={cn('rounded-[24px] border border-white/40 bg-white/80 p-4 text-[#111111] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.45)] backdrop-blur-xl', className)}>
@@ -444,7 +444,7 @@ function MockDiary() {
   return (
     <div className="flex size-full flex-col justify-center gap-2.5 bg-background p-4">
       {[
-        { name: 'Guji Natural', meta: 'Etiopía · Tostado Club', r: 5, notes: ['Arándano', 'Jazmín'], img: FOTO.thumb.granos },
+        { name: 'Sidama Dembi', meta: 'Etiopía · Pantera Coffee Roasters', r: 5, notes: ['Arándano', 'Frutilla'], img: FOTO.thumb.granos },
         { name: 'Finca Milán', meta: 'Colombia · Pereira', r: 4, notes: ['Panela', 'Naranja'], img: FOTO.thumb.bloom },
         { name: 'Bourbon Rosado', meta: 'Huila · Lavado', r: 4, notes: ['Frutilla'], img: FOTO.thumb.vertido },
       ].map((c, i) => (
@@ -470,21 +470,21 @@ function MockDiary() {
 
 function MockRecipe() {
   const steps: Array<[string, string]> = [
-    ['0:00', 'Bloom con 45 g'],
-    ['0:45', 'Vierte hasta 150 g'],
-    ['1:15', 'Vierte hasta 250 g'],
-    ['2:45', 'Listo para servir'],
+    ['0:00', 'Bloom hasta 45 g'],
+    ['0:45', 'Vierte hasta 110 g'],
+    ['1:10', 'Vierte hasta 175 g'],
+    ['1:35', 'Vierte hasta 240 g'],
   ]
   return (
     <div className="flex size-full flex-col gap-3 bg-[#111111] p-4 text-white">
       <div className="flex items-center justify-between">
-        <span className="text-[14px] font-medium">V60 · Guji Natural</span>
+        <span className="text-[14px] font-medium">V60 · Sidama Dembi</span>
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-white/70">1 taza</span>
       </div>
       <div className="grid grid-cols-4 gap-1.5">
         {[
           ['15 g', 'café'],
-          ['250 g', 'agua'],
+          ['240 g', 'agua'],
           ['94 °C', 'temp.'],
           ['2:45', 'tiempo'],
         ].map(([v, k]) => (
@@ -641,7 +641,7 @@ function PanelRecipe() {
     <PanelCard className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <span className="text-[10px] font-medium uppercase tracking-eyebrow text-[#9a958f]">Receta para</span>
-        <span className="text-[20px] font-medium leading-tight tracking-tight">Guji Natural en V60</span>
+        <span className="text-[20px] font-medium leading-tight tracking-tight">Sidama Dembi en V60</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {['Natural', 'Tueste claro', 'Comandante C40', 'Hario V60 02'].map((t) => (
@@ -651,10 +651,10 @@ function PanelRecipe() {
       <div className="grid grid-cols-3 gap-2">
         {[
           ['15 g', 'Café'],
-          ['250 g', 'Agua'],
+          ['240 g', 'Agua'],
           ['94 °C', 'Temperatura'],
-          ['24 clics', 'Molienda'],
-          ['1:16,7', 'Ratio'],
+          ['Media-fina', 'Molienda'],
+          ['1:16', 'Ratio'],
           ['2:45', 'Tiempo'],
         ].map(([v, k]) => (
           <div key={k} className="flex flex-col rounded-xl bg-[#f5f4f1] px-2.5 py-2">
@@ -854,8 +854,8 @@ function Bento() {
             <div className="flex w-full max-w-[250px] items-center gap-3 rounded-2xl bg-background p-2.5 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.35)]">
               <Thumb src={FOTO.thumb.granos} className="size-11 rounded-xl" />
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-[13px] font-medium">Guji Natural</span>
-                <span className="truncate text-[11px] text-muted-foreground">dripocoffee.com/c/guji</span>
+                <span className="truncate text-[13px] font-medium">Sidama Dembi</span>
+                <span className="truncate text-[11px] text-muted-foreground">dripocoffee.com/c/sidama-dembi</span>
               </span>
             </div>
             <span className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground">
