@@ -153,8 +153,8 @@ const coffeeGradient = 'bg-[linear-gradient(135deg,#6b5c4d_0%,#2a2421_100%)]'
 
 /** Fotos de `public/fotos/` (exportadas a JPEG desde las originales de Benjamín; ver ROADMAP Lote 17). */
 const FOTO = {
-  vertido: '/fotos/vertido-720.jpg',
-  vertidoSet: '/fotos/vertido-720.jpg 720w, /fotos/vertido-1200.jpg 1200w',
+  // Portada: única versión disponible (736 px); clara, por eso el hero del teléfono usa texto oscuro.
+  portada: '/fotos/portada.jpg',
   espresso: '/fotos/espresso.jpg',
   gota: '/fotos/gota.jpg',
   granos: '/fotos/granos.jpg',
@@ -214,7 +214,7 @@ function Nav({ onCta }: { onCta: OnCta }) {
       <div
         className={cn(
           'mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 rounded-full pr-2 pl-5 transition-[background-color,color,box-shadow] duration-300',
-          scrolled ? 'glass-solid text-foreground' : 'text-white lg:text-foreground',
+          scrolled ? 'glass-solid text-foreground' : 'text-foreground',
         )}
       >
         <a href="#top" aria-label="Dripo, ir al inicio" className="shrink-0">
@@ -254,37 +254,38 @@ function Hero({ onCta }: { onCta: OnCta }) {
   return (
     <section id="top" className="relative lg:mx-auto lg:grid lg:max-w-6xl lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14 lg:px-6 lg:pt-28 lg:pb-10">
       {/* Foto: a sangre en el teléfono, panel redondeado a la derecha en escritorio. */}
-      <div className={cn('absolute inset-0 overflow-hidden lg:relative lg:order-2 lg:h-[640px] lg:rounded-[36px]', coffeeGradient)}>
-        <Cover src={FOTO.vertido} srcSet={FOTO.vertidoSet} sizes="(min-width: 1024px) 560px, 100vw" priority />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(17,17,17,0.45)_0%,rgba(17,17,17,0.1)_30%,rgba(17,17,17,0.55)_62%,rgba(17,17,17,0.92)_100%)] lg:bg-[linear-gradient(to_bottom,rgba(17,17,17,0)_40%,rgba(17,17,17,0.35)_100%)]" />
-        <div className="landing-scanline absolute inset-x-0 top-0 hidden h-px bg-white/70 shadow-[0_0_24px_4px_rgba(255,255,255,0.5)] lg:block" />
+      <div className={cn('absolute inset-x-0 top-0 h-[60svh] min-h-[400px] overflow-hidden lg:relative lg:order-2 lg:h-[640px] lg:min-h-0 lg:rounded-[36px]', coffeeGradient)}>
+        <Cover src={FOTO.portada} priority className="object-top lg:object-center" />
+        {/* Teléfono: fundido a blanco bajo el texto (como en Login). Escritorio: sombra suave para separar la tarjeta. */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_45%,rgba(255,255,255,0.75)_78%,var(--background)_100%)] lg:bg-[linear-gradient(to_bottom,rgba(17,17,17,0)_55%,rgba(17,17,17,0.2)_100%)]" />
+        <div className="landing-scanline absolute inset-x-0 top-0 hidden h-px bg-[#111111]/25 lg:block" />
         <div className="absolute right-6 bottom-6 left-6 hidden lg:block">
           <ScanCard />
         </div>
       </div>
 
-      <div className="relative z-10 flex min-h-[100svh] flex-col justify-end gap-7 px-5 pt-28 pb-[max(env(safe-area-inset-bottom),28px)] text-white sm:px-8 lg:order-1 lg:min-h-0 lg:p-0 lg:text-foreground">
-        <span className="landing-rise flex w-fit items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-[12px] font-medium backdrop-blur-md lg:border-border lg:bg-card">
+      <div className="relative z-10 flex min-h-[100svh] flex-col justify-end gap-7 px-5 pt-28 pb-[max(env(safe-area-inset-bottom),28px)] text-foreground sm:px-8 lg:order-1 lg:min-h-0 lg:p-0">
+        <span className="landing-rise flex w-fit items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-[12px] font-medium backdrop-blur-md lg:bg-card">
           <Sparkles className="size-3.5" strokeWidth={1.8} />
           Beta por invitación
         </span>
         <div className="flex flex-col gap-5">
           <h1 className="landing-rise text-[46px] font-medium leading-[0.98] tracking-tightest text-balance [animation-delay:80ms] sm:text-[60px] lg:text-[72px]">
-            Fotografía tu café. <span className="text-white/75 lg:text-muted-foreground">Te decimos cómo prepararlo.</span>
+            Fotografía tu café. <span className="text-muted-foreground">Te decimos cómo prepararlo.</span>
           </h1>
-          <p className="landing-rise max-w-[30rem] text-[17px] leading-relaxed text-white/80 [animation-delay:160ms] lg:text-[19px] lg:text-muted-foreground">
+          <p className="landing-rise max-w-[30rem] text-[17px] leading-relaxed text-muted-foreground [animation-delay:160ms] lg:text-[19px]">
             Dripo lee la etiqueta de cualquier café de especialidad y te arma una receta para tu método y tu equipo. Guarda lo que pruebas y cada taza sale mejor.
           </p>
         </div>
         <div className="landing-rise flex flex-col gap-3 [animation-delay:240ms] sm:flex-row">
-          <CtaLink cta="signup" placement="hero" onCta={onCta} className={cn(btn, 'bg-white text-[#111111] hover:bg-white/90 lg:bg-primary lg:text-primary-foreground lg:hover:bg-primary/90')}>
+          <CtaLink cta="signup" placement="hero" onCta={onCta} className={cn(btn, 'bg-primary text-primary-foreground hover:bg-primary/90')}>
             Crear cuenta <ArrowRight className="size-4" strokeWidth={2} />
           </CtaLink>
-          <CtaLink cta="login" placement="hero" onCta={onCta} className={cn(btn, 'border border-white/30 bg-white/10 text-white backdrop-blur-md hover:bg-white/15 lg:border-border-strong lg:bg-transparent lg:text-foreground lg:hover:bg-card')}>
+          <CtaLink cta="login" placement="hero" onCta={onCta} className={cn(btn, 'border border-border-strong bg-background/70 text-foreground backdrop-blur-md hover:bg-card lg:bg-transparent')}>
             Ya tengo cuenta
           </CtaLink>
         </div>
-        <ul className="landing-rise flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/70 [animation-delay:320ms] lg:text-muted-foreground">
+        <ul className="landing-rise flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted-foreground [animation-delay:320ms]">
           <li className="flex items-center gap-1.5"><Dot /> Hecha para tu teléfono</li>
           <li className="flex items-center gap-1.5"><Dot /> Sin descargar nada</li>
           <li className="flex items-center gap-1.5"><Dot /> Gratis durante la beta</li>

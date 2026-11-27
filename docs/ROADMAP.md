@@ -152,6 +152,7 @@ HU de Benjamín: quien entra a dripocoffee.com llegaba directo al login. Una lan
 - [x] App: login con la foto del bloom (`public/hero.jpg`), cabecera con foto en `/unete`, imagen para compartir `public/og.jpg` 1200×630 (`index.html` y `og.ts`)
 - [x] Marquesina con los últimos cafés escaneados (lectura pública de `coffees` + `roasters`, filtrada en `api.ts`; `/preview?v=landing&norecent` para el respaldo)
 - [ ] Si se cuelan cafés que no deben salir en la landing (saborizados, cadenas), sumar una columna para ocultarlos o usar solo los publicados en el catálogo
+- [ ] Benjamín: confirmar los derechos de la foto de portada (`public/fotos/portada.jpg`, "Coffee Photography _ Glass Carafe Pour Motion Shot", autor desconocido, descargada de internet) antes de publicar; si no, reemplazarla por una propia. Solo existe en 736 px de ancho
 - [ ] Benjamín: confirmar textos ("Gratis durante la beta", sección "Hecha por Tostado Club", Tostado Club como tostador de ejemplo)
 - [ ] QA en Safari del simulador antes de publicar
 - [ ] Medir conversión: `landing_viewed` → `landing_cta_clicked` → `join_submitted`
