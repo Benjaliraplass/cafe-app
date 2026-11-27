@@ -270,10 +270,10 @@ function Hero({ onCta }: { onCta: OnCta }) {
         </span>
         <div className="flex flex-col gap-5">
           <h1 className="landing-rise text-[46px] font-medium leading-[0.98] tracking-tightest text-balance [animation-delay:80ms] sm:text-[60px] lg:text-[72px]">
-            Cada café, mejor que el anterior.
+            Fotografía tu café. <span className="text-white/75 lg:text-muted-foreground">Te decimos cómo prepararlo.</span>
           </h1>
           <p className="landing-rise max-w-[30rem] text-[17px] leading-relaxed text-white/80 [animation-delay:160ms] lg:text-[19px] lg:text-muted-foreground">
-            Escanea la bolsa, guarda lo que probaste y recibe una receta a medida para tu café, tu método y tu equipo. Tu diario de café de especialidad, con IA.
+            Dripo lee la etiqueta de cualquier café de especialidad y te arma una receta para tu método y tu equipo. Guarda lo que pruebas y cada taza sale mejor.
           </p>
         </div>
         <div className="landing-rise flex flex-col gap-3 [animation-delay:240ms] sm:flex-row">
@@ -343,7 +343,7 @@ function LabelMarquee({ recent }: { recent: RecentCoffee[] }) {
   // Misma velocidad aparente con pocos o muchos ítems (los cafés son más anchos que los campos).
   const duration = `${count * (coffees ? 5 : 3.8)}s`
   return (
-    <section aria-label={coffees ? 'Cafés escaneados hace poco en Dripo' : 'Lo que Dripo lee de una etiqueta'} className="border-b border-border py-7 lg:py-9">
+    <section aria-label={coffees ? 'Cafés que la comunidad ya guardó en Dripo' : 'Lo que Dripo lee de una etiqueta'} className="border-b border-border py-7 lg:py-9">
       <p className="flex items-center justify-center gap-2 px-5 pb-4 text-center text-[13px] text-muted-foreground">
         {coffees ? (
           <>
@@ -351,7 +351,7 @@ function LabelMarquee({ recent }: { recent: RecentCoffee[] }) {
               <span className="landing-ping absolute inset-0 rounded-full bg-foreground/40" />
               <span className="relative size-2 rounded-full bg-foreground" />
             </span>
-            Recién escaneados en Dripo
+            Cafés que la comunidad ya guardó en Dripo
           </>
         ) : (
           'Una foto a la bolsa y Dripo llena la ficha por ti'
@@ -1049,7 +1049,7 @@ function FinalCta({ onCta }: { onCta: OnCta }) {
         <Cover src={FOTO.goteo} />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(17,17,17,0.55)_0%,rgba(17,17,17,0.78)_100%)]" aria-hidden />
         <Isotipo className="relative h-12 w-auto" aria-hidden />
-        <h2 className="relative max-w-2xl text-[38px] font-medium leading-[1.02] tracking-tightest text-balance sm:text-[52px] lg:text-[64px]">Tu próxima taza puede ser la mejor.</h2>
+        <h2 className="relative max-w-2xl text-[38px] font-medium leading-[1.02] tracking-tightest text-balance sm:text-[52px] lg:text-[64px]">Cada café, mejor que el anterior.</h2>
         <p className="relative max-w-md text-[16px] leading-relaxed text-white/65 lg:text-[18px]">Crea tu cuenta, escanea el café que tienes en casa y pide tu primera receta. Toma un par de minutos.</p>
         <div className="relative flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <CtaLink cta="signup" placement="final" onCta={onCta} className={cn(btn, 'bg-white text-[#111111] hover:bg-white/90')}>
