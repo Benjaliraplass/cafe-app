@@ -33,7 +33,7 @@ export default async (req: Request, context: Context) => {
   if (!meta) return res;
 
   const html = await res.text();
-  const image = meta.image ?? `${url.origin}/hero.jpg`;
+  const image = meta.image ?? `${url.origin}/og.jpg`;
   const tags = [
     `<meta property="og:title" content="${esc(meta.title)}" />`,
     `<meta property="og:description" content="${esc(meta.description)}" />`,

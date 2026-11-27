@@ -66,57 +66,71 @@ export function JoinView({ inviter, tostado = false, initialEmail = '', onSubmit
   }
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-6 pb-10 pt-[calc(max(env(safe-area-inset-top),16px)+40px)]">
-      <Logo className="h-9 w-auto self-start" />
-
-      {status === null ? (
-        <>
-          <div className="flex flex-col gap-3 pt-12">
-            {inviter && (
-              <span className="w-fit rounded-full bg-card px-3 py-1 text-[13px] text-muted-foreground">{inviter} te invitó</span>
-            )}
-            <h1 className="text-[34px] font-medium leading-[1.05] tracking-tightest">Dripo es por invitación</h1>
-            <p className="text-[15px] leading-relaxed text-muted-foreground">
-              Tu diario de café de especialidad: escaneas la etiqueta, guardas lo que probaste y pides recetas a medida.
-            </p>
-          </div>
-          <form onSubmit={submit} className="flex flex-col gap-4 pt-8">
-            <Field label="Correo" hint={tostado ? 'Usa el correo con el que compras en Tostado Club.' : undefined}>
-              <Input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                required
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@correo.com"
-              />
-            </Field>
-            <ErrorBox message={error} />
-            <Button type="submit" disabled={loading || !email.trim()}>
-              {loading ? 'Un momento...' : 'Continuar'}
-            </Button>
-          </form>
-        </>
-      ) : (
-        <Result
-          status={status}
-          email={email.trim()}
-          tostado={tostado}
-          onRetry={() => {
-            setStatus(null)
-            setEmail('')
+    <div className="mx-auto flex min-h-full w-full max-w-md flex-col">
+      {/* Foto con fundido al fondo, como en Login */}
+      <div className="relative h-[30vh] min-h-[220px] overflow-hidden bg-[linear-gradient(135deg,#6b5c4d_0%,#2a2421_100%)]">
+        <img
+          src="/fotos/vertido-720.jpg"
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-0 size-full object-cover object-[center_40%]"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
           }}
         />
-      )}
+        <div className="absolute inset-x-0 -bottom-px h-[75%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.85)_55%,var(--background)_100%)]" />
+        <Logo className="absolute bottom-1 left-6 h-9 w-auto" />
+      </div>
+      <div className="flex flex-1 flex-col px-6 pb-10">
+        {status === null ? (
+          <>
+            <div className="flex flex-col gap-3 pt-8">
+              {inviter && (
+                <span className="w-fit rounded-full bg-card px-3 py-1 text-[13px] text-muted-foreground">{inviter} te invitó</span>
+              )}
+              <h1 className="text-[34px] font-medium leading-[1.05] tracking-tightest">Dripo es por invitación</h1>
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
+                Tu diario de café de especialidad: escaneas la etiqueta, guardas lo que probaste y pides recetas a medida.
+              </p>
+            </div>
+            <form onSubmit={submit} className="flex flex-col gap-4 pt-8">
+              <Field label="Correo" hint={tostado ? 'Usa el correo con el que compras en Tostado Club.' : undefined}>
+                <Input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  required
+                  autoFocus
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@correo.com"
+                />
+              </Field>
+              <ErrorBox message={error} />
+              <Button type="submit" disabled={loading || !email.trim()}>
+                {loading ? 'Un momento...' : 'Continuar'}
+              </Button>
+            </form>
+          </>
+        ) : (
+          <Result
+            status={status}
+            email={email.trim()}
+            tostado={tostado}
+            onRetry={() => {
+              setStatus(null)
+              setEmail('')
+            }}
+          />
+        )}
 
-      <p className="pt-8 text-center text-[13px] text-muted-foreground">
-        ¿Ya tienes cuenta?{' '}
-        <Link to="/" className="text-foreground">
-          Entrar
-        </Link>
-      </p>
+        <p className="pt-8 text-center text-[13px] text-muted-foreground">
+          ¿Ya tienes cuenta?{' '}
+          <Link to="/entrar" className="text-foreground">
+            Entrar
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
@@ -144,7 +158,7 @@ function Result({ status, email, tostado, onRetry }: { status: JoinStatus; email
       <p className="text-[15px] leading-relaxed text-muted-foreground">{copy.body}</p>
       {status === 'exists' && (
         <Button asChild className="mt-4 w-fit">
-          <Link to="/">Entrar</Link>
+          <Link to="/entrar">Entrar</Link>
         </Button>
       )}
       {status === 'waitlist' && (
