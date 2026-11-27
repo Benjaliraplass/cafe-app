@@ -587,6 +587,44 @@ export async function listPublishedCoffees(limit = 20): Promise<Coffee[]> {
   return (data ?? []) as unknown as Coffee[]
 }
 
+/** Café recién escaneado, para la marquesina de la landing (sin sesión). Solo datos del catálogo, nunca quién lo escaneó. */
+export type RecentCoffee = { id: string; name: string; roaster: string; origin: string }
+
+/**
+ * Últimos cafés que entraron al catálogo (cada uno nació de un escaneo), filtrados para que se vean bien en la landing:
+ * con tostador y país de origen, sin los que se llaman igual que su tostador y sin repetidos.
+ */
+export async function listRecentlyScannedCoffees(limit = 16): Promise<RecentCoffee[]> {
+  const { data, error } = await supabase
+    .from('coffees')
+    .select('id, name, origin_country, roaster:roasters ( name )')
+    .not('origin_country', 'is', null)
+    .not('roaster_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit * 3)
+  if (error) throw new Error(error.message)
+  const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')
+  const seen = new Set<string>()
+  const out: RecentCoffee[] = []
+  for (const row of (data ?? []) as unknown as Array<{ id: string; name: string; origin_country: string; roaster: { name: string } | null }>) {
+    const name = row.name?.trim()
+    const roaster = row.roaster?.name?.trim()
+    if (!name || !roaster) continue
+    const n = norm(name)
+    const r = norm(roaster)
+    // "Quinientos Cuatro Coffee Roasters" como nombre del café: la IA no encontró el nombre real.
+    if (!n || n === r || r.startsWith(n) || n.startsWith(r)) continue
+    // "Muro coffee roaster": otro nombre de tostador leído como nombre del café.
+    if (/roaster|tostador/i.test(name)) continue
+    const key = `${n}|${r}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({ id: row.id, name, roaster, origin: row.origin_country.trim() })
+    if (out.length >= limit) break
+  }
+  return out
+}
+
 /** Ficha pública: café + estadísticas + registros compartidos. Funciona sin sesión. */
 export async function getPublicCoffee(id: string): Promise<{ coffee: Coffee; stats: CoffeePublicStats | null; logs: PublicLog[] } | null> {
   const { data: coffee, error } = await supabase.from('coffees').select(COFFEE_SELECT).eq('id', id).maybeSingle()

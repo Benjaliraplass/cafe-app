@@ -231,3 +231,131 @@ body:has([data-action-bar]) [data-bottom-nav] {
 .dripo-popup-name { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; }
 .dripo-popup-addr { font-size: 12.5px; color: var(--muted-foreground); }
 .dripo-popup-link { margin-top: 6px; font-size: 13px; font-weight: 500; color: var(--foreground); text-decoration: underline; text-underline-offset: 4px; }
+
+/* Landing (src/pages/Landing.tsx): animaciones suaves. Con "reducir movimiento" todo queda quieto y visible. */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes landing-field {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes landing-scan {
+  0% {
+    top: 6%;
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    top: 94%;
+    opacity: 0;
+  }
+}
+@keyframes landing-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes landing-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes landing-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes landing-shimmer {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes landing-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes landing-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes landing-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+.landing-marquee-mask {
+  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .landing-rise {
+    animation: landing-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .landing-field {
+    animation: landing-field 0.6s ease-out both;
+  }
+  .landing-swap {
+    animation: landing-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .landing-scanline {
+    animation: landing-scan 3.2s ease-in-out infinite;
+  }
+  .landing-marquee {
+    animation: landing-marquee 38s linear infinite;
+  }
+  .landing-progress {
+    transform-origin: left;
+    animation: landing-progress 7s linear both;
+  }
+  .landing-bar {
+    transform-origin: left;
+    animation: landing-bar 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .landing-shimmer {
+    animation: landing-shimmer 1.6s ease-in-out infinite;
+  }
+  .landing-ping {
+    animation: landing-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .landing-fade {
+    animation: landing-fade 0.2s ease-out both;
+  }
+  .landing-pop {
+    animation: landing-pop 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  [data-reveal] {
+    transition:
+      opacity 0.8s ease,
+      transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  [data-reveal]:not([data-shown]) {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}

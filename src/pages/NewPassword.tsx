@@ -212,7 +212,7 @@ export function NewPassword() {
               <p className="text-[15px] leading-relaxed text-muted-foreground">
                 El enlace venció o ya se usó. Pide uno nuevo desde "¿Olvidaste tu contraseña?" en la pantalla de entrada de Dripo, en tu teléfono.
               </p>
-              <Button variant="outline" onClick={() => navigate('/', { replace: true })}>
+              <Button variant="outline" onClick={() => navigate('/entrar', { replace: true })}>
                 Volver
               </Button>
             </>

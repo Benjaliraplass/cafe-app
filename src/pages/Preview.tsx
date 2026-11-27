@@ -23,11 +23,21 @@ import type { UserFacts } from '@/lib/types'
 import { Eyebrow, Title } from '@/components/primitives'
 import { ViewportProbe } from '@/components/ViewportProbe'
 import { DesktopGateView } from '@/pages/DesktopGate'
+import { LandingView, type LandingCta } from '@/pages/Landing'
 import { OriginStoryView } from '@/components/OriginStory'
 import type { OriginNote } from '@/lib/types'
 
 const roaster = { id: 'r1', name: 'Asunto Coffee Roasters', slug: 'asunto', country: 'Chile', city: 'Santiago', website: null, instagram: null }
 const noop = async () => {}
+const landingRecent = [
+  ['Popayán', 'Café Circular', 'Colombia'],
+  ['Catuaí Natural Lote 28', 'Singular Coffee Roasters', 'Panamá'],
+  ['Ombligón-ADV', 'Malportado Coffee Project', 'Colombia'],
+  ['Caranavi', 'La Pastora Coffee', 'Bolivia'],
+  ['Honduras El Jardín', 'LAMA Tostadores', 'Honduras'],
+  ['Origins Colombia', 'Puelo Coffee Roasters', 'Colombia'],
+  ['Make Coffee Not War', 'TallerCafé', 'Brasil'],
+].map(([name, roaster, origin], i) => ({ id: `r${i}`, name, roaster, origin }))
 /** Textos de origen de ejemplo (Catiope, Colombia / Pereira / Finca Milán). */
 const originNotes: OriginNote[] = [
   { kind: 'country', key: 'country:colombia', ready: true, id: 'o1', title: 'Colombia', body: 'Uno de los pocos países que cosecha casi todo el año gracias a sus tres cordilleras: hay zonas con cosecha principal y otras con "mitaca". Su café lavado de altura es conocido por su acidez brillante y dulzor de caramelo.', fun_fact: 'El Paisaje Cultural Cafetero de Colombia es Patrimonio de la Humanidad de la UNESCO desde 2011.', sources: [], found: true, hidden: false },
@@ -80,6 +90,12 @@ export function Preview() {
   // &vp: overlay de diagnóstico del viewport (Safari iOS) con selector de vista.
   const probe = sp.has('vp') && <ViewportProbe />
   if (v === 'login') return <>{probe}<Login /></>
+  // Landing: &qr=signup|login abre el diálogo de escritorio.
+  if (v === 'landing') {
+    // &norecent: sin cafés reales (la marquesina muestra los campos de la etiqueta).
+    const recent = sp.has('norecent') ? [] : landingRecent
+    return <LandingView recent={recent} qr={(sp.get('qr') as LandingCta | null) ?? null} />
+  }
   if (v === 'desktop') return <DesktopGateView qrUrl="https://dripocoffee.com/?utm_source=desktop&utm_medium=qr" />
   // /unete: &ref muestra "X te invitó"; &status=invited|waitlist|exists salta al resultado.
   if (v === 'join') {
