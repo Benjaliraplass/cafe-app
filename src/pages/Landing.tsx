@@ -254,10 +254,11 @@ function Hero({ onCta }: { onCta: OnCta }) {
   return (
     <section id="top" className="relative lg:mx-auto lg:grid lg:max-w-6xl lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14 lg:px-6 lg:pt-28 lg:pb-10">
       {/* Foto: a sangre en el teléfono, panel redondeado a la derecha en escritorio. */}
-      <div className={cn('absolute inset-x-0 top-0 h-[60svh] min-h-[400px] overflow-hidden lg:relative lg:order-2 lg:h-[640px] lg:min-h-0 lg:rounded-[36px]', coffeeGradient)}>
+      {/* Respaldo blanco en el teléfono: un fondo oscuro se asomaba como línea en los bordes cuando el alto cae en fracción de píxel. */}
+      <div className="absolute inset-x-0 top-0 h-[60svh] min-h-[400px] overflow-hidden bg-background lg:relative lg:order-2 lg:h-[640px] lg:min-h-0 lg:rounded-[36px] lg:bg-[linear-gradient(135deg,#6b5c4d_0%,#2a2421_100%)]">
         <Cover src={FOTO.portada} priority className="object-top lg:object-center" />
         {/* Teléfono: fundido a blanco bajo el texto (como en Login). Escritorio: sombra suave para separar la tarjeta. */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_45%,rgba(255,255,255,0.75)_78%,var(--background)_100%)] lg:bg-[linear-gradient(to_bottom,rgba(17,17,17,0)_55%,rgba(17,17,17,0.2)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_45%,rgba(255,255,255,0.75)_76%,var(--background)_95%)] lg:bg-[linear-gradient(to_bottom,rgba(17,17,17,0)_55%,rgba(17,17,17,0.2)_100%)]" />
         <div className="landing-scanline absolute inset-x-0 top-0 hidden h-px bg-[#111111]/25 lg:block" />
         <div className="absolute right-6 bottom-6 left-6 hidden lg:block">
           <ScanCard />
