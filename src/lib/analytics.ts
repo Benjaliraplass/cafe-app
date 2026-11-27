@@ -45,6 +45,8 @@ export type EventName =
   | 'invite_shared'
   | 'invite_accepted'
   | 'desktop_gate_viewed'
+  | 'landing_viewed'
+  | 'landing_cta_clicked'
   | 'origin_viewed'
   | 'origin_source_clicked'
 

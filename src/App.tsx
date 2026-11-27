@@ -17,6 +17,8 @@ const Preview = lazy(() => import('@/pages/Preview').then((m) => ({ default: m.P
 const Admin = lazy(() => import('@/pages/Admin').then((m) => ({ default: m.Admin })))
 // Pantalla de escritorio con QR; aparte para no sumar `uqr` al bundle del teléfono.
 const DesktopGate = lazy(() => import('@/pages/DesktopGate').then((m) => ({ default: m.DesktopGate })))
+// Landing pública (sin sesión en `/`): aparte, así quien ya tiene sesión nunca la descarga.
+const Landing = lazy(() => import('@/pages/Landing').then((m) => ({ default: m.Landing })))
 import { Recipes } from '@/pages/Recipes'
 import { Profile } from '@/pages/Profile'
 import { FeaturedList, FeaturedRecipePage } from '@/pages/FeaturedRecipe'
@@ -30,6 +32,7 @@ import { Spinner } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
 import { UpdateBanner } from '@/components/UpdateBanner'
 import { useIsDesktop } from '@/hooks/useIsDesktop'
+import { displayMode } from '@/lib/analytics'
 
 /** Rutas que funcionan igual en escritorio: fichas compartidas, legales, cuenta y el panel de admin. */
 const DESKTOP_OK = [/^\/r\//, /^\/c\//, /^\/privacidad/, /^\/nueva-contrasena/, /^\/unete/, /^\/admin/]
@@ -45,8 +48,19 @@ function Loading() {
 /** Rutas privadas: exigen sesión y van dentro del Layout con barra inferior. */
 function Gate() {
   const { user, profile, loading, profileLoading } = useAuth()
+  const location = useLocation()
   if (loading) return <Loading />
-  if (!user) return <Login />
+  // Sin sesión: en `/` la landing (desde la app instalada, directo al login); en cualquier otra ruta privada, el login.
+  if (!user) {
+    if (location.pathname === '/' && displayMode() !== 'standalone') {
+      return (
+        <Suspense fallback={<Loading />}>
+          <Landing />
+        </Suspense>
+      )
+    }
+    return <Login />
+  }
   // Invitado que abrió el enlace pero no creó contraseña (cerró la pestaña): sin ella no podría entrar
   // desde la app instalada ni desde otro teléfono. Los que entran con Google no la necesitan.
   const meta = user.user_metadata ?? {}
@@ -114,6 +128,14 @@ function PublicShell() {
   )
 }
 
+/** /entrar: login al que llevan los CTA de la landing. Con sesión, al inicio. */
+function LoginRoute() {
+  const { user, loading } = useAuth()
+  if (loading) return <Loading />
+  if (user) return <Navigate to="/" replace />
+  return <Login />
+}
+
 /** /unete: con sesión no tiene sentido; se va al inicio. */
 function JoinRoute() {
   const { user, loading } = useAuth()
@@ -125,6 +147,7 @@ function JoinRoute() {
 function Root() {
   const desktop = useIsDesktop()
   const location = useLocation()
+  const { user, loading } = useAuth()
   // Vista previa con datos de ejemplo, solo en desarrollo (npm run dev): /preview?v=...
   if (import.meta.env.DEV && window.location.pathname.startsWith('/preview')) {
     return (
@@ -135,7 +158,10 @@ function Root() {
   }
   // En escritorio la app no se usa: se reemplaza por una invitación a abrirla en el teléfono (QR),
   // salvo en las rutas que tienen sentido en un computador.
-  if (desktop && !DESKTOP_OK.some((r) => r.test(location.pathname))) {
+  // La landing (`/` sin sesión) sí se muestra en escritorio: ahí sus CTA abren un QR hacia el teléfono.
+  const landing = location.pathname === '/' && !user
+  if (desktop && landing && loading) return <Loading />
+  if (desktop && !landing && !DESKTOP_OK.some((r) => r.test(location.pathname))) {
     return (
       <Suspense fallback={<Loading />}>
         <DesktopGate />
@@ -148,6 +174,7 @@ function Root() {
       <Route path="nueva-contrasena" element={<NewPassword />} />
       {/* Entrada a la beta por invitación (correo -> cuenta o lista de espera). */}
       <Route path="unete" element={<JoinRoute />} />
+      <Route path="entrar" element={<LoginRoute />} />
       <Route element={<PublicShell />}>
         <Route path="r/:slug" element={<FeaturedRecipePage />} />
         <Route path="c/:id" element={<PublicCoffeePage />} />
